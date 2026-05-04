@@ -57,6 +57,16 @@ function NumberLineComponent({ question, onResolve, disabled }: ExerciseComponen
   const { operandA, operandB, answer, meta } = question
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
+
+      {/* Equation — always visible */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38 }}>
+        <span style={{ color: '#4CC9F0' }}>{operandA}</span>
+        <span style={{ color: '#FF6B35' }}>+</span>
+        <span style={{ color: '#9B5DE5' }}>{operandB}</span>
+        <span style={{ color: '#CCC', fontSize: 32 }}>=</span>
+        <span style={{ color: '#FF6B35' }}>?</span>
+      </div>
+
       <NumberLineDisplay operandA={operandA} operandB={operandB} />
       <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} />
     </div>

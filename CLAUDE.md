@@ -54,6 +54,13 @@ npm run typecheck # tsc --noEmit
 npm run build     # production build
 ```
 
+## Exercise invariants (locked)
+
+- **The equation is always visible.** Every exercise shows `A + B = ?` — no exceptions.
+- **Reveal exercises build the equation piece by piece on a timer.** The sequence is: visual group A → `+` → visual group B → number A → `+` → number B → `= ?`. The child watches, input is locked until complete.
+- **Reveal detail is each exercise's own concern.** Which steps are included and their timing depends on exercise type and score. High score → no reveal, equation is instant.
+- **The visual is an illustration, not a gate.** Dots/scenes appear alongside their number, not instead of it.
+
 ## Key decisions (locked)
 
 - Multi-profile from day one, localStorage (storage.ts is the only layer to swap for a backend)
