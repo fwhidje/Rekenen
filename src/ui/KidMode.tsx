@@ -3,10 +3,9 @@ import type { Profile } from '../state/types'
 import type { ExerciseQuestion } from '../exercises/types'
 import { getExercise } from '../exercises/registry'
 import { selectExercise } from '../engine/exerciseSelector'
-import { applyCorrect, applyWrong } from '../engine/scoring'
 import { SKILLS } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
-import { updateSkillScore } from '../state/storage'
+import { recordAnswer } from '../state/storage'
 
 // Import exercises to register them
 import '../exercises/index'
@@ -48,7 +47,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setFeedback({ ok: correct, message: msg })
     setHistory(h => [...h, correct])
 
-    const updatedProfile = updateSkillScore(profile, question.skillId, correct, applyCorrect, applyWrong)
+    const updatedProfile = recordAnswer(profile, question.skillId, correct)
     onProfileUpdate(updatedProfile)
 
     setTimeout(() => nextQuestion(updatedProfile), correct ? 1100 : 2400)

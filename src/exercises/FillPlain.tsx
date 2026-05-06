@@ -39,7 +39,7 @@ function FillPlainComponent({ question, onResolve, disabled }: ExerciseComponent
 }
 
 const FillPlain: ExerciseDefinition<FillPlainMeta> = {
-  id: 'fill_plain',
+  id: 'fill-plain',
   label: 'Schrijf het antwoord',
   supportsReveal: false,
   generateMeta: () => ({}),
