@@ -27,7 +27,7 @@ function TrueFalseComponent({ question, onResolve, disabled }: ExerciseComponent
 }
 
 const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
-  id: 'true_false',
+  id: 'tf',
   label: 'Waar of niet waar?',
   supportsReveal: false,
 

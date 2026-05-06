@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import type { Operation } from '../curriculum/types'
 
 // ─── Question ────────────────────────────────────────────────────────────────
 // Every exercise operates on two operands and a known answer.
@@ -9,6 +10,7 @@ export interface ExerciseQuestion<Meta = Record<string, unknown>> {
   skillId: string
   operandA: number
   operandB: number
+  op: Operation
   answer: number
   meta: Meta
 }

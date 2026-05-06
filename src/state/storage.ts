@@ -1,7 +1,8 @@
 import type { AppState, Profile, SkillState } from './types'
-import { SKILLS, ROOT_SKILL_IDS } from '../curriculum/skills'
-import { UNLOCK_GRAPH } from '../curriculum/unlockGraph'
-import { UNLOCK_THRESHOLD } from '../engine/scoring'
+import { SKILLS } from '../curriculum/skills'
+import { applyCorrect, applyWrong } from '../engine/scoring'
+import { evaluateUnlocks } from '../engine/unlockEvaluator'
+import { evaluateSubsumes } from '../engine/subsumeEvaluator'
 
 const STORAGE_KEY = 'rekenen_v2'
 
@@ -10,21 +11,20 @@ const STORAGE_KEY = 'rekenen_v2'
 function defaultSkillStates(): Record<string, SkillState> {
   const states: Record<string, SkillState> = {}
   for (const skill of SKILLS) {
-    states[skill.id] = {
-      score: 0,
-      unlocked: ROOT_SKILL_IDS.includes(skill.id),
-    }
+    states[skill.id] = { score: 0, unlocked: false, archived: false }
   }
   return states
 }
 
 export function createProfile(name: string): Profile {
-  return {
+  const profile: Profile = {
     id: crypto.randomUUID(),
     name,
     createdAt: Date.now(),
     skills: defaultSkillStates(),
   }
+  // Apply initial unlocks (root skills with empty unlockedBy)
+  return applyEvaluations(profile)
 }
 
 function defaultAppState(): AppState {
@@ -47,32 +47,48 @@ export function saveAppState(state: AppState): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
-// ─── Profile helpers ──────────────────────────────────────────────────────────
+// ─── Score updates with unlock + subsume cascade ──────────────────────────────
 
-export function updateSkillScore(
-  profile: Profile,
-  skillId: string,
-  correct: boolean,
-  applyCorrect: (s: number) => number,
-  applyWrong: (s: number) => number,
-): Profile {
-  const current = profile.skills[skillId] ?? { score: 0, unlocked: false }
+export function recordAnswer(profile: Profile, skillId: string, correct: boolean): Profile {
+  const current = profile.skills[skillId]
+  if (!current) return profile
+
   const newScore = correct ? applyCorrect(current.score) : applyWrong(current.score)
 
-  const updatedSkills: Record<string, SkillState> = {
-    ...profile.skills,
-    [skillId]: { ...current, score: newScore },
+  const next: Profile = {
+    ...profile,
+    skills: {
+      ...profile.skills,
+      [skillId]: { ...current, score: newScore },
+    },
   }
 
-  // Unlock successors if threshold reached
-  if (newScore >= UNLOCK_THRESHOLD) {
-    const successors = UNLOCK_GRAPH[skillId] ?? []
-    for (const sId of successors) {
-      if (!updatedSkills[sId]?.unlocked) {
-        updatedSkills[sId] = { ...(updatedSkills[sId] ?? { score: 0 }), unlocked: true, unlockedAt: Date.now() }
-      }
+  return applyEvaluations(next)
+}
+
+// Walks unlock then subsume evaluators and applies their effects to the profile.
+// Done after any score change. Idempotent — safe to call multiple times.
+function applyEvaluations(profile: Profile): Profile {
+  const now = Date.now()
+  let updated = profile
+
+  const unlocks = evaluateUnlocks(updated, SKILLS)
+  if (unlocks.length > 0) {
+    const newSkills = { ...updated.skills }
+    for (const id of unlocks) {
+      newSkills[id] = { ...newSkills[id], unlocked: true, unlockedAt: now }
     }
+    updated = { ...updated, skills: newSkills }
   }
 
-  return { ...profile, skills: updatedSkills }
+  const archives = evaluateSubsumes(updated, SKILLS)
+  if (archives.length > 0) {
+    const newSkills = { ...updated.skills }
+    for (const id of archives) {
+      newSkills[id] = { ...newSkills[id], archived: true, archivedAt: now }
+    }
+    updated = { ...updated, skills: newSkills }
+  }
+
+  return updated
 }

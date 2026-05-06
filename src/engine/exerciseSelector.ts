@@ -1,7 +1,7 @@
-import type { SkillDefinition, WeightFunction } from '../curriculum/types'
+import type { SkillDefinition, Operation, WeightFunction } from '../curriculum/types'
 import type { Profile } from '../state/types'
 import type { ExerciseQuestion } from '../exercises/types'
-import { getExercise } from '../exercises/registry'
+import { getExercise, getAllExerciseIds } from '../exercises/registry'
 
 function weightedPick<T>(items: [T, number][]): T {
   const total = items.reduce((s, [, w]) => s + w, 0)
@@ -13,40 +13,61 @@ function weightedPick<T>(items: [T, number][]): T {
   return items[0][0]
 }
 
-function rnd(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min
+function computeAnswer(a: number, b: number, op: Operation): number {
+  switch (op) {
+    case '+':     return a + b
+    case '-':     return a - b
+    case 'split': return a + b   // total of the two parts
+    case 'count': return a       // for getalbegrip, the value itself
+    case 'half':  return b       // generator returns a=total, b=half
+  }
 }
 
-// Pick a random unlocked skill, then pick an exercise type via the weight matrix,
-// then generate the question. Returns null if there are no unlocked skills.
+// Selects a skill, an exercise type for that skill at the current score,
+// and generates the question. Returns null when nothing is playable.
 export function selectExercise(
   profile: Profile,
   skills: SkillDefinition[],
   getWeights: WeightFunction,
 ): ExerciseQuestion | null {
-  const unlocked = skills.filter(s => profile.skills[s.id]?.unlocked)
-  if (unlocked.length === 0) return null
+  const registered = new Set(getAllExerciseIds())
 
-  // For now: uniform random skill selection. Scheduler improvements go here later.
-  const skill = unlocked[Math.floor(Math.random() * unlocked.length)]
+  // Available skills: unlocked, not archived, with at least one applicable exercise registered.
+  const available = skills.filter(skill => {
+    const state = profile.skills[skill.id]
+    if (!state?.unlocked || state.archived) return false
+    return skill.applicableExercises.some(id => registered.has(id))
+  })
+  if (available.length === 0) return null
+
+  // Uniform skill pick for now. Scheduler refinements go here later.
+  const skill = available[Math.floor(Math.random() * available.length)]
   const score = profile.skills[skill.id]?.score ?? 0
 
+  // Intersect: skill's applicable list × registered × non-zero global weight
   const weights = getWeights(score)
-  const exerciseId = weightedPick(Object.entries(weights).map(([id, w]) => [id, w] as [string, number]))
+  const candidates: [string, number][] = []
+  for (const exId of skill.applicableExercises) {
+    if (!registered.has(exId)) continue
+    const w = weights[exId] ?? 0
+    if (w > 0) candidates.push([exId, w])
+  }
+  if (candidates.length === 0) return null
 
-  const operandA = rnd(skill.minA, skill.maxA)
-  const maxB = Math.min(skill.maxB, skill.maxSum - operandA)
-  const operandB = rnd(skill.minB, Math.max(skill.minB, maxB))
-
+  const exerciseId = weightedPick(candidates)
   const def = getExercise(exerciseId)
-  const meta = def.generateMeta(operandA, operandB, score)
+
+  const { a, b, op } = skill.generate()
+  const answer = computeAnswer(a, b, op)
+  const meta = def.generateMeta(a, b, score)
 
   return {
     exerciseId,
     skillId: skill.id,
-    operandA,
-    operandB,
-    answer: operandA + operandB,
+    operandA: a,
+    operandB: b,
+    op,
+    answer,
     meta,
   }
 }

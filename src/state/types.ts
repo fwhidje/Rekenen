@@ -1,9 +1,11 @@
-// ─── Per-skill runtime state ───────────────────────────────────────────────────
+// ─── Per-skill runtime state ──────────────────────────────────────────────────
 
 export interface SkillState {
-  score: number        // 0–50
+  score: number          // 0–50
   unlocked: boolean
-  unlockedAt?: number  // timestamp, for future history
+  archived: boolean      // subsumed by a parent and removed from rotation
+  unlockedAt?: number    // timestamp
+  archivedAt?: number    // timestamp
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────

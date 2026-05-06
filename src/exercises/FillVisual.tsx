@@ -132,7 +132,7 @@ function FillVisualComponent({ question, onResolve, disabled }: ExerciseComponen
 // ─── Definition ───────────────────────────────────────────────────────────────
 
 const FillVisual: ExerciseDefinition<FillVisualMeta> = {
-  id: 'fill_visual',
+  id: 'fill-vis',
   label: 'Tel en tel op',
   supportsReveal: true,
 

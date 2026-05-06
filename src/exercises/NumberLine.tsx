@@ -74,7 +74,7 @@ function NumberLineComponent({ question, onResolve, disabled }: ExerciseComponen
 }
 
 const NumberLine: ExerciseDefinition<NumberLineMeta> = {
-  id: 'number_line',
+  id: 'numberline-jump',
   label: 'Spring op de getallenlijn',
   supportsReveal: false,
   generateMeta(operandA, operandB) {
