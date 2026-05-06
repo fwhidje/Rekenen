@@ -3,13 +3,13 @@ import type { AppState } from '../state/types'
 import { loadAppState, saveAppState, createProfile } from '../state/storage'
 import { KidMode } from './KidMode'
 import { AdminMode } from './AdminMode'
+import { DebugMode } from './DebugMode'
 
-type Screen = 'kid' | 'admin'
+type Screen = 'kid' | 'admin' | 'debug'
 
 export function App() {
   const [appState, setAppState] = useState<AppState>(() => {
     const loaded = loadAppState()
-    // First run: create a default profile so the kid can start immediately
     if (loaded.profiles.length === 0) {
       const profile = createProfile('Speler 1')
       return { profiles: [profile], activeProfileId: profile.id }
@@ -18,26 +18,21 @@ export function App() {
   })
   const [screen, setScreen] = useState<Screen>('kid')
 
-  // Persist on every state change
   useEffect(() => { saveAppState(appState) }, [appState])
 
   const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId)
 
-  if (!activeProfile) {
-    return <AdminMode
-      appState={appState}
-      onSelectProfile={id => setAppState(s => ({ ...s, activeProfileId: id }))}
-      onClose={() => setScreen('kid')}
-      onAppStateChange={next => { setAppState(next); saveAppState(next) }}
-    />
+  if (screen === 'debug') {
+    return <DebugMode onClose={() => setScreen('admin')} />
   }
 
-  if (screen === 'admin') {
+  if (!activeProfile || screen === 'admin') {
     return <AdminMode
       appState={appState}
       onSelectProfile={id => setAppState(s => ({ ...s, activeProfileId: id }))}
       onClose={() => setScreen('kid')}
       onAppStateChange={next => { setAppState(next); saveAppState(next) }}
+      onOpenDebug={() => setScreen('debug')}
     />
   }
 

@@ -1,7 +1,8 @@
-import type { SkillDefinition, Operation, WeightFunction } from '../curriculum/types'
+import type { SkillDefinition, WeightFunction } from '../curriculum/types'
 import type { Profile } from '../state/types'
 import type { ExerciseQuestion } from '../exercises/types'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
+import { computeAnswer } from './answer'
 
 function weightedPick<T>(items: [T, number][]): T {
   const total = items.reduce((s, [, w]) => s + w, 0)
@@ -11,16 +12,6 @@ function weightedPick<T>(items: [T, number][]): T {
     if (r <= 0) return item
   }
   return items[0][0]
-}
-
-function computeAnswer(a: number, b: number, op: Operation): number {
-  switch (op) {
-    case '+':     return a + b
-    case '-':     return a - b
-    case 'split': return a + b   // total of the two parts
-    case 'count': return a       // for getalbegrip, the value itself
-    case 'half':  return b       // generator returns a=total, b=half
-  }
 }
 
 // Selects a skill, an exercise type for that skill at the current score,
