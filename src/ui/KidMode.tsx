@@ -54,9 +54,27 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   }, [feedback, question, profile, onProfileUpdate, nextQuestion])
 
   if (!question) {
-    return <div style={{ textAlign: 'center', fontFamily: 'Fredoka One, cursive', fontSize: 24, padding: 40 }}>
-      Geen oefeningen beschikbaar.
-    </div>
+    return (
+      <div style={{
+        minHeight: '100vh', background: 'linear-gradient(150deg,#FFF9F2,#FFF0FA)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
+      }}>
+        <div style={{ width: '100%', maxWidth: 430, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 22, fontFamily: 'Fredoka One, cursive', color: '#FF6B35' }}>
+            Rekenen 🧮
+          </div>
+          <button onClick={onOpenAdmin} style={{
+            background: 'white', border: '2px solid #EEE', borderRadius: 12,
+            padding: '6px 14px', fontFamily: 'Fredoka One, cursive', fontSize: 14,
+            color: '#888', cursor: 'pointer',
+          }}>⚙️ Opties</button>
+        </div>
+        <div style={{ marginTop: 60, textAlign: 'center', fontFamily: 'Fredoka One, cursive', fontSize: 22, color: '#888' }}>
+          Geen oefeningen beschikbaar.
+        </div>
+      </div>
+    )
   }
 
   const def = getExercise(question.exerciseId)
