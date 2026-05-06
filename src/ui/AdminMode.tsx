@@ -7,9 +7,10 @@ interface Props {
   onSelectProfile: (profileId: string) => void
   onClose: () => void
   onAppStateChange: (next: AppState) => void
+  onOpenDebug: () => void
 }
 
-export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange }: Props) {
+export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange, onOpenDebug }: Props) {
   const addProfile = () => {
     const name = prompt('Naam van het kind:')
     if (!name?.trim()) return
@@ -53,6 +54,16 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
             background: 'white', border: '2px dashed #CCC', borderRadius: 16,
             color: '#999', cursor: 'pointer',
           }}>+ Nieuw profiel</button>
+        </section>
+
+        <section style={{ marginBottom: 28 }}>
+          <h2 style={{ fontFamily: 'Fredoka One, cursive', fontSize: 18, color: '#666', marginBottom: 12 }}>Ontwikkelaars</h2>
+          <button onClick={onOpenDebug} style={{
+            width: '100%', padding: '12px',
+            fontFamily: 'Fredoka One, cursive', fontSize: 16,
+            background: '#4CC9F0', color: 'white', border: 'none', borderRadius: 16,
+            cursor: 'pointer', boxShadow: '0 4px 14px rgba(76,201,240,.35)',
+          }}>🛠 Debug oefeningen</button>
         </section>
       </div>
     </div>
