@@ -2,6 +2,88 @@
 
 Dutch math practice app for a young child. Addition + subtraction + splitsen (v2). React + Vite + TypeScript.
 
+---
+
+## ★ NEXT SESSION TASK — Round 2: implement all exercise types
+
+**Branch**: `claude/general-session-N7TgS`
+
+Round 1 (done): curriculum data, engine, DebugMode. All 21 skills defined in `skills.ts`. Seven exercise types exist as stubs or partial implementations. **Round 2 goal: implement every exercise type so each is fully playable in DebugMode.**
+
+### What exists already (7 types)
+
+| ID | File | Status |
+|---|---|---|
+| `fill-vis` | `src/exercises/FillVisual.tsx` | Works for `+` only — needs `-`, `split`, `count`, `half` |
+| `fill-plain` | `src/exercises/FillPlain.tsx` | Works for `+` only — same |
+| `choice` | `src/exercises/Choice.tsx` | Works for `+` only — same |
+| `tf` | `src/exercises/TrueFalse.tsx` | Works for `+` only — same |
+| `collect-tap` | `src/exercises/CollectTap.tsx` | Works for `+` only — same |
+| `collect-counter` | `src/exercises/CollectCounter.tsx` | Works for `+` only — same |
+| `numberline-jump` | `src/exercises/NumberLine.tsx` | Works for `+` only — same |
+
+The `op` field on `ExerciseQuestion` tells each exercise what operation it's showing. All exercises must branch on `op` to render correctly for subtraction (`-`), splitsen (`split`), count (`count`), and half (`half`) skills.
+
+### What needs building (new files, 23 types)
+
+Build in this order — each group reuses primitives introduced by the previous:
+
+**Pass 1 — number-sense primitives** (new presentation components, no arithmetic):
+1. `count-and-tap` → `src/exercises/CountAndTap.tsx`
+2. `dot-pattern-recognise` → `src/exercises/DotPatternRecognise.tsx`
+3. `finger-pattern-recognise` → `src/exercises/FingerPatternRecognise.tsx`
+4. `numberline-place` → `src/exercises/NumberlinePlace.tsx`
+5. `compare-more-less` → `src/exercises/CompareMoreLess.tsx`
+6. `ten-frame-show` → `src/exercises/TenFrameShow.tsx`
+7. `rekenrek-show` → `src/exercises/RekenrekShow.tsx`
+
+**Pass 2 — splitsen family** (shared splitshuisje / splitsbenen shapes go in `src/presentation/components/`):
+8. `splitshuisje` → `src/exercises/Splitshuisje.tsx`
+9. `splitsbenen` → `src/exercises/Splitsbenen.tsx`
+10. `splits-ontbreken-rechts` → `src/exercises/SplitsOntbrekenRechts.tsx`
+11. `splits-ontbreken-links` → `src/exercises/SplitsOntbrekenLinks.tsx`
+12. `splits-vrij` → `src/exercises/SplitsVrij.tsx`
+13. `splits-alle` → `src/exercises/SplitsAlle.tsx`
+14. `dot-pattern-decompose` → `src/exercises/DotPatternDecompose.tsx`
+15. `rekenrek-decompose` → `src/exercises/RekenrekDecompose.tsx`
+
+**Pass 3 — fix existing 7 for non-`+` ops** (FillVisual, FillPlain, Choice, TF, CollectTap, CollectCounter, NumberLine):
+- Branch on `question.op` to show correct equation format per operation
+- `-`: show `a − b = ?`; `split`: show `a + b = ?` or `total = ? + ?`; `count`: show `Hoeveel?`; `half`: show `helft van a = ?`
+
+**Pass 4 — optellen extras**:
+16. `rekenrek-add` → `src/exercises/RekenrekAdd.tsx`
+17. `dubbel-recognise` → `src/exercises/DubbelRecognise.tsx`
+
+**Pass 5 — aftrekken-specific**:
+18. `wegnemen-crossed-out` → `src/exercises/WegnemenCrossedOut.tsx`
+19. `verschil-two-groups` → `src/exercises/VerschilTwoGroups.tsx`
+20. `verschil-rekenrek` → `src/exercises/VerschilRekenrek.tsx`
+21. `aanvullen-target` → `src/exercises/AanvullenTarget.tsx`
+22. `numberline-jump-back` → `src/exercises/NumberlineJumpBack.tsx`
+23. `numberline-jump-up-from-b` → `src/exercises/NumberlineJumpUpFromB.tsx`
+24. `collect-counter-down` → `src/exercises/CollectCounterDown.tsx`
+
+**Pass 6 — tienvrienden & helften**:
+25. `tienveld-fill` → `src/exercises/TienveldFill.tsx`
+26. `rekenrek-make-ten` → `src/exercises/RekenrekMakeTen.tsx`
+27. `splits-helft` → `src/exercises/SplitsHelft.tsx`
+
+### Per-exercise ritual
+
+1. Create the file, implement, register via `registerExercise()`
+2. Add its id to `src/exercises/index.ts`
+3. Add a weight entry in `src/curriculum/weightMatrix.ts` (so it actually gets picked)
+4. Run `npm run typecheck` — fix any errors
+5. Test in DebugMode at scores 0, 25, 50 — check reveal/input/feedback all work
+6. Commit: `feat: add <exercise-id> exercise`
+
+### Adding weights
+
+When adding new exercise types, add them to `src/curriculum/weightMatrix.ts`. The current file only has weights for the 7 existing types — new types default to 0 and won't be picked until you add them. For number-sense exercises a simple flat weight of ~20 across all scores is fine for now; Round 3 will tune per-skill.
+
+---
+
 ## Reference docs (in repo root)
 
 - **`rekenen_v2_skill_exercise_map.md`** — authoritative skill graph, exercise type catalog, error taxonomy. **Takes precedence over older docs** when there's any conflict.
