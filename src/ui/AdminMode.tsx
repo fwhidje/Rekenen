@@ -22,6 +22,16 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
     })
   }
 
+  const deleteProfile = (id: string) => {
+    const profile = appState.profiles.find(p => p.id === id)
+    if (!confirm(`Profiel "${profile?.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return
+    const remaining = appState.profiles.filter(p => p.id !== id)
+    const activeProfileId = appState.activeProfileId === id
+      ? (remaining[0]?.id ?? null)
+      : appState.activeProfileId
+    onAppStateChange({ ...appState, profiles: remaining, activeProfileId })
+  }
+
   return (
     <div style={{
       minHeight: '100vh', background: '#F8F4FF',
@@ -46,6 +56,7 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
               profile={profile}
               active={profile.id === appState.activeProfileId}
               onSelect={() => { onSelectProfile(profile.id); onClose() }}
+              onDelete={() => deleteProfile(profile.id)}
             />
           ))}
           <button onClick={addProfile} style={{
@@ -70,21 +81,28 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
   )
 }
 
-function ProfileCard({ profile, active, onSelect }: { profile: Profile; active: boolean; onSelect: () => void }) {
+function ProfileCard({ profile, active, onSelect, onDelete }: { profile: Profile; active: boolean; onSelect: () => void; onDelete: () => void }) {
   return (
-    <div onClick={onSelect} style={{
+    <div style={{
       background: active ? '#FFF0E8' : 'white',
       border: `2px solid ${active ? '#FF6B35' : '#EEE'}`,
       borderRadius: 16, padding: '12px 16px', marginBottom: 8,
-      cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     }}>
-      <div>
+      <div onClick={onSelect} style={{ cursor: 'pointer', flex: 1 }}>
         <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 18, color: '#333' }}>{profile.name}</div>
         <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>
           {SKILLS.filter(s => profile.skills[s.id]?.unlocked).length} / {SKILLS.length} vaardigheden ontgrendeld
         </div>
       </div>
-      {active && <span style={{ fontFamily: 'Fredoka One, cursive', color: '#FF6B35', fontSize: 14 }}>Actief</span>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {active && <span style={{ fontFamily: 'Fredoka One, cursive', color: '#FF6B35', fontSize: 14 }}>Actief</span>}
+        <button onClick={e => { e.stopPropagation(); onDelete() }} style={{
+          background: 'none', border: '1.5px solid #EEE', borderRadius: 8,
+          padding: '4px 8px', cursor: 'pointer', fontSize: 16, color: '#CCC',
+          lineHeight: 1,
+        }}>🗑</button>
+      </div>
     </div>
   )
 }
