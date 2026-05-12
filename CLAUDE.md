@@ -7,6 +7,7 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 ## Long-term backlog
 
 - **Skill / exercise introduction flow** — when a new skill unlocks or a new exercise type is encountered for the first time, show a brief intro so the child knows what to do. Could be a short animation, a "Nieuw!" badge, or a guided first attempt.
+- **Themed sessions** — lock a visual theme (background + item/emoji set) for a session or N rounds instead of randomising per question. Keeps the visual context consistent and less distracting.
 
 ---
 
