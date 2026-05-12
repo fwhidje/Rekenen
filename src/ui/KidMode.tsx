@@ -30,11 +30,13 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   )
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [history, setHistory] = useState<boolean[]>([])
+  const [qKey, setQKey] = useState(0)
 
   const nextQuestion = useCallback((updatedProfile: Profile) => {
     const next = selectExercise(updatedProfile, SKILLS, getWeights)
     setQuestion(next)
     setFeedback(null)
+    setQKey(k => k + 1)
   }, [])
 
   const handleResolve = useCallback((correct: boolean) => {
@@ -99,7 +101,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       </div>
 
       {/* Exercise card */}
-      <div style={{
+      <div key={qKey} style={{
         width: '100%', maxWidth: 430, background: 'white', borderRadius: 28,
         padding: '22px 18px 26px',
         boxShadow: feedback
