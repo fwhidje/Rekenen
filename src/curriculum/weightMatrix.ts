@@ -11,7 +11,7 @@ export const getWeights: WeightFunction = (score: number) => {
 
   return {
     'count-and-tap':           20,
-    'dot-pattern-recognise':   lerp(0, 25, t),
+    'dot-pattern-recognise':   t < 0.24 ? 0 : lerp(0, 25, t),
     'fill-vis':         lerp(40, 5,  t),
     'fill-plain':       lerp(0,  60, t),
     'choice':           lerp(25, 15, t),
