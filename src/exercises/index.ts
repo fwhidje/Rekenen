@@ -2,6 +2,7 @@
 // Add new exercise types here — that's the only registration needed.
 import './CountAndTap'
 import './DotPatternRecognise'
+import './FingerPatternRecognise'
 import './FillVisual'
 import './FillPlain'
 import './Choice'
