@@ -1,5 +1,6 @@
 // Import all exercise modules to trigger their registerExercise() calls.
 // Add new exercise types here — that's the only registration needed.
+import './CountAndTap'
 import './FillVisual'
 import './FillPlain'
 import './Choice'
