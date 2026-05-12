@@ -4,6 +4,12 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 ---
 
+## Long-term backlog
+
+- **Skill / exercise introduction flow** — when a new skill unlocks or a new exercise type is encountered for the first time, show a brief intro so the child knows what to do. Could be a short animation, a "Nieuw!" badge, or a guided first attempt.
+
+---
+
 ## ★ NEXT SESSION TASK — Round 2: implement all exercise types
 
 **Branch**: `claude/general-session-N7TgS`

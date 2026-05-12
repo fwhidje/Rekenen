@@ -97,25 +97,40 @@ function CountAndTapComponent({ question, onResolve }: ExerciseComponentProps<Co
 
   // ── Emoji style ───────────────────────────────────────────────────────────
   if (meta.style === 'emoji') {
+    const row1 = Math.min(operandA, 5)
+    const row2 = operandA - row1
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        <div style={{
-          background: scene.bg, borderRadius: 16, padding: '14px 18px',
-          display: 'flex', flexWrap: 'wrap', gap: 10,
-          justifyContent: 'center', maxWidth: 300,
-        }}>
-          {Array.from({ length: operandA }, (_, i) => (
-            <span key={i} onClick={() => tap(i)} style={{
-              fontSize: 38, cursor: 'pointer', display: 'inline-block',
-              opacity: tapped.has(i) ? 0 : 1,
-              transform: tapped.has(i) ? 'scale(0) rotate(15deg)' : 'scale(1)',
-              transition: 'opacity .2s, transform .25s',
-            }}>{scene.e}</span>
-          ))}
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           {targetBox}
           <CounterChip count={tapped.size} />
+        </div>
+        <div style={{ background: scene.bg, borderRadius: 16, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {Array.from({ length: row1 }, (_, i) => (
+              <span key={i} onClick={() => tap(i)} style={{
+                fontSize: 38, cursor: 'pointer', display: 'inline-block',
+                opacity: tapped.has(i) ? 0 : 1,
+                transform: tapped.has(i) ? 'scale(0) rotate(15deg)' : 'scale(1)',
+                transition: 'opacity .2s, transform .25s',
+              }}>{scene.e}</span>
+            ))}
+          </div>
+          {row2 > 0 && (
+            <div style={{ display: 'flex', gap: 10 }}>
+              {Array.from({ length: row2 }, (_, j) => {
+                const i = 5 + j
+                return (
+                  <span key={i} onClick={() => tap(i)} style={{
+                    fontSize: 38, cursor: 'pointer', display: 'inline-block',
+                    opacity: tapped.has(i) ? 0 : 1,
+                    transform: tapped.has(i) ? 'scale(0) rotate(15deg)' : 'scale(1)',
+                    transition: 'opacity .2s, transform .25s',
+                  }}>{scene.e}</span>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -126,28 +141,29 @@ function CountAndTapComponent({ question, onResolve }: ExerciseComponentProps<Co
     const positions = DOT_POS[operandA] ?? []
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        <div style={{
-          position: 'relative', width: 130, height: 130,
-          background: '#F7F7F7', borderRadius: 16,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          {targetBox}
+          <CounterChip count={tapped.size} />
+        </div>
+        <div style={{ position: 'relative', width: 130, height: 130, background: '#F7F7F7', borderRadius: 16 }}>
           {positions.map(([x, y], i) => (
             <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}>
               <TapDot tapped={tapped.has(i)} onClick={() => tap(i)} color='#4CC9F0' />
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {targetBox}
-          <CounterChip count={tapped.size} />
-        </div>
       </div>
     )
   }
 
   // 6–10: two rows, top row = 5 (red), bottom row = n-5 (purple), 5-structure
-  const row2 = operandA - 5
+  const row2count = operandA - 5
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {targetBox}
+        <CounterChip count={tapped.size} />
+      </div>
       <div style={{
         background: '#F7F7F7', borderRadius: 16, padding: '14px 16px',
         display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
@@ -158,15 +174,11 @@ function CountAndTapComponent({ question, onResolve }: ExerciseComponentProps<Co
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {Array.from({ length: row2 }, (_, j) => {
+          {Array.from({ length: row2count }, (_, j) => {
             const i = 5 + j
             return <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color='#9B5DE5' />
           })}
         </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        {targetBox}
-        <CounterChip count={tapped.size} />
       </div>
     </div>
   )
