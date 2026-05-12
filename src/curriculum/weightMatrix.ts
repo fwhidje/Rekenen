@@ -10,6 +10,7 @@ export const getWeights: WeightFunction = (score: number) => {
   const t = score / 50
 
   return {
+    'count-and-tap':    20,
     'fill-vis':         lerp(40, 5,  t),
     'fill-plain':       lerp(0,  60, t),
     'choice':           lerp(25, 15, t),
