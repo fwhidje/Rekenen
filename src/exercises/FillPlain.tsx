@@ -7,6 +7,13 @@ interface FillPlainMeta {
   _unused?: never
 }
 
+// Nature palette constants
+const INK    = '#3d2f1e'
+const CREAM  = 'rgba(244,236,216,0.94)'
+const POLLEN = '#c79023'
+const PLUM   = '#8a5a99'
+const LEAF   = '#7a9a3a'
+
 function FillPlainComponent({ question, onResolve, disabled }: ExerciseComponentProps<FillPlainMeta>) {
   const [input, setInput] = useState('')
   const { operandA, operandB, answer } = question
@@ -19,17 +26,26 @@ function FillPlainComponent({ question, onResolve, disabled }: ExerciseComponent
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontFamily: 'Fredoka One, cursive', fontSize: 60 }}>
-        <span style={{ color: '#4CC9F0' }}>{operandA}</span>
-        <span style={{ color: '#FF6B35' }}>+</span>
-        <span style={{ color: '#9B5DE5' }}>{operandB}</span>
-        <span style={{ color: '#CCC', fontSize: 50 }}>=</span>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
+      {/* Cream paper banner — equation */}
+      <div style={{
+        background: CREAM, border: `2px solid ${INK}`, borderRadius: 18,
+        padding: '10px 22px 12px',
+        display: 'flex', alignItems: 'center', gap: 12,
+        boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
+      }}>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: POLLEN, lineHeight: 1 }}>{operandA}</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: INK, lineHeight: 1 }}>+</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: PLUM, lineHeight: 1 }}>{operandB}</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: INK, lineHeight: 1, opacity: 0.5 }}>=</span>
         <div style={{
-          minWidth: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: input ? '#FF6B35' : '#F5F5F5', color: input ? 'white' : '#CCC',
-          borderRadius: 14, fontSize: 50,
-          boxShadow: input ? '0 4px 14px rgba(255,107,53,.4)' : 'none',
+          minWidth: 52, height: 52,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: input ? LEAF : '#f0b932',
+          color: 'white',
+          borderRadius: 12, border: `2px solid ${INK}`,
+          fontFamily: 'Fredoka One, cursive', fontSize: 34,
+          boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)',
           transition: 'background .18s',
         }}>{input || '?'}</div>
       </div>
