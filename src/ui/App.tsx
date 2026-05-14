@@ -4,6 +4,7 @@ import { loadAppState, saveAppState, createProfile } from '../state/storage'
 import { KidMode } from './KidMode'
 import { AdminMode } from './AdminMode'
 import { DebugMode } from './DebugMode'
+import { SharedDefs } from '../presentation/nature/Defs'
 
 type Screen = 'kid' | 'admin' | 'debug'
 
@@ -23,29 +24,32 @@ export function App() {
   const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId)
 
   if (screen === 'debug') {
-    return <DebugMode onClose={() => setScreen('admin')} />
+    return <><SharedDefs /><DebugMode onClose={() => setScreen('admin')} /></>
   }
 
   if (!activeProfile || screen === 'admin') {
-    return <AdminMode
+    return <><SharedDefs /><AdminMode
       appState={appState}
       onSelectProfile={id => setAppState(s => ({ ...s, activeProfileId: id }))}
       onClose={() => setScreen('kid')}
       onAppStateChange={next => { setAppState(next); saveAppState(next) }}
       onOpenDebug={() => setScreen('debug')}
-    />
+    /></>
   }
 
   return (
-    <KidMode
-      profile={activeProfile}
-      onProfileUpdate={updated => {
-        setAppState(s => ({
-          ...s,
-          profiles: s.profiles.map(p => p.id === updated.id ? updated : p),
-        }))
-      }}
-      onOpenAdmin={() => setScreen('admin')}
-    />
+    <>
+      <SharedDefs />
+      <KidMode
+        profile={activeProfile}
+        onProfileUpdate={updated => {
+          setAppState(s => ({
+            ...s,
+            profiles: s.profiles.map(p => p.id === updated.id ? updated : p),
+          }))
+        }}
+        onOpenAdmin={() => setScreen('admin')}
+      />
+    </>
   )
 }

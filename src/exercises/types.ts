@@ -1,9 +1,10 @@
 import type { ComponentType } from 'react'
 import type { Operation } from '../curriculum/types'
+import type { ExerciseScene } from '../presentation/themes'
+
+export type { ExerciseScene }
 
 // ─── Question ────────────────────────────────────────────────────────────────
-// Every exercise operates on two operands and a known answer.
-// Each exercise type may carry extra data in `meta` (typed via the generic).
 
 export interface ExerciseQuestion<Meta = Record<string, unknown>> {
   exerciseId: string
@@ -16,13 +17,12 @@ export interface ExerciseQuestion<Meta = Record<string, unknown>> {
 }
 
 // ─── Component contract ───────────────────────────────────────────────────────
-// Every exercise renders via a component that receives this shape.
-// `onResolve` is the only way an exercise signals completion.
 
 export interface ExerciseComponentProps<Meta = Record<string, unknown>> {
   question: ExerciseQuestion<Meta>
   onResolve: (correct: boolean) => void
   disabled: boolean
+  scene?: ExerciseScene
 }
 
 // ─── Definition ───────────────────────────────────────────────────────────────

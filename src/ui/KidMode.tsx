@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type { Profile } from '../state/types'
 import type { ExerciseQuestion } from '../exercises/types'
 import { getExercise } from '../exercises/registry'
@@ -6,9 +6,13 @@ import { selectExercise } from '../engine/exerciseSelector'
 import { SKILLS } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
+import { THEMES } from '../presentation/themes'
 
 // Import exercises to register them
 import '../exercises/index'
+
+const THEME_ROUNDS    = 10  // switch theme every N rounds
+const BG_ROUNDS       =  5  // switch background within theme every N rounds
 
 const PRAISE = ['Geweldig!', 'Super!', 'Waanzinnig!', 'Fantastisch!', 'Bravo!', 'Perfect!', 'Top!', 'Goed zo!']
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
@@ -31,12 +35,23 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [history, setHistory] = useState<boolean[]>([])
   const [qKey, setQKey] = useState(0)
+  const [roundsDone, setRoundsDone] = useState(0)
+  const [counterIdx, setCounterIdx] = useState(0)
 
-  const nextQuestion = useCallback((updatedProfile: Profile) => {
+  const theme = THEMES[Math.floor(roundsDone / THEME_ROUNDS) % THEMES.length]
+  const bgIdx = Math.floor(roundsDone / BG_ROUNDS) % theme.backgrounds.length
+  const { Background, containerBg } = theme.backgrounds[bgIdx]
+  const Counter = theme.counters[counterIdx]
+  const scene = useMemo(() => ({ Counter, containerBg }), [Counter, containerBg])
+
+  const nextQuestion = useCallback((updatedProfile: Profile, completed: number) => {
     const next = selectExercise(updatedProfile, SKILLS, getWeights)
     setQuestion(next)
     setFeedback(null)
     setQKey(k => k + 1)
+    setRoundsDone(completed)
+    // rotate counter on every question
+    setCounterIdx(i => (i + 1) % THEMES[Math.floor(completed / THEME_ROUNDS) % THEMES.length].counters.length)
   }, [])
 
   const handleResolve = useCallback((correct: boolean) => {
@@ -51,8 +66,8 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
 
     const updatedProfile = recordAnswer(profile, question.skillId, correct)
     onProfileUpdate(updatedProfile)
-
-    setTimeout(() => nextQuestion(updatedProfile), correct ? 1100 : 2400)
+    const completed = roundsDone + 1
+    setTimeout(() => nextQuestion(updatedProfile, completed), correct ? 1100 : 2400)
   }, [feedback, question, profile, onProfileUpdate, nextQuestion])
 
   if (!question) {
@@ -83,10 +98,12 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const ExerciseComponent = def.Component
 
   return (
+    <Background style={{ minHeight: '100vh' }}>
     <div style={{
-      minHeight: '100vh', background: 'linear-gradient(150deg,#FFF9F2,#FFF0FA)',
+      minHeight: '100vh',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
+      position: 'relative', zIndex: 1,
     }}>
       {/* Header */}
       <div style={{ width: '100%', maxWidth: 430, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
@@ -116,6 +133,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
           question={question}
           onResolve={handleResolve}
           disabled={!!feedback}
+          scene={scene}
         />
 
         {/* Feedback overlay */}
@@ -145,5 +163,6 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
         </div>
       )}
     </div>
+    </Background>
   )
 }

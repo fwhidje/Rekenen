@@ -64,11 +64,11 @@ function TapDot({ tapped, onClick, color }: { tapped: boolean; onClick: () => vo
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-function CountAndTapComponent({ question, onResolve }: ExerciseComponentProps<CountAndTapMeta>) {
+function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentProps<CountAndTapMeta>) {
   const { operandA, meta } = question
   const [tapped, setTapped] = useState(new Set<number>())
   const done = tapped.size === operandA
-  const scene = pickScene(meta.sceneIndex)
+  const legacyScene = pickScene(meta.sceneIndex)
 
   useEffect(() => {
     if (done) {
@@ -95,40 +95,45 @@ function CountAndTapComponent({ question, onResolve }: ExerciseComponentProps<Co
     }}>{operandA}</div>
   )
 
-  // ── Emoji style ───────────────────────────────────────────────────────────
+  // ── Emoji / counter style ─────────────────────────────────────────────────
   if (meta.style === 'emoji') {
     const row1 = Math.min(operandA, 5)
     const row2 = operandA - row1
+    const Counter = scene?.Counter
+    const containerBg = scene?.containerBg ?? legacyScene.bg
+
+    const renderItem = (i: number) => {
+      const isTapped = tapped.has(i)
+      const itemStyle: React.CSSProperties = {
+        cursor: 'pointer',
+        opacity: isTapped ? 0 : 1,
+        transform: isTapped ? 'scale(0) rotate(15deg)' : 'scale(1)',
+        transition: 'opacity .2s, transform .25s',
+      }
+      return Counter ? (
+        <div key={i} onClick={() => tap(i)} style={itemStyle}>
+          <Counter size={42} />
+        </div>
+      ) : (
+        <span key={i} onClick={() => tap(i)} style={{ fontSize: 38, display: 'inline-block', ...itemStyle }}>
+          {legacyScene.e}
+        </span>
+      )
+    }
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           {targetBox}
           <CounterChip count={tapped.size} />
         </div>
-        <div style={{ background: scene.bg, borderRadius: 16, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+        <div style={{ background: containerBg, borderRadius: 16, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            {Array.from({ length: row1 }, (_, i) => (
-              <span key={i} onClick={() => tap(i)} style={{
-                fontSize: 38, cursor: 'pointer', display: 'inline-block',
-                opacity: tapped.has(i) ? 0 : 1,
-                transform: tapped.has(i) ? 'scale(0) rotate(15deg)' : 'scale(1)',
-                transition: 'opacity .2s, transform .25s',
-              }}>{scene.e}</span>
-            ))}
+            {Array.from({ length: row1 }, (_, i) => renderItem(i))}
           </div>
           {row2 > 0 && (
             <div style={{ display: 'flex', gap: 10 }}>
-              {Array.from({ length: row2 }, (_, j) => {
-                const i = 5 + j
-                return (
-                  <span key={i} onClick={() => tap(i)} style={{
-                    fontSize: 38, cursor: 'pointer', display: 'inline-block',
-                    opacity: tapped.has(i) ? 0 : 1,
-                    transform: tapped.has(i) ? 'scale(0) rotate(15deg)' : 'scale(1)',
-                    transition: 'opacity .2s, transform .25s',
-                  }}>{scene.e}</span>
-                )
-              })}
+              {Array.from({ length: row2 }, (_, j) => renderItem(5 + j))}
             </div>
           )}
         </div>
