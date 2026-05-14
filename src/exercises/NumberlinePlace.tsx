@@ -10,13 +10,13 @@ function NumberlinePlaceComponent({ question, onResolve, disabled }: ExerciseCom
   const { operandA, answer, meta } = question
   const { showLabels, max } = meta
 
-  // Numbers 1..max, no zero
-  const numbers = Array.from({ length: max }, (_, i) => i + 1)
-  const cellW = Math.max(28, Math.min(44, Math.floor(300 / max)))
+  // Numbers 0..max
+  const numbers = Array.from({ length: max + 1 }, (_, i) => i)
+  const cellW = Math.max(26, Math.min(42, Math.floor(300 / (max + 1))))
 
   const labelFor = (n: number) => {
     if (showLabels) return String(n)
-    if (n === 1 || n === max) return String(n)
+    if (n === 0 || n === max) return String(n)
     return ''
   }
 
