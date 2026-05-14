@@ -68,27 +68,26 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     onProfileUpdate(updatedProfile)
     const completed = roundsDone + 1
     setTimeout(() => nextQuestion(updatedProfile, completed), correct ? 1100 : 2400)
-  }, [feedback, question, profile, onProfileUpdate, nextQuestion])
+  }, [feedback, question, profile, onProfileUpdate, nextQuestion, roundsDone])
 
   if (!question) {
     return (
-      <div style={{
-        minHeight: '100vh', background: 'linear-gradient(150deg,#FFF9F2,#FFF0FA)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
-      }}>
-        <div style={{ width: '100%', maxWidth: 430, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 22, fontFamily: 'Fredoka One, cursive', color: '#FF6B35' }}>
-            Rekenen 🧮
+      <div style={{ position: 'relative', minHeight: '100vh' }}>
+        <Background style={{ position: 'absolute', inset: 0 }} />
+        <div style={{
+          position: 'relative', zIndex: 3, minHeight: '100vh',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
+        }}>
+          <div style={{ width: '100%', maxWidth: 430, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <div style={{ fontSize: 22, fontFamily: 'Fredoka One, cursive', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,.35)' }}>
+              Rekenen 🧮
+            </div>
+            <button onClick={onOpenAdmin} style={optiesStyle}>⚙️ Opties</button>
           </div>
-          <button onClick={onOpenAdmin} style={{
-            background: 'white', border: '2px solid #EEE', borderRadius: 12,
-            padding: '6px 14px', fontFamily: 'Fredoka One, cursive', fontSize: 14,
-            color: '#888', cursor: 'pointer',
-          }}>⚙️ Opties</button>
-        </div>
-        <div style={{ marginTop: 60, textAlign: 'center', fontFamily: 'Fredoka One, cursive', fontSize: 22, color: '#888' }}>
-          Geen oefeningen beschikbaar.
+          <div style={{ marginTop: 60, textAlign: 'center', fontFamily: 'Fredoka One, cursive', fontSize: 22, color: 'white', textShadow: '0 1px 3px rgba(0,0,0,.4)' }}>
+            Geen oefeningen beschikbaar.
+          </div>
         </div>
       </div>
     )
@@ -98,71 +97,84 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const ExerciseComponent = def.Component
 
   return (
-    <Background style={{ minHeight: '100vh' }}>
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
-      position: 'relative', zIndex: 1,
-    }}>
-      {/* Header */}
-      <div style={{ width: '100%', maxWidth: 430, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ fontSize: 22, fontFamily: 'Fredoka One, cursive', color: '#FF6B35' }}>
-          Rekenen 🧮
-        </div>
-        <button onClick={onOpenAdmin} style={{
-          background: 'white', border: '2px solid #EEE', borderRadius: 12,
-          padding: '6px 14px', fontFamily: 'Fredoka One, cursive', fontSize: 14,
-          color: '#888', cursor: 'pointer',
-        }}>⚙️ Opties</button>
-      </div>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* Background scene — full bleed, no card frame */}
+      <Background style={{ position: 'absolute', inset: 0 }} />
 
-      {/* Exercise card */}
-      <div key={qKey} style={{
-        width: '100%', maxWidth: 430, background: 'white', borderRadius: 28,
-        padding: '22px 18px 26px',
-        boxShadow: feedback
-          ? `0 8px 32px ${feedback.ok ? '#06D6A044' : '#EF233C44'}, 0 0 0 3px ${feedback.ok ? '#06D6A0' : '#EF233C'}`
-          : '0 8px 30px rgba(0,0,0,.08)',
-        marginBottom: 16, minHeight: 200,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: 14, position: 'relative', overflow: 'hidden',
-        transition: 'box-shadow .3s',
+      {/* Top gradient — makes header readable over bright scenes */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 80, zIndex: 2,
+        background: 'linear-gradient(180deg, rgba(61,47,30,0.35), transparent)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Main content — exercise directly on background */}
+      <div style={{
+        position: 'relative', zIndex: 3,
+        minHeight: '100vh',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '18px 14px 24px', fontFamily: 'Nunito, sans-serif',
       }}>
-        <ExerciseComponent
-          question={question}
-          onResolve={handleResolve}
-          disabled={!!feedback}
-          scene={scene}
-        />
+        {/* Header */}
+        <div style={{ width: '100%', maxWidth: 430, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 22, fontFamily: 'Fredoka One, cursive', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,.35)' }}>
+            Rekenen 🧮
+          </div>
+          <button onClick={onOpenAdmin} style={optiesStyle}>⚙️ Opties</button>
+        </div>
 
-        {/* Feedback overlay */}
-        {feedback && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: feedback.ok ? 'rgba(6,214,160,.90)' : 'rgba(255,215,215,.93)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: 28, padding: 20, fontFamily: 'Fredoka One, cursive', textAlign: 'center',
-            color: feedback.ok ? '#013d1e' : '#8B0000', gap: 8,
-          }}>
-            <div style={{ fontSize: 26 }}>{feedback.message}</div>
+        {/* Exercise — no card wrapper */}
+        <div key={qKey} style={{
+          width: '100%', maxWidth: 430,
+          flex: 1,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 14,
+        }}>
+          <ExerciseComponent
+            question={question}
+            onResolve={handleResolve}
+            disabled={!!feedback}
+            scene={scene}
+          />
+        </div>
+
+        {/* History trail */}
+        {history.length > 0 && (
+          <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {history.slice(-16).map((ok, i) => (
+              <div key={i} style={{
+                width: 11, height: 11, borderRadius: '50%',
+                background: ok ? '#06D6A0' : '#EF233C',
+                opacity: 0.45 + (i / 16) * 0.55,
+              }} />
+            ))}
           </div>
         )}
       </div>
 
-      {/* History trail */}
-      {history.length > 0 && (
-        <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {history.slice(-16).map((ok, i) => (
-            <div key={i} style={{
-              width: 11, height: 11, borderRadius: '50%',
-              background: ok ? '#06D6A0' : '#EF233C',
-              opacity: 0.45 + (i / 16) * 0.55,
-            }} />
-          ))}
+      {/* Feedback — full-screen overlay */}
+      {feedback && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          background: feedback.ok ? 'rgba(6,214,160,.82)' : 'rgba(239,100,100,.82)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Fredoka One, cursive', textAlign: 'center',
+          color: feedback.ok ? '#013d1e' : '#5c0000', gap: 8,
+        }}>
+          <div style={{ fontSize: 32 }}>{feedback.message}</div>
         </div>
       )}
     </div>
-    </Background>
   )
+}
+
+const optiesStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.88)',
+  border: '2px solid #3d2f1e',
+  borderRadius: 14,
+  padding: '4px 10px 5px',
+  fontFamily: 'Patrick Hand, cursive',
+  fontSize: 13,
+  color: '#3d2f1e',
+  cursor: 'pointer',
 }
