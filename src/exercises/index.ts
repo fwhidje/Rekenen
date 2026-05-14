@@ -3,6 +3,7 @@
 import './CountAndTap'
 import './DotPatternRecognise'
 import './FingerPatternRecognise'
+import './NumberlinePlace'
 import './FillVisual'
 import './FillPlain'
 import './Choice'
