@@ -7,7 +7,7 @@ interface CompareMoreLessMeta {
   other: number
   askMore: boolean
   leftIsA: boolean
-  showNumbers: boolean
+  style: 'counters' | 'both' | 'numbers'
 }
 
 // ─── Counter group ────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ const CREAM = 'rgba(244,236,216,0.90)'
 
 function CompareMoreLessComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<CompareMoreLessMeta>) {
   const { operandA, meta } = question
-  const { other, askMore, leftIsA, showNumbers } = meta
+  const { other, askMore, leftIsA, style } = meta
   const Counter = scene?.Counter
 
   const leftVal  = leftIsA ? operandA : other
@@ -64,15 +64,26 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
       boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       userSelect: 'none',
     }}>
-      {showNumbers && (
-        <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: INK, lineHeight: 1 }}>
+      {/* Numbers only */}
+      {style === 'numbers' && (
+        <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 64, color: INK, lineHeight: 1 }}>
           {val}
         </div>
       )}
-      {Counter ? (
-        <CounterGroup n={val} Counter={Counter} size={size} />
-      ) : (
-        <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 52, color: INK }}>{val}</div>
+      {/* Counters (with optional numeral above) */}
+      {style !== 'numbers' && (
+        <>
+          {style === 'both' && (
+            <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: INK, lineHeight: 1 }}>
+              {val}
+            </div>
+          )}
+          {Counter ? (
+            <CounterGroup n={val} Counter={Counter} size={size} />
+          ) : (
+            <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 52, color: INK }}>{val}</div>
+          )}
+        </>
       )}
     </div>
   )
@@ -110,9 +121,9 @@ const CompareMoreLess: ExerciseDefinition<CompareMoreLessMeta> = {
     const other = pool[Math.floor(Math.random() * pool.length)]
     return {
       other,
-      askMore:     Math.random() < 0.6,   // ask "meer" more often — it's the natural direction
-      leftIsA:     Math.random() < 0.5,
-      showNumbers: score >= 25,
+      askMore:  Math.random() < 0.6,
+      leftIsA:  Math.random() < 0.5,
+      style:    score < 15 ? 'counters' : score < 35 ? 'both' : 'numbers',
     }
   },
 
