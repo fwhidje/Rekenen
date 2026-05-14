@@ -73,7 +73,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'getalbegrip-10',
     applicableExercises: [
       EX.countAndTap, EX.dotPatternRecognise, EX.fingerPatternRecognise,
-      EX.numberlinePlace, EX.compareMoreLess,
+      EX.numberlinePlace, EX.compareMoreLess, EX.tenFrameShow, EX.rekenrekShow,
     ],
     generate: () => ({ a: rnd(1, 5), b: 0, op: 'count' }),
   },

@@ -36,7 +36,11 @@ function FingerPatternRecogniseComponent({ question, onResolve, disabled }: Exer
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 22, color: '#888' }}>Hoeveel?</div>
+      <div style={{
+        background: 'rgba(244,236,216,0.94)', border: '2px solid #3d2f1e', borderRadius: 18,
+        padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
+        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: '#3d2f1e',
+      }}>Hoeveel?</div>
       <FingerPattern n={operandA} />
       <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} />
     </div>
