@@ -96,7 +96,7 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: INK,
       }}>
-        Welke groep heeft {askMore ? 'meer' : 'minder'}?
+        {askMore ? 'Meer' : 'Minder'}
       </div>
 
       {/* Two groups */}
