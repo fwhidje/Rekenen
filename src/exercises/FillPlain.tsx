@@ -2,21 +2,16 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
 import { NumPad } from '../ui/components/NumPad'
 import { useState } from 'react'
+import { NATURE_TOKENS } from '../presentation/tokens'
 
 interface FillPlainMeta {
   _unused?: never
 }
 
-// Nature palette constants
-const INK    = '#3d2f1e'
-const CREAM  = 'rgba(244,236,216,0.94)'
-const POLLEN = '#c79023'
-const PLUM   = '#8a5a99'
-const LEAF   = '#7a9a3a'
-
-function FillPlainComponent({ question, onResolve, disabled }: ExerciseComponentProps<FillPlainMeta>) {
+function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<FillPlainMeta>) {
   const [input, setInput] = useState('')
   const { operandA, operandB, answer } = question
+  const { ink, cream, accent, accentText, confirm, pop } = scene?.tokens ?? NATURE_TOKENS
 
   const handleKey = (key: string) => {
     if (disabled) return
@@ -29,27 +24,25 @@ function FillPlainComponent({ question, onResolve, disabled }: ExerciseComponent
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
       {/* Cream paper banner — equation */}
       <div style={{
-        background: CREAM, border: `2px solid ${INK}`, borderRadius: 18,
-        padding: '10px 22px 12px',
+        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
+        padding: '10px 22px 12px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         display: 'flex', alignItems: 'center', gap: 12,
-        boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: POLLEN, lineHeight: 1 }}>{operandA}</span>
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: INK, lineHeight: 1 }}>+</span>
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: PLUM, lineHeight: 1 }}>{operandB}</span>
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: INK, lineHeight: 1, opacity: 0.5 }}>=</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: accentText, lineHeight: 1 }}>{operandA}</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: ink, lineHeight: 1 }}>+</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: pop, lineHeight: 1 }}>{operandB}</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: ink, lineHeight: 1, opacity: 0.5 }}>=</span>
         <div style={{
           minWidth: 52, height: 52,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: input ? LEAF : '#f0b932',
-          color: 'white',
-          borderRadius: 12, border: `2px solid ${INK}`,
+          background: input ? confirm : accent, color: 'white',
+          borderRadius: 12, border: `2px solid ${ink}`,
           fontFamily: 'Fredoka One, cursive', fontSize: 34,
           boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)',
           transition: 'background .18s',
         }}>{input || '?'}</div>
       </div>
-      <NumPad onKey={handleKey} disabled={disabled} />
+      <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
 }

@@ -2,14 +2,7 @@ import { useState, useEffect } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
 import { pickScene } from '../presentation/scenes'
-
-const INK    = '#3d2f1e'
-const PAPER  = '#fbf6e6'
-const POLLEN = '#f0b932'
-const LEAF   = '#7a9a3a'
-const BERRY  = '#c14b3a'
-const PLUM   = '#8a5a99'
-const SKY    = '#7fb3c9'
+import { NATURE_TOKENS } from '../presentation/tokens'
 
 interface CountAndTapMeta {
   style: 'emoji' | 'dots'
@@ -27,7 +20,7 @@ const DOT_POS: Record<number, [number, number][]> = {
 
 // ─── Counter chip ─────────────────────────────────────────────────────────────
 
-function CounterChip({ count }: { count: number }) {
+function CounterChip({ count, ink, paper }: { count: number; ink: string; paper: string }) {
   const [bump, setBump] = useState(false)
 
   useEffect(() => {
@@ -42,8 +35,8 @@ function CounterChip({ count }: { count: number }) {
   return (
     <div style={{
       fontFamily: 'Fredoka One, cursive', fontSize: 22,
-      color: INK, background: PAPER,
-      border: `2px solid ${INK}`, borderRadius: 50,
+      color: ink, background: paper,
+      border: `2px solid ${ink}`, borderRadius: 50,
       padding: '3px 16px',
       transform: bump ? 'scale(1.18)' : 'scale(1)',
       transition: 'transform .15s ease',
@@ -57,8 +50,7 @@ function TapDot({ tapped, onClick, color }: { tapped: boolean; onClick: () => vo
   return (
     <div onClick={onClick} style={{
       width: 30, height: 30, borderRadius: '50%',
-      background: color,
-      boxShadow: `0 3px 8px ${color}88`,
+      background: color, boxShadow: `0 3px 8px ${color}88`,
       cursor: 'pointer',
       opacity: tapped ? 0 : 1,
       transform: tapped ? 'scale(0) rotate(15deg)' : 'scale(1)',
@@ -74,6 +66,7 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
   const [tapped, setTapped] = useState(new Set<number>())
   const done = tapped.size === operandA
   const legacyScene = pickScene(meta.sceneIndex)
+  const { ink, paper, accent, confirm, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
 
   useEffect(() => {
     if (done) {
@@ -92,10 +85,8 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
       minWidth: 72, height: 72,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'Fredoka One, cursive', fontSize: 48,
-      background: done ? LEAF : POLLEN,
-      color: 'white',
-      border: `2px solid ${INK}`,
-      borderRadius: 16,
+      background: done ? confirm : accent,
+      color: 'white', border: `2px solid ${ink}`, borderRadius: 16,
       boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)',
       transition: 'background .35s',
     }}>{operandA}</div>
@@ -131,7 +122,7 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           {targetBox}
-          <CounterChip count={tapped.size} />
+          <CounterChip count={tapped.size} ink={ink} paper={paper} />
         </div>
         <div style={{ background: containerBg, borderRadius: 16, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 10 }}>
@@ -154,12 +145,12 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           {targetBox}
-          <CounterChip count={tapped.size} />
+          <CounterChip count={tapped.size} ink={ink} paper={paper} />
         </div>
-        <div style={{ position: 'relative', width: 130, height: 130, background: PAPER, borderRadius: 16, border: `2px solid ${INK}` }}>
+        <div style={{ position: 'relative', width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
           {positions.map(([x, y], i) => (
             <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}>
-              <TapDot tapped={tapped.has(i)} onClick={() => tap(i)} color={SKY} />
+              <TapDot tapped={tapped.has(i)} onClick={() => tap(i)} color={dot} />
             </div>
           ))}
         </div>
@@ -167,28 +158,24 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
     )
   }
 
-  // 6–10: two rows, 5-structure — berry top row, plum bottom row
+  // 6–10: two rows, 5-structure — refuse (berry) top row, pop (plum) bottom row
   const row2count = operandA - 5
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {targetBox}
-        <CounterChip count={tapped.size} />
+        <CounterChip count={tapped.size} ink={ink} paper={paper} />
       </div>
-      <div style={{
-        background: PAPER, borderRadius: 16, padding: '14px 16px',
-        border: `2px solid ${INK}`,
-        display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
-      }}>
+      <div style={{ background: paper, borderRadius: 16, padding: '14px 16px', border: `2px solid ${ink}`, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 8 }}>
           {Array.from({ length: 5 }, (_, i) => (
-            <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color={BERRY} />
+            <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color={refuse} />
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {Array.from({ length: row2count }, (_, j) => {
             const i = 5 + j
-            return <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color={PLUM} />
+            return <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color={dot} />
           })}
         </div>
       </div>
@@ -202,14 +189,9 @@ const CountAndTap: ExerciseDefinition<CountAndTapMeta> = {
   id: 'count-and-tap',
   label: 'Tel en tik',
   supportsReveal: false,
-
   generateMeta(_a, _b, score) {
-    return {
-      style: score < 20 ? 'emoji' : 'dots',
-      sceneIndex: Math.floor(Math.random() * 24),
-    }
+    return { style: score < 20 ? 'emoji' : 'dots', sceneIndex: Math.floor(Math.random() * 24) }
   },
-
   Component: CountAndTapComponent,
 }
 

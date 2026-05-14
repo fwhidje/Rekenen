@@ -1,13 +1,7 @@
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
-
-const INK   = '#3d2f1e'
-const PAPER = '#fbf6e6'
-const CREAM = 'rgba(244,236,216,0.94)'
-const BERRY = '#c14b3a'
-const PLUM  = '#8a5a99'
-const SKY   = '#7fb3c9'
+import { NATURE_TOKENS } from '../presentation/tokens'
 
 interface DotPatternRecogniseMeta {
   options: number[]
@@ -34,37 +28,35 @@ function makeOptions(correct: number): number[] {
 
 // ─── Dot pattern visual ───────────────────────────────────────────────────────
 
-function DotPattern({ n }: { n: number }) {
+function DotPattern({ n, ink, paper, dot, refuse }: { n: number; ink: string; paper: string; dot: string; refuse: string }) {
   if (n <= 5) {
     const positions = DOT_POS[n] ?? []
     return (
-      <div style={{ position: 'relative', width: 130, height: 130, background: PAPER, borderRadius: 16, border: `2px solid ${INK}` }}>
+      <div style={{ position: 'relative', width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
         {positions.map(([x, y], i) => (
           <div key={i} style={{
-            position: 'absolute',
-            left: `${x}%`, top: `${y}%`,
+            position: 'absolute', left: `${x}%`, top: `${y}%`,
             transform: 'translate(-50%, -50%)',
             width: 30, height: 30, borderRadius: '50%',
-            background: SKY,
-            boxShadow: `0 3px 8px ${SKY}88`,
+            background: dot, boxShadow: `0 3px 8px ${dot}88`,
           }} />
         ))}
       </div>
     )
   }
 
-  // 6–10: two rows, 5-structure — berry top row, plum bottom row
+  // 6–10: two rows, 5-structure — refuse (berry) top, dot (sky) bottom
   const row2 = n - 5
   return (
-    <div style={{ background: PAPER, borderRadius: 16, padding: '14px 16px', border: `2px solid ${INK}`, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+    <div style={{ background: paper, borderRadius: 16, padding: '14px 16px', border: `2px solid ${ink}`, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
       <div style={{ display: 'flex', gap: 8 }}>
         {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: BERRY, boxShadow: `0 3px 8px ${BERRY}88` }} />
+          <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: refuse, boxShadow: `0 3px 8px ${refuse}88` }} />
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         {Array.from({ length: row2 }, (_, i) => (
-          <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: PLUM, boxShadow: `0 3px 8px ${PLUM}88` }} />
+          <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: dot, boxShadow: `0 3px 8px ${dot}88` }} />
         ))}
       </div>
     </div>
@@ -73,18 +65,19 @@ function DotPattern({ n }: { n: number }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function DotPatternRecogniseComponent({ question, onResolve, disabled }: ExerciseComponentProps<DotPatternRecogniseMeta>) {
+function DotPatternRecogniseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DotPatternRecogniseMeta>) {
   const { operandA, answer, meta } = question
+  const { ink, paper, cream, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
       <div style={{
-        background: CREAM, border: `2px solid ${INK}`, borderRadius: 18,
+        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: INK,
+        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
-      <DotPattern n={operandA} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} />
+      <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
+      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
 }
