@@ -210,10 +210,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
             onTap={handleTap} disabled={disabled}
           />
         </div>
-      </div>
-
-      {showNumpad && (
-        <>
+        {showNumpad && (
           <div style={{
             width: 70, height: 52,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -223,8 +220,11 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
             fontFamily: 'Fredoka One, cursive', fontSize: 32,
             transition: 'background .18s',
           }}>{input || '?'}</div>
-          <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-        </>
+        )}
+      </div>
+
+      {showNumpad && (
+        <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
       )}
     </div>
   )

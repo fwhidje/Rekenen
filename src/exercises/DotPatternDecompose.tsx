@@ -224,7 +224,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
               <TotalPattern
                 total={total} splitAt={0}
                 litA={true} litB={true}
-                colourA={ink} colourB={ink}
+                colourA={GREY} colourB={GREY}
                 ink={ink} paper={paper} size={60}
               />
             </div>
