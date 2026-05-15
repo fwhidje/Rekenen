@@ -18,12 +18,22 @@ function makeOptions(correct: number): number[] {
   return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
 }
 
-function FingerPattern({ n }: { n: number }) {
-  if (n <= 5) return <HandSVG n={n} />
+function FingerPattern({ n, ink, paper }: { n: number; ink: string; paper: string }) {
+  const inner = n <= 5
+    ? <HandSVG n={n} />
+    : (
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
+        <HandSVG n={5} />
+        <HandSVG n={n - 5} />
+      </div>
+    )
   return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
-      <HandSVG n={5} />
-      <HandSVG n={n - 5} />
+    <div style={{
+      background: paper, border: `2px solid ${ink}`, borderRadius: 16,
+      padding: '14px 18px', display: 'inline-flex',
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      {inner}
     </div>
   )
 }
@@ -32,7 +42,7 @@ function FingerPattern({ n }: { n: number }) {
 
 function FingerPatternRecogniseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<FingerPatternRecogniseMeta>) {
   const { operandA, answer, meta } = question
-  const { ink, cream } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, cream } = scene?.tokens ?? NATURE_TOKENS
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
@@ -41,7 +51,7 @@ function FingerPatternRecogniseComponent({ question, onResolve, disabled, scene 
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
-      <FingerPattern n={operandA} />
+      <FingerPattern n={operandA} ink={ink} paper={paper} />
       <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
