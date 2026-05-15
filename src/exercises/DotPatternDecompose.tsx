@@ -167,10 +167,11 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const knownColour = showA ? colourA  : colourB
   const unknownCol  = showA ? colourB  : colourA
 
-  const showTotalNum  = stage === 'all-num'
-  const knownAsNum    = stage === 'num-num' || stage === 'all-num'
-  const showChoiceDie = stage === 'die-die'
-  const showChoiceNum = stage !== 'die-die'
+  const showTotalNum     = stage === 'all-num'
+  const showNumberAssist = stage === 'die-numchoice' || stage === 'num-num'
+  const knownAsNum       = stage === 'num-num' || stage === 'all-num'
+  const showChoiceDie    = stage === 'die-die'
+  const showChoiceNum    = stage !== 'die-die'
 
   // Reveal sequencer.
   // step 0: total visible, all grey.
@@ -227,12 +228,27 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
                 ink={ink} paper={paper} size={60}
               />
             </div>
-          : <TotalPattern
-              total={total} splitAt={operandA}
-              litA={litA} litB={litB}
-              colourA={colourA} colourB={colourB}
-              ink={ink} paper={paper}
-            />
+          : showNumberAssist
+            ? <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <TotalPattern
+                  total={total} splitAt={operandA}
+                  litA={litA} litB={litB}
+                  colourA={colourA} colourB={colourB}
+                  ink={ink} paper={paper}
+                />
+                <div style={{
+                  width: 60, height: 60, flexShrink: 0,
+                  background: paper, border: `2px solid ${ink}`, borderRadius: 12,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'Fredoka One, cursive', fontSize: 36, color: ink,
+                }}>{total}</div>
+              </div>
+            : <TotalPattern
+                total={total} splitAt={operandA}
+                litA={litA} litB={litB}
+                colourA={colourA} colourB={colourB}
+                ink={ink} paper={paper}
+              />
         }
 
         <div style={{ display: 'flex', gap: 22, alignItems: 'center' }}>
