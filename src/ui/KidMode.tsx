@@ -42,7 +42,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const bgIdx = Math.floor(roundsDone / BG_ROUNDS) % theme.backgrounds.length
   const { Background, containerBg } = theme.backgrounds[bgIdx]
   const Counter = theme.counters[counterIdx]
-  const scene = useMemo(() => ({ Counter, containerBg }), [Counter, containerBg])
+  const scene = useMemo(() => ({ Counter, containerBg, tokens: theme.tokens }), [Counter, containerBg, theme])
 
   const nextQuestion = useCallback((updatedProfile: Profile, completed: number) => {
     const next = selectExercise(updatedProfile, SKILLS, getWeights)

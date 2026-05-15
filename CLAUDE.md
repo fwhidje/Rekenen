@@ -11,6 +11,29 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 ---
 
+## Design principle — exercises are theme-agnostic
+
+Exercise components must never hardcode palette values. All colours come from
+`scene.tokens` (type `SceneTokens`, defined in `src/presentation/tokens.ts`).
+Use `NATURE_TOKENS` as the fallback when no scene is provided.
+
+```ts
+const { ink, paper, cream, accent, confirm, ... } = scene?.tokens ?? NATURE_TOKENS
+```
+
+Shared UI components (`NumPad`, `ChoiceButtons`, `TFButtons`) accept an optional
+`tokens` prop and default to `NATURE_TOKENS`. Exercises pass `scene?.tokens` through.
+
+The `scene` prop on every exercise component carries:
+- `Counter` — the current theme's creature component
+- `containerBg` — background tint for counter areas
+- `tokens` — full `SceneTokens` colour set
+
+A new theme only requires: new `SceneTokens`, new counter SVGs, new background
+components. No exercise file needs to change.
+
+---
+
 ## ★ NEXT SESSION TASK — Round 2: implement all exercise types
 
 **Branch**: `claude/general-session-N7TgS`

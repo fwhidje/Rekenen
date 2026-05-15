@@ -1,29 +1,36 @@
 import type { ComponentType } from 'react'
 import type { CounterProps } from './nature/Counters'
+import type { SceneTokens } from './tokens'
+import { NATURE_TOKENS } from './tokens'
 import { Bee, Butterfly, Ladybug, Mushroom, Leaf, Daisy } from './nature/Counters'
 import { MeadowBackground, PondBackground } from './nature/Backgrounds'
 import { SharedDefs } from './nature/Defs'
 
+export type { SceneTokens }
+
 export interface ExerciseScene {
-  Counter: ComponentType<CounterProps>
+  Counter:     ComponentType<CounterProps>
   containerBg: string
+  tokens:      SceneTokens
 }
 
 export interface ThemeBackground {
-  Background: ComponentType<{ children?: React.ReactNode; style?: React.CSSProperties }>
+  Background:  ComponentType<{ children?: React.ReactNode; style?: React.CSSProperties }>
   containerBg: string
 }
 
 export interface Theme {
-  id: string
-  SharedDefs: ComponentType
-  counters: ComponentType<CounterProps>[]
+  id:          string
+  SharedDefs:  ComponentType
+  tokens:      SceneTokens
+  counters:    ComponentType<CounterProps>[]
   backgrounds: ThemeBackground[]
 }
 
 export const NATURE_THEME: Theme = {
   id: 'nature',
   SharedDefs,
+  tokens: NATURE_TOKENS,
   counters: [Bee, Butterfly, Ladybug, Mushroom, Leaf, Daisy],
   backgrounds: [
     { Background: MeadowBackground, containerBg: 'rgba(255,255,255,0.55)' },
