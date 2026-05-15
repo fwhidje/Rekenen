@@ -139,8 +139,23 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
   }
 
   // ── Dots style — subitising patterns ─────────────────────────────────────
+  const renderDieSquare = (count: number, color: string, indexOffset: number, size: number) => {
+    const positions = DOT_POS[count] ?? []
+    return (
+      <div style={{ position: 'relative', width: size, height: size }}>
+        {positions.map(([x, y], k) => {
+          const i = indexOffset + k
+          return (
+            <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}>
+              <TapDot tapped={tapped.has(i)} onClick={() => tap(i)} color={color} />
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   if (operandA <= 5) {
-    const positions = DOT_POS[operandA] ?? []
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -148,36 +163,28 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
           <CounterChip count={tapped.size} ink={ink} paper={paper} />
         </div>
         <div style={{ position: 'relative', width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
-          {positions.map(([x, y], i) => (
-            <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}>
-              <TapDot tapped={tapped.has(i)} onClick={() => tap(i)} color={dot} />
-            </div>
-          ))}
+          {renderDieSquare(operandA, dot, 0, 130)}
         </div>
       </div>
     )
   }
 
-  // 6–10: two rows, 5-structure — refuse (berry) top row, pop (plum) bottom row
-  const row2count = operandA - 5
+  // 6–10: one shared box with two die-pattern groups side by side
+  const right = operandA - 5
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {targetBox}
         <CounterChip count={tapped.size} ink={ink} paper={paper} />
       </div>
-      <div style={{ background: paper, borderRadius: 16, padding: '14px 16px', border: `2px solid ${ink}`, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {Array.from({ length: 5 }, (_, i) => (
-            <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color={refuse} />
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {Array.from({ length: row2count }, (_, j) => {
-            const i = 5 + j
-            return <TapDot key={i} tapped={tapped.has(i)} onClick={() => tap(i)} color={dot} />
-          })}
-        </div>
+      <div style={{
+        background: paper, borderRadius: 16, border: `2px solid ${ink}`,
+        padding: '10px 14px',
+        display: 'flex', gap: 12, alignItems: 'center',
+      }}>
+        {renderDieSquare(5, refuse, 0, 110)}
+        <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
+        {renderDieSquare(right, dot, 5, 110)}
       </div>
     </div>
   )
