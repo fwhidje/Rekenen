@@ -34,7 +34,7 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#F8F4FF',
+      minHeight: '100dvh', background: '#F8F4FF',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       padding: '24px 14px', fontFamily: 'Nunito, sans-serif',
     }}>

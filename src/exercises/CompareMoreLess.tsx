@@ -93,7 +93,7 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
       }}>
         {askMore ? 'Meer' : 'Minder'}
       </div>
-      <div style={{ display: 'flex', gap: 14, width: '100%', maxWidth: 380 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 }}>
         <GroupPanel val={leftVal}  onPick={() => handlePick(true)}  />
         <GroupPanel val={rightVal} onPick={() => handlePick(false)} />
       </div>

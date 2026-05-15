@@ -76,7 +76,7 @@ export function DebugMode({ onClose }: Props) {
   const ExerciseComponent = exerciseId ? getExercise(exerciseId).Component : null
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       {/* Background scene */}
       <Background style={{ position: 'absolute', inset: 0 }} />
 
@@ -89,7 +89,7 @@ export function DebugMode({ onClose }: Props) {
 
       <div style={{
         position: 'relative', zIndex: 3,
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
       }}>

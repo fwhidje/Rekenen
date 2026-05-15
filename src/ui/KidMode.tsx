@@ -72,10 +72,10 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
 
   if (!question) {
     return (
-      <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <div style={{ position: 'relative', minHeight: '100dvh' }}>
         <Background style={{ position: 'absolute', inset: 0 }} />
         <div style={{
-          position: 'relative', zIndex: 3, minHeight: '100vh',
+          position: 'relative', zIndex: 3, minHeight: '100dvh',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
         }}>
@@ -97,7 +97,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const ExerciseComponent = def.Component
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       {/* Background scene — full bleed, no card frame */}
       <Background style={{ position: 'absolute', inset: 0 }} />
 
@@ -111,7 +111,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       {/* Main content — exercise directly on background */}
       <div style={{
         position: 'relative', zIndex: 3,
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: '18px 14px 24px', fontFamily: 'Nunito, sans-serif',
       }}>

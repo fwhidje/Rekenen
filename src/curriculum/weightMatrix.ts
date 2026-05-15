@@ -32,6 +32,14 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'numberline-place':          [15, 20],
     'compare-more-less':         15,
   },
+
+  // ── Splitsen ─────────────────────────────────────────────────────────────────
+  // Only dot-pattern-decompose is built so far; will be tuned alongside the
+  // splitshuisje / splitsbenen / splits-* exercises as they come online.
+
+  'splitsen-tot-5': {
+    'dot-pattern-decompose': 100,
+  },
 }
 
 // ─── Default / fallback curve ─────────────────────────────────────────────────
