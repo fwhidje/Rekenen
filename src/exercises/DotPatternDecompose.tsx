@@ -47,20 +47,21 @@ function DieDots({ count, colours, size }: {
 
 // ─── Total pattern: 1 or 2 die squares; first fills, then second ─────────────
 
-function TotalPattern({ total, splitAt, litA, litB, colourA, colourB, ink, paper }: {
+function TotalPattern({ total, splitAt, litA, litB, colourA, colourB, ink, paper, size = 130 }: {
   total: number; splitAt: number; litA: boolean; litB: boolean
   colourA: string; colourB: string
-  ink: string; paper: string
+  ink: string; paper: string; size?: number
 }) {
   const cA = litA ? colourA : GREY
   const cB = litB ? colourB : GREY
   const colourFor = (i: number) => i < splitAt ? cA : cB
+  const radius = Math.max(8, Math.round(size * 0.12))
 
   if (total <= 5) {
     const colours = Array.from({ length: total }, (_, i) => colourFor(i))
     return (
-      <div style={{ width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
-        <DieDots count={total} colours={colours} size={130} />
+      <div style={{ width: size, height: size, background: paper, borderRadius: radius, border: `2px solid ${ink}` }}>
+        <DieDots count={total} colours={colours} size={size} />
       </div>
     )
   }
@@ -69,15 +70,19 @@ function TotalPattern({ total, splitAt, litA, litB, colourA, colourB, ink, paper
   const rightCount = total - 5
   const leftColours  = Array.from({ length: leftCount },  (_, i) => colourFor(i))
   const rightColours = Array.from({ length: rightCount }, (_, i) => colourFor(leftCount + i))
+  const innerSize = Math.round(size * 0.85)
+  const padV = Math.max(4, Math.round(size * 0.08))
+  const padH = Math.max(6, Math.round(size * 0.11))
+  const gap  = Math.max(6, Math.round(size * 0.09))
   return (
     <div style={{
-      background: paper, borderRadius: 16, border: `2px solid ${ink}`,
-      padding: '10px 14px',
-      display: 'flex', gap: 12, alignItems: 'center',
+      background: paper, borderRadius: radius, border: `2px solid ${ink}`,
+      padding: `${padV}px ${padH}px`,
+      display: 'flex', gap, alignItems: 'center',
     }}>
-      <DieDots count={leftCount}  colours={leftColours}  size={110} />
+      <DieDots count={leftCount}  colours={leftColours}  size={innerSize} />
       <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
-      <DieDots count={rightCount} colours={rightColours} size={110} />
+      <DieDots count={rightCount} colours={rightColours} size={innerSize} />
     </div>
   )
 }
@@ -208,12 +213,20 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
         {showTotalNum
-          ? <div style={{
-              width: 90, height: 90, flexShrink: 0,
-              background: paper, border: `2px solid ${ink}`, borderRadius: 14,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
-            }}>{total}</div>
+          ? <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{
+                width: 90, height: 90, flexShrink: 0,
+                background: paper, border: `2px solid ${ink}`, borderRadius: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
+              }}>{total}</div>
+              <TotalPattern
+                total={total} splitAt={operandA}
+                litA={litA} litB={litB}
+                colourA={colourA} colourB={colourB}
+                ink={ink} paper={paper} size={60}
+              />
+            </div>
           : <TotalPattern
               total={total} splitAt={operandA}
               litA={litA} litB={litB}
