@@ -15,6 +15,35 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 ---
 
+## WIP gate — disabled skills
+
+A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** never satisfies downstream prerequisites. The flag cascades — disabling a subtree's root keeps its entire subtree gated, no need to mark each leaf.
+
+`SkillDefinition.disabled` is honoured in two places:
+- `engine/unlockEvaluator.ts` — disabled skills never become unlocked; disabled prereqs are never considered satisfied.
+- `engine/exerciseSelector.ts` — disabled skills are filtered out before picking.
+
+### Currently active
+
+- `getalbegrip-5`
+- `getalbegrip-10`
+- `splitsen-tot-5`
+- `splitsen-tot-10`
+
+### Currently gated (5 subtree roots)
+
+| Skill id | Gates | Lift when |
+|---|---|---|
+| `+1-2-tot-5` | the whole `optellen` family (tot-5 and tot-10) | optellen exercises reworked and tested for `+` |
+| `-1-2-tot-5` | the whole `aftrekken` family (tot-5 and tot-10) | aftrekken-specific exercises built |
+| `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
+| `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
+| `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
+
+To open up the next branch: remove `disabled: true` from one of the rows above. Downstream stays gated until *its* root is also lifted (the cascade is automatic).
+
+---
+
 ## Design principle — exercises are theme-agnostic
 
 Exercise components must never hardcode palette values. All colours come from

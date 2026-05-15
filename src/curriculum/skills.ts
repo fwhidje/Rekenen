@@ -155,6 +155,7 @@ export const SKILLS: SkillDefinition[] = [
       const a = rnd(1, 9)
       return { a, b: 10 - a, op: 'split' }
     },
+    disabled: true,  // WIP gate
   },
 
   // ── Optellen ────────────────────────────────────────────────────────────────
@@ -176,6 +177,7 @@ export const SKILLS: SkillDefinition[] = [
       const a = rnd(1, 5 - b)
       return { a, b, op: '+' }
     },
+    disabled: true,  // WIP gate
   },
 
   {
@@ -252,6 +254,7 @@ export const SKILLS: SkillDefinition[] = [
       const b = rnd(1, 10 - a)
       return { a, b, op: '+' }
     },
+    disabled: true,  // WIP gate
   },
 
   {
@@ -303,6 +306,7 @@ export const SKILLS: SkillDefinition[] = [
       const a = rnd(b, 5)
       return { a, b, op: '-' }
     },
+    disabled: true,  // WIP gate
   },
 
   {
@@ -417,6 +421,7 @@ export const SKILLS: SkillDefinition[] = [
       const b = rnd(1, a)
       return { a, b, op: '-' }
     },
+    disabled: true,  // WIP gate
   },
 
   {

@@ -32,6 +32,10 @@ export interface SkillDefinition {
   subsumedBy: string | null
   applicableExercises: string[]  // exercise type ids this skill may use
   generate(): GeneratedProblem
+  disabled?: boolean       // WIP gate: skill is hidden from rotation AND
+                           // never satisfies downstream prerequisites.
+                           // Lift by removing the flag once the skill is
+                           // ready. See CLAUDE.md → WIP gate.
 }
 
 // ─── Weight matrix ────────────────────────────────────────────────────────────

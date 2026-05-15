@@ -23,8 +23,9 @@ export function selectExercise(
 ): ExerciseQuestion | null {
   const registered = new Set(getAllExerciseIds())
 
-  // Available skills: unlocked, not archived, with at least one applicable exercise registered.
+  // Available skills: not disabled, unlocked, not archived, with at least one applicable exercise registered.
   const available = skills.filter(skill => {
+    if (skill.disabled) return false
     const state = profile.skills[skill.id]
     if (!state?.unlocked || state.archived) return false
     return skill.applicableExercises.some(id => registered.has(id))
