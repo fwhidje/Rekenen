@@ -38,7 +38,8 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // splitshuisje / splitsbenen / splits-* exercises as they come online.
 
   'splitsen-tot-5': {
-    'dot-pattern-decompose': 100,
+    'dot-pattern-decompose': 50,
+    'splits-frame':          50,
   },
 }
 

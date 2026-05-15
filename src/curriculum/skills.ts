@@ -37,6 +37,7 @@ const EX = {
   splitsbenen:            'splitsbenen',
   splitsHelft:            'splits-helft',
   dotPatternDecompose:    'dot-pattern-decompose',
+  splitsFrame:            'splits-frame',
   rekenrekDecompose:      'rekenrek-decompose',
 
   // Tienvrienden-specific
@@ -106,7 +107,7 @@ export const SKILLS: SkillDefinition[] = [
     applicableExercises: [
       EX.splitsVrij, EX.splitsOntbrekenRechts, EX.splitsOntbrekenLinks,
       EX.splitsAlle, EX.splitshuisje, EX.splitsbenen,
-      EX.dotPatternDecompose, EX.rekenrekDecompose,
+      EX.dotPatternDecompose, EX.splitsFrame, EX.rekenrekDecompose,
     ],
     generate: () => {
       const total = rnd(2, 5)
