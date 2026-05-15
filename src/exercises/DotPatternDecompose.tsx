@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
-import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const DOT_POS: Record<number, [number, number][]> = {
@@ -171,45 +170,33 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const showTotalNum     = stage === 'all-num'
   const showNumberAssist = stage === 'die-numchoice' || stage === 'num-num'
   const knownAsNum       = stage === 'num-num' || stage === 'all-num'
-  const useNumpad        = stage !== 'die-die'
+  const showChoiceDie    = stage === 'die-die'
+  const showChoiceNum    = stage !== 'die-die'
 
   // Reveal sequencer.
   // step 0: total visible, all grey.
   // step 1: given side appears + given side's dots in total light up.
   // step 2: ? appears + remaining dots in total light up.
-  // step 3: input ready (numpad) OR options fade in one by one (choices).
+  // step 3..: options fade in one by one, quicker cadence.
+  // Same gap between b and first option as between a and b.
   const [step, setStep] = useState(0)
-  const [input, setInput] = useState('')
   useEffect(() => {
     setStep(0)
-    setInput('')
     const timers: ReturnType<typeof setTimeout>[] = []
     timers.push(setTimeout(() => setStep(1), 600))
     timers.push(setTimeout(() => setStep(2), 1400))
-    if (useNumpad) {
-      timers.push(setTimeout(() => setStep(3), 2200))
-    } else {
-      options.forEach((_, i) => {
-        timers.push(setTimeout(() => setStep(3 + i), 2200 + i * 160))
-      })
-    }
+    options.forEach((_, i) => {
+      timers.push(setTimeout(() => setStep(3 + i), 2200 + i * 160))
+    })
     return () => timers.forEach(clearTimeout)
-  }, [operandA, operandB, showA, stage])
+  }, [operandA, operandB, showA, stage, options])
 
-  const fullyRevealed = useNumpad ? step >= 3 : step >= 2 + options.length
-
-  const handleKey = (key: string) => {
-    if (disabled || !fullyRevealed) return
-    if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
-    if (key === '✓') { if (input) onResolve(parseInt(input, 10) === unknownVal); return }
-    if (input.length < 2) setInput(v => v + key)
-  }
-
-  const showGiven    = step >= 1
-  const showQ        = step >= 2
-  const litA         = (step >= 1 && showA) || step >= 2
-  const litB         = (step >= 1 && !showA) || step >= 2
-  const revealedOpts = Math.max(0, step - 2)
+  const showGiven     = step >= 1
+  const showQ         = step >= 2
+  const litA          = (step >= 1 && showA) || step >= 2
+  const litB          = (step >= 1 && !showA) || step >= 2
+  const revealedOpts  = Math.max(0, step - 2)
+  const fullyRevealed = step >= 2 + options.length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
@@ -275,40 +262,26 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
             <QuestionSlot colour={unknownCol} paper={paper} />
           </div>
         </div>
-
-        {useNumpad && fullyRevealed && (
-          <div style={{
-            width: 70, height: 52,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? unknownCol : `${unknownCol}33`,
-            color: input ? 'white' : unknownCol,
-            borderRadius: 12, border: `2px solid ${ink}`,
-            fontFamily: 'Fredoka One, cursive', fontSize: 32,
-            transition: 'background .18s',
-          }}>{input || '?'}</div>
-        )}
       </div>
 
-      {useNumpad
-        ? fullyRevealed && <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-        : <div style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${options.length}, 1fr)`,
-            gap: 10, width: '100%', maxWidth: 320,
-          }}>
-            {options.map((opt, i) => (
-              <div key={opt} style={{ opacity: i < revealedOpts ? 1 : 0, transition: 'opacity 0.25s' }}>
-                <ChoiceButton
-                  value={opt} colour={unknownCol}
-                  ink={ink} paper={paper}
-                  showDie={true} showNumber={false}
-                  onClick={() => onResolve(opt === unknownVal)}
-                  disabled={disabled || !fullyRevealed}
-                />
-              </div>
-            ))}
+      {/* Choices */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${options.length}, 1fr)`,
+        gap: 10, width: '100%', maxWidth: 320,
+      }}>
+        {options.map((opt, i) => (
+          <div key={opt} style={{ opacity: i < revealedOpts ? 1 : 0, transition: 'opacity 0.25s' }}>
+            <ChoiceButton
+              value={opt} colour={unknownCol}
+              ink={ink} paper={paper}
+              showDie={showChoiceDie} showNumber={showChoiceNum}
+              onClick={() => onResolve(opt === unknownVal)}
+              disabled={disabled || !fullyRevealed}
+            />
           </div>
-      }
+        ))}
+      </div>
     </div>
   )
 }
@@ -339,7 +312,7 @@ const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
     const total = operandA + operandB
     return {
       showA,
-      options: stage === 'die-die' ? makeOptions(unknown, total) : [],
+      options: makeOptions(unknown, total),
       stage,
     }
   },
