@@ -110,7 +110,9 @@ export const SKILLS: SkillDefinition[] = [
     ],
     generate: () => {
       const total = rnd(2, 5)
-      const a = rnd(0, total)
+      const a = Math.random() < 0.15
+        ? (Math.random() < 0.5 ? 0 : total)
+        : rnd(1, total - 1)
       return { a, b: total - a, op: 'split' }
     },
   },
@@ -130,7 +132,9 @@ export const SKILLS: SkillDefinition[] = [
     ],
     generate: () => {
       const total = rnd(6, 10)
-      const a = rnd(0, total)
+      const a = Math.random() < 0.15
+        ? (Math.random() < 0.5 ? 0 : total)
+        : rnd(1, total - 1)
       return { a, b: total - a, op: 'split' }
     },
   },
