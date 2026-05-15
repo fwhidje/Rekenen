@@ -7,7 +7,7 @@ import { THEMES } from '../presentation/themes'
 
 import '../exercises/index'
 
-const SCORE_BRACKETS = [0, 12, 25, 37, 50] as const
+const SCORE_BRACKETS = [0, 10, 20, 30, 40, 50] as const
 
 const INK   = '#3d2f1e'
 const CREAM = 'rgba(244,236,216,0.96)'
