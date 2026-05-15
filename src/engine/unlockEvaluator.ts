@@ -11,12 +11,15 @@ import type { Profile } from '../state/types'
 // learning happened, the rotation just dropped the skill.
 export function evaluateUnlocks(profile: Profile, skills: SkillDefinition[]): string[] {
   const newlyUnlocked: string[] = []
+  const byId = new Map(skills.map(s => [s.id, s]))
 
   for (const skill of skills) {
+    if (skill.disabled) continue
     const state = profile.skills[skill.id]
     if (state?.unlocked) continue
 
     const allMet = skill.unlockedBy.length === 0 || skill.unlockedBy.every(prereqId => {
+      if (byId.get(prereqId)?.disabled) return false
       const prereq = profile.skills[prereqId]
       return prereq?.unlocked && prereq.score >= UNLOCK_THRESHOLD
     })
