@@ -222,9 +222,9 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
                 fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
               }}>{total}</div>
               <TotalPattern
-                total={total} splitAt={operandA}
-                litA={litA} litB={litB}
-                colourA={colourA} colourB={colourB}
+                total={total} splitAt={0}
+                litA={true} litB={true}
+                colourA={ink} colourB={ink}
                 ink={ink} paper={paper} size={60}
               />
             </div>
