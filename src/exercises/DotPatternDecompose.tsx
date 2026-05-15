@@ -47,20 +47,21 @@ function DieDots({ count, colours, size }: {
 
 // ─── Total pattern: 1 or 2 die squares; first fills, then second ─────────────
 
-function TotalPattern({ total, splitAt, lit, colourA, colourB, ink, paper }: {
-  total: number; splitAt: number; lit: boolean
+function TotalPattern({ total, splitAt, litA, litB, colourA, colourB, ink, paper, size = 130 }: {
+  total: number; splitAt: number; litA: boolean; litB: boolean
   colourA: string; colourB: string
-  ink: string; paper: string
+  ink: string; paper: string; size?: number
 }) {
-  const cA = lit ? colourA : GREY
-  const cB = lit ? colourB : GREY
+  const cA = litA ? colourA : GREY
+  const cB = litB ? colourB : GREY
   const colourFor = (i: number) => i < splitAt ? cA : cB
+  const radius = Math.max(8, Math.round(size * 0.12))
 
   if (total <= 5) {
     const colours = Array.from({ length: total }, (_, i) => colourFor(i))
     return (
-      <div style={{ width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
-        <DieDots count={total} colours={colours} size={130} />
+      <div style={{ width: size, height: size, background: paper, borderRadius: radius, border: `2px solid ${ink}` }}>
+        <DieDots count={total} colours={colours} size={size} />
       </div>
     )
   }
@@ -69,15 +70,19 @@ function TotalPattern({ total, splitAt, lit, colourA, colourB, ink, paper }: {
   const rightCount = total - 5
   const leftColours  = Array.from({ length: leftCount },  (_, i) => colourFor(i))
   const rightColours = Array.from({ length: rightCount }, (_, i) => colourFor(leftCount + i))
+  const innerSize = Math.round(size * 0.85)
+  const padV = Math.max(4, Math.round(size * 0.08))
+  const padH = Math.max(6, Math.round(size * 0.11))
+  const gap  = Math.max(6, Math.round(size * 0.09))
   return (
     <div style={{
-      background: paper, borderRadius: 16, border: `2px solid ${ink}`,
-      padding: '10px 14px',
-      display: 'flex', gap: 12, alignItems: 'center',
+      background: paper, borderRadius: radius, border: `2px solid ${ink}`,
+      padding: `${padV}px ${padH}px`,
+      display: 'flex', gap, alignItems: 'center',
     }}>
-      <DieDots count={leftCount}  colours={leftColours}  size={110} />
+      <DieDots count={leftCount}  colours={leftColours}  size={innerSize} />
       <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
-      <DieDots count={rightCount} colours={rightColours} size={110} />
+      <DieDots count={rightCount} colours={rightColours} size={innerSize} />
     </div>
   )
 }
@@ -168,10 +173,11 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const showChoiceNum = stage !== 'die-die'
 
   // Reveal sequencer.
-  // step 0: total visible (grey if visual).
-  // step 1: given side appears below.
-  // step 2: ? appears, total dots light up to their split colours.
+  // step 0: total visible, all grey.
+  // step 1: given side appears + given side's dots in total light up.
+  // step 2: ? appears + remaining dots in total light up.
   // step 3..: options fade in one by one, quicker cadence.
+  // Same gap between b and first option as between a and b.
   const [step, setStep] = useState(0)
   useEffect(() => {
     setStep(0)
@@ -179,14 +185,15 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
     timers.push(setTimeout(() => setStep(1), 600))
     timers.push(setTimeout(() => setStep(2), 1400))
     options.forEach((_, i) => {
-      timers.push(setTimeout(() => setStep(3 + i), 1750 + i * 160))
+      timers.push(setTimeout(() => setStep(3 + i), 2200 + i * 160))
     })
     return () => timers.forEach(clearTimeout)
   }, [operandA, operandB, showA, stage, options])
 
   const showGiven     = step >= 1
-  const totalLit      = step >= 2
   const showQ         = step >= 2
+  const litA          = (step >= 1 && showA) || step >= 2
+  const litB          = (step >= 1 && !showA) || step >= 2
   const revealedOpts  = Math.max(0, step - 2)
   const fullyRevealed = step >= 2 + options.length
 
@@ -206,15 +213,24 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
         {showTotalNum
-          ? <div style={{
-              width: 90, height: 90, flexShrink: 0,
-              background: paper, border: `2px solid ${ink}`, borderRadius: 14,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
-            }}>{total}</div>
+          ? <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{
+                width: 90, height: 90, flexShrink: 0,
+                background: paper, border: `2px solid ${ink}`, borderRadius: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
+              }}>{total}</div>
+              <TotalPattern
+                total={total} splitAt={operandA}
+                litA={litA} litB={litB}
+                colourA={colourA} colourB={colourB}
+                ink={ink} paper={paper} size={60}
+              />
+            </div>
           : <TotalPattern
               total={total} splitAt={operandA}
-              lit={totalLit} colourA={colourA} colourB={colourB}
+              litA={litA} litB={litB}
+              colourA={colourA} colourB={colourB}
               ink={ink} paper={paper}
             />
         }
