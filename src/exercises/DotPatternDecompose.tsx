@@ -290,13 +290,14 @@ const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
   label: 'Splits het stippenpatroon',
   supportsReveal: false,
   generateMeta(operandA, operandB, score) {
-    const showA = Math.random() < 0.5
+    const stage = pickStage(score)
+    const showA = stage === 'die-die' ? true : Math.random() < 0.5
     const unknown = showA ? operandB : operandA
     const total = operandA + operandB
     return {
       showA,
       options: makeOptions(unknown, total),
-      stage:   pickStage(score),
+      stage,
     }
   },
   Component: DotPatternDecomposeComponent,
