@@ -28,37 +28,43 @@ function makeOptions(correct: number): number[] {
 
 // ─── Dot pattern visual ───────────────────────────────────────────────────────
 
+function DieSquare({ n, color, size }: { n: number; color: string; size: number }) {
+  const positions = DOT_POS[n] ?? []
+  const dotSize = Math.round(size * 0.23)
+  return (
+    <div style={{ position: 'relative', width: size, height: size }}>
+      {positions.map(([x, y], i) => (
+        <div key={i} style={{
+          position: 'absolute', left: `${x}%`, top: `${y}%`,
+          transform: 'translate(-50%, -50%)',
+          width: dotSize, height: dotSize, borderRadius: '50%',
+          background: color, boxShadow: `0 3px 8px ${color}88`,
+        }} />
+      ))}
+    </div>
+  )
+}
+
 function DotPattern({ n, ink, paper, dot, refuse }: { n: number; ink: string; paper: string; dot: string; refuse: string }) {
   if (n <= 5) {
-    const positions = DOT_POS[n] ?? []
     return (
       <div style={{ position: 'relative', width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
-        {positions.map(([x, y], i) => (
-          <div key={i} style={{
-            position: 'absolute', left: `${x}%`, top: `${y}%`,
-            transform: 'translate(-50%, -50%)',
-            width: 30, height: 30, borderRadius: '50%',
-            background: dot, boxShadow: `0 3px 8px ${dot}88`,
-          }} />
-        ))}
+        <DieSquare n={n} color={dot} size={130} />
       </div>
     )
   }
 
-  // 6–10: two rows, 5-structure — refuse (berry) top, dot (sky) bottom
-  const row2 = n - 5
+  // 6–10: one shared box with two die-pattern groups side by side
+  const right = n - 5
   return (
-    <div style={{ background: paper, borderRadius: 16, padding: '14px 16px', border: `2px solid ${ink}`, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap: 8 }}>
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: refuse, boxShadow: `0 3px 8px ${refuse}88` }} />
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        {Array.from({ length: row2 }, (_, i) => (
-          <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: dot, boxShadow: `0 3px 8px ${dot}88` }} />
-        ))}
-      </div>
+    <div style={{
+      background: paper, borderRadius: 16, border: `2px solid ${ink}`,
+      padding: '10px 14px',
+      display: 'flex', gap: 12, alignItems: 'center',
+    }}>
+      <DieSquare n={5} color={refuse} size={110} />
+      <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
+      <DieSquare n={right} color={dot} size={110} />
     </div>
   )
 }
