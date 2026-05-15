@@ -40,4 +40,4 @@ export interface SkillDefinition {
 // Weights don't need to sum to 100; they're relative.
 
 export type WeightMap = Record<string, number>
-export type WeightFunction = (score: number) => WeightMap
+export type WeightFunction = (skillId: string, score: number) => WeightMap
