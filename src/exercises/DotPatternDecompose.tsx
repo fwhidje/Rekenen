@@ -13,7 +13,7 @@ const DOT_POS: Record<number, [number, number][]> = {
 
 const SLOT = 62
 
-type Stage = 'die-die' | 'die-mix' | 'die-number' | 'number-number'
+type Stage = 'die-die' | 'die-numchoice' | 'num-num' | 'all-num'
 
 interface DotPatternDecomposeMeta {
   showA:   boolean
@@ -126,8 +126,9 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const knownColour = showA ? colourA  : colourB
   const unknownCol  = showA ? colourB  : colourA
 
-  const knownAsNum   = stage === 'number-number'
-  const showChoiceDie = stage === 'die-die' || stage === 'die-mix'
+  const showTotalNum  = stage === 'all-num'
+  const knownAsNum    = stage === 'num-num' || stage === 'all-num'
+  const showChoiceDie = stage === 'die-die'
   const showChoiceNum = stage !== 'die-die'
 
   return (
@@ -138,11 +139,19 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
 
-      <TwoColourDie
-        total={total} splitAt={operandA}
-        colourA={colourA} colourB={colourB}
-        ink={ink} paper={paper} size={130}
-      />
+      {showTotalNum
+        ? <div style={{
+            width: 90, height: 90, flexShrink: 0,
+            background: paper, border: `2px solid ${ink}`, borderRadius: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
+          }}>{total}</div>
+        : <TwoColourDie
+            total={total} splitAt={operandA}
+            colourA={colourA} colourB={colourB}
+            ink={ink} paper={paper} size={130}
+          />
+      }
 
       {/* Equation stub box: known + ? */}
       <div style={{
@@ -187,10 +196,10 @@ function makeOptions(correct: number, total: number): number[] {
 }
 
 function pickStage(score: number): Stage {
-  if (score < 15) return 'die-die'
-  if (score < 25) return 'die-mix'
-  if (score < 37) return 'die-number'
-  return 'number-number'
+  if (score < 12) return 'die-die'
+  if (score < 25) return 'die-numchoice'
+  if (score < 37) return 'num-num'
+  return 'all-num'
 }
 
 const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
