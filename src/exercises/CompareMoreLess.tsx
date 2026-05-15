@@ -35,7 +35,7 @@ function CounterGroup({ n, Counter, size }: { n: number; Counter: ComponentType<
 function CompareMoreLessComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<CompareMoreLessMeta>) {
   const { operandA, meta } = question
   const { other, askMore, leftIsA, style } = meta
-  const { ink, paper, cream } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, cream } = scene?.tokens ?? NATURE_TOKENS
   const Counter = scene?.Counter
 
   const leftVal  = leftIsA ? operandA : other
