@@ -87,8 +87,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 |---|---|---|
 | `getalbegrip-5` | ✅ all tested | ✅ tuned |
 | `getalbegrip-10` | ✅ all tested (same exercises as -5, handles 1–10) | ✅ tuned |
-| `splitsen-tot-5` | 🔲 Pass 2 exercises not yet built | 🔲 |
-| `splitsen-tot-10` | 🔲 | 🔲 |
+| `splitsen-tot-5` *(to split → `splitsen-herken-5` + `splitsen-noteren-5`, see skill map)* | 🟡 `dot-pattern-decompose` + `splits-frame` done (herken side); notation exercises (splitshuisje, splitsbenen, splits-*) not yet built; rename pending | 🟡 partial (50/50 between the two built exercises) |
+| `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
 | `+1-2-tot-5` and all optellen | 🔲 Pass 3 (fix existing 7 for non-`+` ops) | 🔲 |
 | all aftrekken skills | 🔲 Pass 5 | 🔲 |
@@ -104,7 +104,10 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `numberline-place` | `NumberlinePlace.tsx` | ✅ done |
 | `compare-more-less` | `CompareMoreLess.tsx` | ✅ done |
 | `ten-frame-show` | `TenFrameShow.tsx` | ✅ done |
+| `dot-pattern-decompose` | `DotPatternDecompose.tsx` | ✅ done (4 reveal stages: die-die / die-numchoice / num-num / all-num at score 0/12/25/37) |
+| `splits-frame` | `SplitsFrame.tsx` | ✅ done (3 tiers: die-tap / num-tap / num-pad at score 0/15/35; `isCompatible` rejects a=0 or b=0) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
+| `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 12; uncertain whether worth a separate type (see skill map) |
 | `fill-vis` | `FillVisual.tsx` | ⚠️ `+` only — needs `-`, `split`, `count`, `half` |
 | `fill-plain` | `FillPlain.tsx` | ⚠️ `+` only |
 | `choice` | `Choice.tsx` | ⚠️ `+` only |
@@ -112,7 +115,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `collect-tap` | `CollectTap.tsx` | ⚠️ `+` only |
 | `collect-counter` | `CollectCounter.tsx` | ⚠️ `+` only |
 | `numberline-jump` | `NumberLine.tsx` | ⚠️ `+` only |
-| splitsen family (8 types) | — | 🔲 not built |
+| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built (skill 2 — `splitsen-noteren-5`) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific (7 types) | — | 🔲 not built |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -160,9 +163,11 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question |
-| `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract |
+| `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Includes optional `isCompatible(a, b)` guard so a definition can refuse generated operand pairs it can't render. |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
 | `src/exercises/index.ts` | Imports all exercise files to trigger registration |
+| `src/exercises/DotPatternDecompose.tsx` | `dot-pattern-decompose` — perceptual splits exercise (4 stages, choice buttons, reveal animation) |
+| `src/exercises/SplitsFrame.tsx` | `splits-frame` — joined-square frame, 3 tiers (die-tap / num-tap / num-pad) |
 | `src/exercises/FillVisual.tsx` | `fill-vis` — visual fill (dots / scene groups) |
 | `src/exercises/FillPlain.tsx` | `fill-plain` — plain numpad |
 | `src/exercises/Choice.tsx` | `choice` — 4-option multiple choice |

@@ -45,7 +45,7 @@ The diagram below shows **unlock dependencies** only. Subsume relationships are 
                                     │
                 ┌───────────────────┴───────────────────┐
                 │                                       │
-          splitsen-tot-5                          getalbegrip-10
+       splitsen-herken-5  ──►  splitsen-noteren-5  getalbegrip-10
                 │                                       │
         ┌───────┴───────┐                               │
         │               │                               │
@@ -58,7 +58,7 @@ The diagram below shows **unlock dependencies** only. Subsume relationships are 
         │               └──► aftrekken-aanvullen-5      │
         │                                               │
         │                                               ▼
-        │                                       splitsen-tot-10
+        │                                       splitsen-tot-10  [TBD: split into herken-10 / noteren-10?]
         │                                               │
         │                                       ┌───────┴───────┐
         │                                       │               │
@@ -90,6 +90,10 @@ The diagram below shows **unlock dependencies** only. Subsume relationships are 
 
 Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills, not the +1-2 / +3-4 / -1-2 / -3-4 intermediates.** Splitsen knowledge isn't a hard prereq for counting on by 1, 2, 3, 4 — making it one risks stalling the whole arithmetic track. Splitsen becomes a hard prereq only at the full optellen-tot-10 / aftrekken-wegnemen-10 step.
 
+**Splitsen-tot-5 split (decided)**: `splitsen-tot-5` is split into two skills — `splitsen-herken-5` (recognition / perceptual) and `splitsen-noteren-5` (notation / production). Recognition unlocks the +/- track; notation is parallel, not a prereq for arithmetic.
+
+**Open question — splitsen-tot-10**: does the same herken/noteren split apply at the tot-10 level? If yes, which side does `splitsen-tot-10`'s current downstream (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) depend on? And which side does it connect to from tot-5 (`splitsen-noteren-5` → `splitsen-noteren-10`, or `splitsen-herken-5` → `splitsen-herken-10`, or cross-links)? TBD.
+
 ---
 
 ## Skills (detailed)
@@ -116,23 +120,34 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 
 ### Splitsen
 
-#### `splitsen-tot-5`
-- **Name**: Splitsen tot 5
-- **Intent**: knows the splits of 2, 3, 4, 5 in both orders (5 = 1+4 *and* 4+1, 5 = 2+3 *and* 3+2)
+#### `splitsen-herken-5`
+- **Name**: Splitsen herkennen tot 5
+- **Intent**: recognises a split *visually* — given a structured representation of a total, names the two parts. Perceptual skill, not yet about producing the notation.
 - **`unlocked_by`**: `getalbegrip-5`
-- **`unlocks`**: `+1-2-tot-5`, `-1-2-tot-5`, `splitsen-tot-10`
-- **`subsumed_by`**: `splitsen-tot-10`
-- **Generator**: total ∈ [2, 5]; pick (a, b) with a+b = total, a ≥ 0, b ≥ 0
-- **Applicable exercise types**: `splits-vrij`, `splits-ontbreken-rechts`, `splits-ontbreken-links`, `splits-alle`, `splitshuisje`, `splitsbenen`, `dot-pattern-decompose`, `rekenrek-decompose`
+- **`unlocks`**: `splitsen-noteren-5`, `+1-2-tot-5`, `-1-2-tot-5`, `splitsen-tot-10` *(see open question above)*
+- **`subsumed_by`**: `splitsen-tot-10` *(TBD if tot-10 also splits)*
+- **Generator**: total ∈ [2, 5]; (a, b) with a+b = total, a ≥ 1, b ≥ 1 (no trivial 0-splits)
+- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)*
+
+#### `splitsen-noteren-5`
+- **Name**: Splitsen noteren tot 5
+- **Intent**: produces a split in standard Flemish primary-school notation (splitshuisje / splitsbenen), enumerates splits, fills missing addends. Builds on recognition; expresses the same understanding in writing.
+- **`unlocked_by`**: `splitsen-herken-5`
+- **`unlocks`**: *(nothing in the v2 graph — runs parallel to the +/- track, doesn't gate arithmetic)*
+- **`subsumed_by`**: `splitsen-tot-10` *(TBD — if tot-10 also splits, this becomes `splitsen-noteren-10`)*
+- **Generator**: as `splitsen-herken-5`
+- **Applicable exercise types**: `splits-vrij`, `splits-ontbreken-rechts`, `splits-ontbreken-links`, `splits-alle`, `splitshuisje`, `splitsbenen`
 
 #### `splitsen-tot-10`
+> **TBD**: should this also split into `splitsen-herken-10` / `splitsen-noteren-10`? If so, which side does each downstream skill (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) hang off, and how does it connect upstream to the tot-5 herken / noteren pair? Entry below describes the current pre-split form.
+
 - **Name**: Splitsen tot 10
 - **Intent**: same for 6, 7, 8, 9, 10. The "boss splitgetal" is 10 — its 11 splits get drilled to recall, not calculation.
-- **`unlocked_by`**: `splitsen-tot-5`, `getalbegrip-10`
+- **`unlocked_by`**: `splitsen-herken-5`, `getalbegrip-10` *(was `splitsen-tot-5`)*
 - **`unlocks`**: `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`
 - **`subsumed_by`**: `null` (would be `splitsen-tot-20`)
-- **Generator**: total ∈ [6, 10]
-- **Applicable exercise types**: as `splitsen-tot-5`; rekenrek presentations especially natural here because of the 5-structure
+- **Generator**: total ∈ [6, 10]; a ≥ 1, b ≥ 1
+- **Applicable exercise types**: as `splitsen-herken-5` + `splitsen-noteren-5`; rekenrek presentations especially natural here because of the 5-structure
 
 #### `tienvrienden`
 - **Name**: Tienvrienden / vrienden van 10
@@ -285,8 +300,9 @@ Every in-scope skill, its `subsumed_by` value, and the strict-superset check tha
 |---|---|---|
 | `getalbegrip-5` | `getalbegrip-10` | ✓ |
 | `getalbegrip-10` | `null` | — (out of scope parent) |
-| `splitsen-tot-5` | `splitsen-tot-10` | ✓ |
-| `splitsen-tot-10` | `null` | — |
+| `splitsen-herken-5` | `splitsen-tot-10` *(TBD: `splitsen-herken-10` if tot-10 splits)* | ✓ |
+| `splitsen-noteren-5` | `splitsen-tot-10` *(TBD: `splitsen-noteren-10` if tot-10 splits)* | ✓ |
+| `splitsen-tot-10` | `null` | — *(TBD if this skill splits)* |
 | `tienvrienden` | `null` | fact-recall, deliberate |
 | `+1-2-tot-5` | `optellen-tot-5` | ✓ |
 | `optellen-tot-5` | `optellen-tot-10` | ✓ |
@@ -311,7 +327,21 @@ Every in-scope skill, its `subsumed_by` value, and the strict-superset check tha
 
 Grouped by what they teach. Each type has a unique id; the score → exercise-type weight matrix references these.
 
-### Splitsen-specific
+### Splitsen recognition (perceptual)
+
+These types live under `splitsen-herken-5` / `-10`. They show a total and ask "what are the parts?" — answered by tapping or typing the missing part. No standard notation involved.
+
+| ID | Description | Visual | Input | Suits |
+|---|---|---|---|---|
+| `dot-pattern-decompose` | total shown as die-pattern dots, child picks the missing part | structured dots (1 or 2 dies) | 4-choice buttons | low–mid |
+| `splits-frame` | total above a row of cells; known cells filled, ghost cells to tap/count/type | joined-square frame | tap / numpad (per tier) | low–high |
+| `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) |
+
+> **Parked**: `dot-pattern-decompose-pad` — same visual as `dot-pattern-decompose` but numpad input instead of choice buttons; would only be weighted from score ≥ 12 (i.e. where the child already reads numbers). Uncertain whether this adds enough over `splits-frame` tier 3 to be worth building as a separate exercise type.
+
+### Splitsen notation (production)
+
+These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flemish primary-school notations.
 
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
@@ -442,6 +472,8 @@ For Claude Code context — what was considered and chosen during the design con
 8. **Verschil/aanvullen at tot-10**: dual deps (tot-10 wegnemen *and* tot-5 cousin). Belt-and-braces.
 9. **Vergelijken / compare-more-less**: an exercise type within `getalbegrip-5` / `getalbegrip-10`, not its own skill node.
 10. **Error logging**: per-question record captures `errorType` enum; detection at recording time; initial enum kept minimal (`off-by-one`, `reversal`, `semantic-narrow`, `near-miss`, `tienvriend-mismatch`, `unclassified`).
+11. **Splitsen-tot-5 split**: `splitsen-tot-5` separates into `splitsen-herken-5` (perceptual / recognition — `dot-pattern-decompose`, `splits-frame`, `rekenrek-decompose`) and `splitsen-noteren-5` (notation / production — splitshuisje, splitsbenen, splits-vrij / -alle / -ontbreken-*). Recognition gates the +/- track; notation runs in parallel and gates nothing in v2. Open: does the same split apply to `splitsen-tot-10`? TBD pending playtesting.
+12. **No trivial 0-splits**: splitsen generators produce a ≥ 1, b ≥ 1. A "split into 0 and n" carries no recognition signal and was previously confusing in visual exercises. Was previously `a ≥ 0`.
 
 ---
 
