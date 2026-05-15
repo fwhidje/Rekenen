@@ -35,8 +35,8 @@ export function selectExercise(
   const skill = available[Math.floor(Math.random() * available.length)]
   const score = profile.skills[skill.id]?.score ?? 0
 
-  // Intersect: skill's applicable list × registered × non-zero global weight
-  const weights = getWeights(score)
+  // Intersect: skill's applicable list × registered × non-zero weight for this skill
+  const weights = getWeights(skill.id, score)
   const candidates: [string, number][] = []
   for (const exId of skill.applicableExercises) {
     if (!registered.has(exId)) continue
