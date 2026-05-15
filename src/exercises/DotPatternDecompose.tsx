@@ -47,13 +47,13 @@ function DieDots({ count, colours, size }: {
 
 // ─── Total pattern: 1 or 2 die squares; first fills, then second ─────────────
 
-function TotalPattern({ total, splitAt, lit, colourA, colourB, ink, paper }: {
-  total: number; splitAt: number; lit: boolean
+function TotalPattern({ total, splitAt, litA, litB, colourA, colourB, ink, paper }: {
+  total: number; splitAt: number; litA: boolean; litB: boolean
   colourA: string; colourB: string
   ink: string; paper: string
 }) {
-  const cA = lit ? colourA : GREY
-  const cB = lit ? colourB : GREY
+  const cA = litA ? colourA : GREY
+  const cB = litB ? colourB : GREY
   const colourFor = (i: number) => i < splitAt ? cA : cB
 
   if (total <= 5) {
@@ -168,10 +168,11 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const showChoiceNum = stage !== 'die-die'
 
   // Reveal sequencer.
-  // step 0: total visible (grey if visual).
-  // step 1: given side appears below.
-  // step 2: ? appears, total dots light up to their split colours.
+  // step 0: total visible, all grey.
+  // step 1: given side appears + given side's dots in total light up.
+  // step 2: ? appears + remaining dots in total light up.
   // step 3..: options fade in one by one, quicker cadence.
+  // Same gap between b and first option as between a and b.
   const [step, setStep] = useState(0)
   useEffect(() => {
     setStep(0)
@@ -179,14 +180,15 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
     timers.push(setTimeout(() => setStep(1), 600))
     timers.push(setTimeout(() => setStep(2), 1400))
     options.forEach((_, i) => {
-      timers.push(setTimeout(() => setStep(3 + i), 1750 + i * 160))
+      timers.push(setTimeout(() => setStep(3 + i), 2200 + i * 160))
     })
     return () => timers.forEach(clearTimeout)
   }, [operandA, operandB, showA, stage, options])
 
   const showGiven     = step >= 1
-  const totalLit      = step >= 2
   const showQ         = step >= 2
+  const litA          = (step >= 1 && showA) || step >= 2
+  const litB          = (step >= 1 && !showA) || step >= 2
   const revealedOpts  = Math.max(0, step - 2)
   const fullyRevealed = step >= 2 + options.length
 
@@ -214,7 +216,8 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
             }}>{total}</div>
           : <TotalPattern
               total={total} splitAt={operandA}
-              lit={totalLit} colourA={colourA} colourB={colourB}
+              litA={litA} litB={litB}
+              colourA={colourA} colourB={colourB}
               ink={ink} paper={paper}
             />
         }
