@@ -13,8 +13,7 @@ const DOT_POS: Record<number, [number, number][]> = {
   5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
 }
 
-const CELL = 54
-const GAP  = 6
+const CELL = 54   // cell size (px)
 
 type Stage = 'die-tap' | 'num-tap' | 'num-pad'
 
@@ -69,29 +68,56 @@ function SplitDie({ total, splitAt, colourA, colourB, ink, paper, size }: {
   )
 }
 
-// ─── Frame cell ──────────────────────────────────────────────────────────────
+// ─── Joined frame ─────────────────────────────────────────────────────────────
+// All cells share borders — one outer border, internal dividers only.
 
-function FrameCell({ filled, tapped, colour, ink, onTap }: {
-  filled: boolean; tapped: boolean; colour: string; ink: string; onTap?: () => void
+function JoinedFrame({ knownVal, unknownVal, knownColour, unknownCol, ink, paper, tapped, showNumpad, onTap, disabled }: {
+  knownVal: number; unknownVal: number
+  knownColour: string; unknownCol: string
+  ink: string; paper: string
+  tapped: boolean[]; showNumpad: boolean
+  onTap: (i: number) => void; disabled: boolean
 }) {
-  const dotSize = Math.round(CELL * 0.55)
-  const isGhost = !filled && !tapped
+  const total = knownVal + unknownVal
+  const dotSize = Math.round(CELL * 0.52)
+
   return (
-    <div
-      onClick={onTap}
-      style={{
-        width: CELL, height: CELL, flexShrink: 0,
-        border: `2px solid ${ink}`, borderRadius: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: onTap ? 'pointer' : 'default', userSelect: 'none',
-      }}
-    >
-      <div style={{
-        width: dotSize, height: dotSize, borderRadius: '50%',
-        background: isGhost ? `${colour}28` : colour,
-        boxShadow: isGhost ? 'none' : `0 2px 6px ${colour}88`,
-        transition: 'background 0.18s, box-shadow 0.18s',
-      }} />
+    <div style={{
+      display: 'inline-flex',
+      border: `2px solid ${ink}`, borderRadius: 10,
+      overflow: 'hidden',
+    }}>
+      {Array.from({ length: total }, (_, idx) => {
+        const isKnown  = idx < knownVal
+        const ghostIdx = idx - knownVal
+        const isTapped = !isKnown && (tapped[ghostIdx] || showNumpad)
+        const colour   = isKnown ? knownColour : unknownCol
+        const filled   = isKnown || isTapped
+        const ghost    = !isKnown && !isTapped
+        const tappable = !isKnown && !showNumpad && !tapped[ghostIdx] && !disabled
+
+        return (
+          <div
+            key={idx}
+            onClick={tappable ? () => onTap(ghostIdx) : undefined}
+            style={{
+              width: CELL, height: CELL,
+              background: paper,
+              borderRight: idx < total - 1 ? `2px solid ${ink}` : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: tappable ? 'pointer' : 'default',
+              userSelect: 'none',
+            }}
+          >
+            <div style={{
+              width: dotSize, height: dotSize, borderRadius: '50%',
+              background: ghost ? `${colour}28` : colour,
+              boxShadow: filled ? `0 2px 6px ${colour}88` : 'none',
+              transition: 'background 0.18s, box-shadow 0.18s',
+            }} />
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -109,13 +135,11 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
   const knownColour = showA ? refuse : dot
   const unknownCol  = showA ? dot   : refuse
 
-  const knownGroupW   = Math.max(0, knownVal   * CELL + (knownVal   - 1) * GAP)
-  const unknownGroupW = Math.max(0, unknownVal * CELL + (unknownVal - 1) * GAP)
-
   const showDie    = stage === 'die-tap'
   const showLabels = stage !== 'die-tap'
   const showNumpad = stage === 'num-pad'
 
+  // Tier 1 & 2: tap state
   const [tapped, setTapped] = useState<boolean[]>(() => Array(unknownVal).fill(false))
   const handleTap = (i: number) => {
     if (disabled || tapped[i]) return
@@ -125,6 +149,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
     if (next.every(Boolean)) setTimeout(() => onResolve(true), 300)
   }
 
+  // Tier 3: numpad
   const [input, setInput] = useState('')
   const handleKey = (key: string) => {
     if (disabled) return
@@ -132,6 +157,11 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
     if (key === '✓') { if (input) onResolve(parseInt(input, 10) === unknownVal); return }
     if (input.length < 2) setInput(v => v + key)
   }
+
+  // Label widths: one label per group, each spans its group's cells.
+  // Each cell is CELL wide; internal borders are part of the cell, so widths add up exactly.
+  const knownLabelW   = knownVal   * CELL + (knownVal   - 1) * 2  // each internal border = 2px counted in right cell
+  const unknownLabelW = unknownVal * CELL + (unknownVal - 1) * 2
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
@@ -148,7 +178,6 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18,
         boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
-        {/* Total: die at tier 1, number at tiers 2/3 */}
         {showDie
           ? <SplitDie total={total} splitAt={operandA} colourA={refuse} colourB={dot} ink={ink} paper={paper} size={90} />
           : <div style={{
@@ -159,39 +188,30 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
             }}>{total}</div>
         }
 
-        {/* Frame + optional labels */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
           {showLabels && (
-            <div style={{ display: 'flex', gap: GAP }}>
+            <div style={{ display: 'flex' }}>
               <div style={{
-                width: knownGroupW, textAlign: 'center',
+                width: knownLabelW, textAlign: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 20, color: knownColour,
               }}>{knownVal}</div>
+              <div style={{ width: 2 }} />
               <div style={{
-                width: unknownGroupW, textAlign: 'center',
+                width: unknownLabelW, textAlign: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 20, color: unknownCol,
               }}>?</div>
             </div>
           )}
-          <div style={{ display: 'flex', gap: GAP }}>
-            {Array.from({ length: knownVal }, (_, i) => (
-              <FrameCell key={i} filled={true} tapped={false} colour={knownColour} ink={ink} />
-            ))}
-            {Array.from({ length: unknownVal }, (_, i) => (
-              <FrameCell
-                key={knownVal + i}
-                filled={false}
-                tapped={!showNumpad && tapped[i]}
-                colour={unknownCol}
-                ink={ink}
-                onTap={!showNumpad && !tapped[i] && !disabled ? () => handleTap(i) : undefined}
-              />
-            ))}
-          </div>
+          <JoinedFrame
+            knownVal={knownVal} unknownVal={unknownVal}
+            knownColour={knownColour} unknownCol={unknownCol}
+            ink={ink} paper={paper}
+            tapped={tapped} showNumpad={showNumpad}
+            onTap={handleTap} disabled={disabled}
+          />
         </div>
       </div>
 
-      {/* Numpad tier: answer display + numpad */}
       {showNumpad && (
         <>
           <div style={{
@@ -222,6 +242,7 @@ const SplitsFrame: ExerciseDefinition<SplitsFrameMeta> = {
   id: 'splits-frame',
   label: 'Vul het frame in',
   supportsReveal: false,
+  isCompatible: (a, b) => a > 0 && b > 0,
   generateMeta(_a, _b, score) {
     const stage = pickStage(score)
     return {
