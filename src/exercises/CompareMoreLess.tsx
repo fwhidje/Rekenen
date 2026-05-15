@@ -51,13 +51,18 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
 
   const maxN = Math.max(leftVal, rightVal)
   const size = maxN <= 5 ? 44 : 32
+  const rows = Math.ceil(maxN / 5)
+  const counterAreaH = rows * size + (rows - 1) * 4
+  const panelH = style === 'numbers'
+    ? 64 + 28
+    : style === 'both' ? counterAreaH + 26 + 8 + 28 : counterAreaH + 28
 
   const GroupPanel = ({ val, onPick }: { val: number; onPick: () => void }) => (
     <div onClick={onPick} style={{
-      flex: 1, minHeight: 120,
+      height: panelH,
       background: cream, border: `2px solid ${ink}`, borderRadius: 18,
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 8, padding: '14px 10px',
+      justifyContent: 'center', gap: 8, padding: '0 10px',
       cursor: disabled ? 'default' : 'pointer',
       boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       userSelect: 'none',
