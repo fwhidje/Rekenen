@@ -144,38 +144,35 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         ink={ink} paper={paper} size={130}
       />
 
-      {/* Big box: known + ? header, then choices */}
+      {/* Equation stub box: known + ? */}
       <div style={{
         background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '14px 12px', width: '100%', maxWidth: 320,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+        padding: '14px 18px',
+        display: 'flex', alignItems: 'center', gap: 10,
         boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
-        {/* Header row: known + ? */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {knownAsNum
-            ? <NumSlot value={knownVal} colour={knownColour} ink={ink} paper={paper} />
-            : <Die n={knownVal} colour={knownColour} ink={ink} paper={paper} size={SLOT} />
-          }
-          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink }}>+</span>
-          <QuestionSlot colour={unknownCol} ink={ink} paper={paper} />
-        </div>
+        {knownAsNum
+          ? <NumSlot value={knownVal} colour={knownColour} ink={ink} paper={paper} />
+          : <Die n={knownVal} colour={knownColour} ink={ink} paper={paper} size={SLOT} />
+        }
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink }}>+</span>
+        <QuestionSlot colour={unknownCol} ink={ink} paper={paper} />
+      </div>
 
-        {/* Choices */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${options.length}, 1fr)`,
-          gap: 8, width: '100%',
-        }}>
-          {options.map(opt => (
-            <ChoiceButton
-              key={opt} value={opt} colour={unknownCol}
-              ink={ink} paper={paper}
-              showDie={showChoiceDie} showNumber={showChoiceNum}
-              onClick={() => onResolve(opt === unknownVal)} disabled={disabled}
-            />
-          ))}
-        </div>
+      {/* Choices */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${options.length}, 1fr)`,
+        gap: 10, width: '100%', maxWidth: 320,
+      }}>
+        {options.map(opt => (
+          <ChoiceButton
+            key={opt} value={opt} colour={unknownCol}
+            ink={ink} paper={paper}
+            showDie={showChoiceDie} showNumber={showChoiceNum}
+            onClick={() => onResolve(opt === unknownVal)} disabled={disabled}
+          />
+        ))}
       </div>
     </div>
   )
