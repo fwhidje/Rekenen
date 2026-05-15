@@ -46,10 +46,16 @@ export function selectExercise(
   }
   if (candidates.length === 0) return null
 
-  const exerciseId = weightedPick(candidates)
-  const def = getExercise(exerciseId)
-
+  // Generate the problem first so isCompatible can filter exercises.
   const { a, b, op } = skill.generate()
+  const filteredCandidates = candidates.filter(([exId]) => {
+    const def = getExercise(exId)
+    return !def.isCompatible || def.isCompatible(a, b)
+  })
+  if (filteredCandidates.length === 0) return null
+
+  const exerciseId = weightedPick(filteredCandidates)
+  const def = getExercise(exerciseId)
   const answer = computeAnswer(a, b, op)
   const meta = def.generateMeta(a, b, score)
 

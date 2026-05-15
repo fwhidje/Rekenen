@@ -34,15 +34,14 @@ export interface ExerciseDefinition<Meta = Record<string, unknown>> {
   id: string
   label: string  // Dutch, shown in parent/debug views
 
-  // Does this exercise type support a sequential reveal animation?
-  // If true, the exercise component is responsible for implementing it.
   supportsReveal: boolean
 
-  // Build the exercise-specific metadata from the skill's operands and current score.
-  // `score` is 0–50; use it to vary within-type difficulty (e.g. dot vs scene visual).
   generateMeta(operandA: number, operandB: number, score: number): Meta
 
-  // The component that renders this exercise.
-  // Use React.ComponentType so it works with both function and class components.
+  // Optional guard: if provided, the selector will skip this exercise when
+  // the generated (a, b) pair doesn't satisfy it. Use to exclude degenerate
+  // inputs (e.g. zero-splits for frame-based exercises).
+  isCompatible?: (a: number, b: number) => boolean
+
   Component: ComponentType<ExerciseComponentProps<Meta>>
 }
