@@ -72,7 +72,7 @@ function NumSlot({ value, colour, ink, paper }: {
   )
 }
 
-function QuestionSlot({ colour, ink, paper }: { colour: string; ink: string; paper: string }) {
+function QuestionSlot({ colour, paper }: { colour: string; paper: string }) {
   return (
     <div style={{
       width: SLOT, height: SLOT, flexShrink: 0,
@@ -156,7 +156,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
           : <Die n={knownVal} colour={knownColour} ink={ink} paper={paper} size={SLOT} />
         }
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink }}>+</span>
-        <QuestionSlot colour={unknownCol} ink={ink} paper={paper} />
+        <QuestionSlot colour={unknownCol} paper={paper} />
       </div>
 
       {/* Choices */}
