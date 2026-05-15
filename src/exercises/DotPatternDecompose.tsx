@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
 import { NATURE_TOKENS } from '../presentation/tokens'
@@ -12,6 +13,7 @@ const DOT_POS: Record<number, [number, number][]> = {
 }
 
 const SLOT = 62
+const GREY = '#b9aa92'
 
 type Stage = 'die-die' | 'die-numchoice' | 'num-num' | 'all-num'
 
@@ -21,43 +23,77 @@ interface DotPatternDecomposeMeta {
   stage:   Stage
 }
 
-// ─── Die primitives ───────────────────────────────────────────────────────────
+// ─── Primitive: positioned dots ──────────────────────────────────────────────
 
-function TwoColourDie({ total, splitAt, colourA, colourB, ink, paper, size }: {
-  total: number; splitAt: number
-  colourA: string; colourB: string
-  ink: string; paper: string; size: number
+function DieDots({ count, colours, size }: {
+  count: number; colours: string[]; size: number
 }) {
-  const positions = DOT_POS[total] ?? []
+  const positions = DOT_POS[count] ?? []
   const dotSize = Math.round(size * 0.23)
   return (
-    <div style={{
-      position: 'relative', width: size, height: size, flexShrink: 0,
-      background: paper, border: `2px solid ${ink}`,
-      borderRadius: Math.round(size * 0.12),
-    }}>
-      {positions.map(([x, y], i) => {
-        const c = i < splitAt ? colourA : colourB
-        return (
-          <div key={i} style={{
-            position: 'absolute', left: `${x}%`, top: `${y}%`,
-            transform: 'translate(-50%, -50%)',
-            width: dotSize, height: dotSize, borderRadius: '50%',
-            background: c, boxShadow: `0 3px 8px ${c}88`,
-          }} />
-        )
-      })}
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      {positions.map(([x, y], i) => (
+        <div key={i} style={{
+          position: 'absolute', left: `${x}%`, top: `${y}%`,
+          transform: 'translate(-50%, -50%)',
+          width: dotSize, height: dotSize, borderRadius: '50%',
+          background: colours[i], boxShadow: `0 3px 8px ${colours[i]}88`,
+          transition: 'background 0.4s, box-shadow 0.4s',
+        }} />
+      ))}
     </div>
   )
 }
 
-function Die({ n, colour, ink, paper, size }: {
-  n: number; colour: string; ink: string; paper: string; size: number
+// ─── Total pattern: 1 or 2 die squares; first fills, then second ─────────────
+
+function TotalPattern({ total, splitAt, lit, colourA, colourB, ink, paper }: {
+  total: number; splitAt: number; lit: boolean
+  colourA: string; colourB: string
+  ink: string; paper: string
 }) {
-  return <TwoColourDie total={n} splitAt={n} colourA={colour} colourB={colour} ink={ink} paper={paper} size={size} />
+  const cA = lit ? colourA : GREY
+  const cB = lit ? colourB : GREY
+  const colourFor = (i: number) => i < splitAt ? cA : cB
+
+  if (total <= 5) {
+    const colours = Array.from({ length: total }, (_, i) => colourFor(i))
+    return (
+      <div style={{ width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
+        <DieDots count={total} colours={colours} size={130} />
+      </div>
+    )
+  }
+
+  const leftCount = 5
+  const rightCount = total - 5
+  const leftColours  = Array.from({ length: leftCount },  (_, i) => colourFor(i))
+  const rightColours = Array.from({ length: rightCount }, (_, i) => colourFor(leftCount + i))
+  return (
+    <div style={{
+      background: paper, borderRadius: 16, border: `2px solid ${ink}`,
+      padding: '10px 14px',
+      display: 'flex', gap: 12, alignItems: 'center',
+    }}>
+      <DieDots count={leftCount}  colours={leftColours}  size={110} />
+      <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
+      <DieDots count={rightCount} colours={rightColours} size={110} />
+    </div>
+  )
 }
 
-// ─── Slot — a bordered square used for known, ?, and choices ──────────────────
+// ─── Slots ───────────────────────────────────────────────────────────────────
+
+function PartDie({ n, colour, ink, paper, size }: {
+  n: number; colour: string; ink: string; paper: string; size: number
+}) {
+  const colours = Array.from({ length: n }, () => colour)
+  return (
+    <div style={{ width: size, height: size, background: paper, borderRadius: 10, border: `2px solid ${ink}` }}>
+      <DieDots count={n} colours={colours} size={size} />
+    </div>
+  )
+}
 
 function NumSlot({ value, colour, ink, paper }: {
   value: number; colour: string; ink: string; paper: string
@@ -83,7 +119,7 @@ function QuestionSlot({ colour, paper }: { colour: string; paper: string }) {
   )
 }
 
-// ─── Choice button ────────────────────────────────────────────────────────────
+// ─── Choice button ───────────────────────────────────────────────────────────
 
 function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick, disabled }: {
   value: number; colour: string; ink: string; paper: string
@@ -105,13 +141,13 @@ function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick,
         boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
         opacity: disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
       }}>
-      {showDie    && <Die n={value} colour={colour} ink={ink} paper={paper} size={dieSize} />}
+      {showDie    && <PartDie n={value} colour={colour} ink={ink} paper={paper} size={dieSize} />}
       {showNumber && <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink, lineHeight: 1 }}>{value}</span>}
     </button>
   )
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ───────────────────────────────────────────────────────────────
 
 function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DotPatternDecomposeMeta>) {
   const { operandA, operandB, meta } = question
@@ -131,6 +167,29 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const showChoiceDie = stage === 'die-die'
   const showChoiceNum = stage !== 'die-die'
 
+  // Reveal sequencer.
+  // step 0: total visible (grey if visual).
+  // step 1: given side appears below.
+  // step 2: ? appears, total dots light up to their split colours.
+  // step 3..: options fade in one by one, quicker cadence.
+  const [step, setStep] = useState(0)
+  useEffect(() => {
+    setStep(0)
+    const timers: ReturnType<typeof setTimeout>[] = []
+    timers.push(setTimeout(() => setStep(1), 600))
+    timers.push(setTimeout(() => setStep(2), 1400))
+    options.forEach((_, i) => {
+      timers.push(setTimeout(() => setStep(3 + i), 1750 + i * 160))
+    })
+    return () => timers.forEach(clearTimeout)
+  }, [operandA, operandB, showA, stage, options])
+
+  const showGiven     = step >= 1
+  const totalLit      = step >= 2
+  const showQ         = step >= 2
+  const revealedOpts  = Math.max(0, step - 2)
+  const fullyRevealed = step >= 2 + options.length
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
       <div style={{
@@ -139,33 +198,38 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
 
-      {showTotalNum
-        ? <div style={{
-            width: 90, height: 90, flexShrink: 0,
-            background: paper, border: `2px solid ${ink}`, borderRadius: 14,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
-          }}>{total}</div>
-        : <TwoColourDie
-            total={total} splitAt={operandA}
-            colourA={colourA} colourB={colourB}
-            ink={ink} paper={paper} size={130}
-          />
-      }
-
-      {/* Equation stub box: known + ? */}
+      {/* Puzzle box: total + given/? row */}
       <div style={{
         background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '14px 18px',
-        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '20px 24px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
         boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
-        {knownAsNum
-          ? <NumSlot value={knownVal} colour={knownColour} ink={ink} paper={paper} />
-          : <Die n={knownVal} colour={knownColour} ink={ink} paper={paper} size={SLOT} />
+        {showTotalNum
+          ? <div style={{
+              width: 90, height: 90, flexShrink: 0,
+              background: paper, border: `2px solid ${ink}`, borderRadius: 14,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink,
+            }}>{total}</div>
+          : <TotalPattern
+              total={total} splitAt={operandA}
+              lit={totalLit} colourA={colourA} colourB={colourB}
+              ink={ink} paper={paper}
+            />
         }
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink }}>+</span>
-        <QuestionSlot colour={unknownCol} paper={paper} />
+
+        <div style={{ display: 'flex', gap: 22, alignItems: 'center' }}>
+          <div style={{ opacity: showGiven ? 1 : 0, transition: 'opacity 0.3s' }}>
+            {knownAsNum
+              ? <NumSlot value={knownVal} colour={knownColour} ink={ink} paper={paper} />
+              : <PartDie n={knownVal} colour={knownColour} ink={ink} paper={paper} size={SLOT} />
+            }
+          </div>
+          <div style={{ opacity: showQ ? 1 : 0, transition: 'opacity 0.3s' }}>
+            <QuestionSlot colour={unknownCol} paper={paper} />
+          </div>
+        </div>
       </div>
 
       {/* Choices */}
@@ -174,20 +238,23 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         gridTemplateColumns: `repeat(${options.length}, 1fr)`,
         gap: 10, width: '100%', maxWidth: 320,
       }}>
-        {options.map(opt => (
-          <ChoiceButton
-            key={opt} value={opt} colour={unknownCol}
-            ink={ink} paper={paper}
-            showDie={showChoiceDie} showNumber={showChoiceNum}
-            onClick={() => onResolve(opt === unknownVal)} disabled={disabled}
-          />
+        {options.map((opt, i) => (
+          <div key={opt} style={{ opacity: i < revealedOpts ? 1 : 0, transition: 'opacity 0.25s' }}>
+            <ChoiceButton
+              value={opt} colour={unknownCol}
+              ink={ink} paper={paper}
+              showDie={showChoiceDie} showNumber={showChoiceNum}
+              onClick={() => onResolve(opt === unknownVal)}
+              disabled={disabled || !fullyRevealed}
+            />
+          </div>
         ))}
       </div>
     </div>
   )
 }
 
-// ─── Definition ───────────────────────────────────────────────────────────────
+// ─── Definition ──────────────────────────────────────────────────────────────
 
 function makeOptions(correct: number, total: number): number[] {
   const pool = Array.from({ length: total + 1 }, (_, i) => i).filter(v => v !== correct)
