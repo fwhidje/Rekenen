@@ -38,83 +38,68 @@ components. No exercise file needs to change.
 
 ---
 
-## ★ NEXT SESSION TASK — Round 2: implement all exercise types
+## ★ Round 2 progress — implement all exercise types
 
-**Branch**: `claude/general-session-N7TgS`
+**Branch**: `claude/review-repo-setup-aokOj`
 
-Round 1 (done): curriculum data, engine, DebugMode. All 21 skills defined in `skills.ts`. Seven exercise types exist as stubs or partial implementations. **Round 2 goal: implement every exercise type so each is fully playable in DebugMode.**
+Round 1 (done): curriculum data, engine, DebugMode. All 21 skills defined in `skills.ts`.
+Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tuned per skill.
 
-### What exists already (7 types)
+### Procedure (per skill)
+
+1. For each exercise in the skill's `applicableExercises`: implement if missing, or test if already scripted.
+2. Discuss any layout/design questions before building.
+3. Tune the skill's weight table in `weightMatrix.ts` (add a named entry to `SKILL_TABLES`).
+4. Commit and push. Then move to the next skill.
+
+### Skill status
+
+| Skill | Exercises | Matrix |
+|---|---|---|
+| `getalbegrip-5` | ✅ all tested | ✅ tuned |
+| `getalbegrip-10` | ✅ all tested (same exercises as -5, handles 1–10) | ✅ tuned |
+| `splitsen-tot-5` | 🔲 Pass 2 exercises not yet built | 🔲 |
+| `splitsen-tot-10` | 🔲 | 🔲 |
+| `tienvrienden` | 🔲 Pass 6 | 🔲 |
+| `+1-2-tot-5` and all optellen | 🔲 Pass 3 (fix existing 7 for non-`+` ops) | 🔲 |
+| all aftrekken skills | 🔲 Pass 5 | 🔲 |
+| `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
+
+### Exercise file status
 
 | ID | File | Status |
 |---|---|---|
-| `fill-vis` | `src/exercises/FillVisual.tsx` | Works for `+` only — needs `-`, `split`, `count`, `half` |
-| `fill-plain` | `src/exercises/FillPlain.tsx` | Works for `+` only — same |
-| `choice` | `src/exercises/Choice.tsx` | Works for `+` only — same |
-| `tf` | `src/exercises/TrueFalse.tsx` | Works for `+` only — same |
-| `collect-tap` | `src/exercises/CollectTap.tsx` | Works for `+` only — same |
-| `collect-counter` | `src/exercises/CollectCounter.tsx` | Works for `+` only — same |
-| `numberline-jump` | `src/exercises/NumberLine.tsx` | Works for `+` only — same |
-
-The `op` field on `ExerciseQuestion` tells each exercise what operation it's showing. All exercises must branch on `op` to render correctly for subtraction (`-`), splitsen (`split`), count (`count`), and half (`half`) skills.
-
-### What needs building (new files, 23 types)
-
-Build in this order — each group reuses primitives introduced by the previous:
-
-**Pass 1 — number-sense primitives** (new presentation components, no arithmetic):
-1. `count-and-tap` → `src/exercises/CountAndTap.tsx`
-2. `dot-pattern-recognise` → `src/exercises/DotPatternRecognise.tsx`
-3. `finger-pattern-recognise` → `src/exercises/FingerPatternRecognise.tsx`
-4. `numberline-place` → `src/exercises/NumberlinePlace.tsx`
-5. `compare-more-less` → `src/exercises/CompareMoreLess.tsx`
-6. `ten-frame-show` → `src/exercises/TenFrameShow.tsx`
-7. `rekenrek-show` → `src/exercises/RekenrekShow.tsx`
-
-**Pass 2 — splitsen family** (shared splitshuisje / splitsbenen shapes go in `src/presentation/components/`):
-8. `splitshuisje` → `src/exercises/Splitshuisje.tsx`
-9. `splitsbenen` → `src/exercises/Splitsbenen.tsx`
-10. `splits-ontbreken-rechts` → `src/exercises/SplitsOntbrekenRechts.tsx`
-11. `splits-ontbreken-links` → `src/exercises/SplitsOntbrekenLinks.tsx`
-12. `splits-vrij` → `src/exercises/SplitsVrij.tsx`
-13. `splits-alle` → `src/exercises/SplitsAlle.tsx`
-14. `dot-pattern-decompose` → `src/exercises/DotPatternDecompose.tsx`
-15. `rekenrek-decompose` → `src/exercises/RekenrekDecompose.tsx`
-
-**Pass 3 — fix existing 7 for non-`+` ops** (FillVisual, FillPlain, Choice, TF, CollectTap, CollectCounter, NumberLine):
-- Branch on `question.op` to show correct equation format per operation
-- `-`: show `a − b = ?`; `split`: show `a + b = ?` or `total = ? + ?`; `count`: show `Hoeveel?`; `half`: show `helft van a = ?`
-
-**Pass 4 — optellen extras**:
-16. `rekenrek-add` → `src/exercises/RekenrekAdd.tsx`
-17. `dubbel-recognise` → `src/exercises/DubbelRecognise.tsx`
-
-**Pass 5 — aftrekken-specific**:
-18. `wegnemen-crossed-out` → `src/exercises/WegnemenCrossedOut.tsx`
-19. `verschil-two-groups` → `src/exercises/VerschilTwoGroups.tsx`
-20. `verschil-rekenrek` → `src/exercises/VerschilRekenrek.tsx`
-21. `aanvullen-target` → `src/exercises/AanvullenTarget.tsx`
-22. `numberline-jump-back` → `src/exercises/NumberlineJumpBack.tsx`
-23. `numberline-jump-up-from-b` → `src/exercises/NumberlineJumpUpFromB.tsx`
-24. `collect-counter-down` → `src/exercises/CollectCounterDown.tsx`
-
-**Pass 6 — tienvrienden & helften**:
-25. `tienveld-fill` → `src/exercises/TienveldFill.tsx`
-26. `rekenrek-make-ten` → `src/exercises/RekenrekMakeTen.tsx`
-27. `splits-helft` → `src/exercises/SplitsHelft.tsx`
+| `count-and-tap` | `CountAndTap.tsx` | ✅ done |
+| `dot-pattern-recognise` | `DotPatternRecognise.tsx` | ✅ done |
+| `finger-pattern-recognise` | `FingerPatternRecognise.tsx` | ✅ done |
+| `numberline-place` | `NumberlinePlace.tsx` | ✅ done |
+| `compare-more-less` | `CompareMoreLess.tsx` | ✅ done |
+| `ten-frame-show` | `TenFrameShow.tsx` | ✅ done |
+| `rekenrek-show` | — | 🅿️ parked (see above) |
+| `fill-vis` | `FillVisual.tsx` | ⚠️ `+` only — needs `-`, `split`, `count`, `half` |
+| `fill-plain` | `FillPlain.tsx` | ⚠️ `+` only |
+| `choice` | `Choice.tsx` | ⚠️ `+` only |
+| `tf` | `TrueFalse.tsx` | ⚠️ `+` only |
+| `collect-tap` | `CollectTap.tsx` | ⚠️ `+` only |
+| `collect-counter` | `CollectCounter.tsx` | ⚠️ `+` only |
+| `numberline-jump` | `NumberLine.tsx` | ⚠️ `+` only |
+| splitsen family (8 types) | — | 🔲 not built |
+| optellen extras (2 types) | — | 🔲 not built |
+| aftrekken-specific (7 types) | — | 🔲 not built |
+| tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
 
 ### Per-exercise ritual
 
 1. Create the file, implement, register via `registerExercise()`
 2. Add its id to `src/exercises/index.ts`
-3. Add a weight entry in `src/curriculum/weightMatrix.ts` (so it actually gets picked)
+3. Add or update the skill's weight table in `src/curriculum/weightMatrix.ts`
 4. Run `npm run typecheck` — fix any errors
-5. Test in DebugMode at scores 0, 25, 50 — check reveal/input/feedback all work
+5. Test in DebugMode
 6. Commit: `feat: add <exercise-id> exercise`
 
 ### Adding weights
 
-When adding new exercise types, add them to `src/curriculum/weightMatrix.ts`. The current file only has weights for the 7 existing types — new types default to 0 and won't be picked until you add them. For number-sense exercises a simple flat weight of ~20 across all scores is fine for now; Round 3 will tune per-skill.
+`weightMatrix.ts` uses per-skill `SKILL_TABLES`. Add a named entry with `[low, high]` lerp pairs or a flat number. Skills without a table fall back to the default global curve.
 
 ---
 
@@ -141,7 +126,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 |---|---|
 | `src/curriculum/types.ts` | `SkillDefinition`, `Operation`, `WeightFunction` types |
 | `src/curriculum/skills.ts` | All 21 skill definitions (data — add new skills here) |
-| `src/curriculum/weightMatrix.ts` | Score → exercise-type weights (placeholder global curve; round 3 will replace with per-skill tables) |
+| `src/curriculum/weightMatrix.ts` | Per-skill weight tables (`SKILL_TABLES`); falls back to default global curve for untuned skills |
 | `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD |
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
