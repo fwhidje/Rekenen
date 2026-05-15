@@ -7,5 +7,5 @@ export function applyCorrect(score: number): number {
 }
 
 export function applyWrong(score: number): number {
-  return Math.max(SCORE_MIN, score - 2)
+  return Math.max(SCORE_MIN, score - 3)
 }
