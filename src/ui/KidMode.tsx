@@ -11,11 +11,11 @@ import { THEMES } from '../presentation/themes'
 // Import exercises to register them
 import '../exercises/index'
 
-const THEME_ROUNDS    = 10  // switch theme every N rounds
-const BG_ROUNDS       =  5  // switch background within theme every N rounds
+const THEME_ROUNDS = 10  // re-pick theme every N rounds (random, may repeat)
 
 const PRAISE = ['Geweldig!', 'Super!', 'Waanzinnig!', 'Fantastisch!', 'Bravo!', 'Perfect!', 'Top!', 'Goed zo!']
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
+const pickIdx = (len: number): number => Math.floor(Math.random() * len)
 
 interface Props {
   profile: Profile
@@ -36,12 +36,14 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const [history, setHistory] = useState<boolean[]>([])
   const [qKey, setQKey] = useState(0)
   const [roundsDone, setRoundsDone] = useState(0)
-  const [counterIdx, setCounterIdx] = useState(0)
+  const [themeIdx, setThemeIdx] = useState(() => pickIdx(THEMES.length))
+  const [bgIdx, setBgIdx] = useState(() => pickIdx(THEMES[0].backgrounds.length))
+  const [counterIdx, setCounterIdx] = useState(() => pickIdx(THEMES[0].counters.length))
 
-  const theme = THEMES[Math.floor(roundsDone / THEME_ROUNDS) % THEMES.length]
-  const bgIdx = Math.floor(roundsDone / BG_ROUNDS) % theme.backgrounds.length
-  const { Background, containerBg } = theme.backgrounds[bgIdx]
-  const Counter = theme.counters[counterIdx]
+  const theme = THEMES[themeIdx]
+  const ThemeDefs = theme.SharedDefs
+  const { Background, containerBg } = theme.backgrounds[bgIdx % theme.backgrounds.length]
+  const Counter = theme.counters[counterIdx % theme.counters.length]
   const scene = useMemo(() => ({ Counter, containerBg, tokens: theme.tokens }), [Counter, containerBg, theme])
 
   const nextQuestion = useCallback((updatedProfile: Profile, completed: number) => {
@@ -50,9 +52,13 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setFeedback(null)
     setQKey(k => k + 1)
     setRoundsDone(completed)
-    // rotate counter on every question
-    setCounterIdx(i => (i + 1) % THEMES[Math.floor(completed / THEME_ROUNDS) % THEMES.length].counters.length)
-  }, [])
+    // re-pick theme every THEME_ROUNDS rounds (random — may land on the same theme)
+    const nextThemeIdx = completed % THEME_ROUNDS === 0 ? pickIdx(THEMES.length) : themeIdx
+    setThemeIdx(nextThemeIdx)
+    // background + counter: re-pick at random every round (repeats allowed)
+    setBgIdx(pickIdx(THEMES[nextThemeIdx].backgrounds.length))
+    setCounterIdx(pickIdx(THEMES[nextThemeIdx].counters.length))
+  }, [themeIdx])
 
   const handleResolve = useCallback((correct: boolean) => {
     if (feedback || !question) return
@@ -73,6 +79,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   if (!question) {
     return (
       <div style={{ position: 'relative', minHeight: '100dvh' }}>
+        <ThemeDefs />
         <Background style={{ position: 'absolute', inset: 0 }} />
         <div style={{
           position: 'relative', zIndex: 3, minHeight: '100dvh',
@@ -98,6 +105,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
+      <ThemeDefs />
       {/* Background scene — full bleed, no card frame */}
       <Background style={{ position: 'absolute', inset: 0 }} />
 

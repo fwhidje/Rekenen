@@ -31,3 +31,31 @@ export const NATURE_TOKENS: SceneTokens = {
   dot:        '#7fb3c9',
   accents:    ['#c14b3a', '#4a6b2a', '#8a5a99', '#8a6840'],
 }
+
+export const SPACE_TOKENS: SceneTokens = {
+  ink:        '#3d2f1e',
+  paper:      '#fbf6e6',
+  paperMid:   '#ecdfbe',
+  cream:      'rgba(244,236,216,0.94)',
+  accent:     '#e8945e',
+  accentText: '#a66238',
+  confirm:    '#5a8fc4',
+  refuse:     '#d97a85',
+  pop:        '#8a5a99',
+  dot:        '#f5d76a',
+  accents:    ['#e8945e', '#7ac99a', '#5a8fc4', '#f5d76a'],
+}
+
+export const FACTORY_TOKENS: SceneTokens = {
+  ink:        '#3d2f1e',
+  paper:      '#fbf6e6',
+  paperMid:   '#ecdfbe',
+  cream:      'rgba(244,236,216,0.94)',
+  accent:     '#d4a04a',
+  accentText: '#8a6630',
+  confirm:    '#b8633c',
+  refuse:     '#2a2d33',
+  pop:        '#5e8a8a',
+  dot:        '#e8a92a',
+  accents:    ['#d4a04a', '#b8633c', '#5e8a8a', '#f5d76a'],
+}
