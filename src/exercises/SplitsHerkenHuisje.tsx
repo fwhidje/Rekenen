@@ -106,7 +106,7 @@ function Roof({ total, stage, ink, paper }: {
 function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, paper, refCb, tint }: {
   value: number; colour: string
   isEmpty: boolean; isGiven: boolean
-  givenStyle: 'die' | 'die+num' | 'num+grey'
+  givenStyle: 'die' | 'num'
   isLeft: boolean; ink: string; paper: string
   refCb: (el: HTMLDivElement | null) => void
   tint: boolean   // colour tint on empty cell (stage 1)
@@ -125,20 +125,10 @@ function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, pa
       {!isEmpty && isGiven && givenStyle === 'die' && (
         <PartDie n={value} colour={colour} ink={ink} paper={paper} size={54} />
       )}
-      {!isEmpty && isGiven && givenStyle === 'die+num' && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <PartDie n={value} colour={colour} ink={ink} paper={paper} size={40} />
-          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 16, color: colour }}>{value}</span>
-        </div>
-      )}
-      {!isEmpty && isGiven && givenStyle === 'num+grey' && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink }}>{value}</span>
-          <PartDie n={value} colour={GREY} ink={ink} paper={paper} size={28} />
-        </div>
+      {!isEmpty && isGiven && givenStyle === 'num' && (
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: ink }}>{value}</span>
       )}
       {!isEmpty && !isGiven && (
-        // Placed value — same style as draggable it came from
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: colour }}>{value}</span>
       )}
     </div>
@@ -191,8 +181,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
   const roomRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const placedIndices = new Set(Object.values(placed))
 
-  const givenStyle = stage === 'die-both' || stage === 'die-one' ? 'die'
-    : stage === 'die-numaid' ? 'die+num' : 'num+grey'
+  const givenStyle: 'die' | 'num' = stage === 'die-both' || stage === 'die-one' ? 'die' : 'num'
 
   const dragVariant: 'die' | 'numdie' | 'num' =
     stage === 'die-both' || stage === 'die-one' ? 'die' : 'num'
@@ -269,7 +258,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         colour={colour}
         isEmpty={isEmpty}
         isGiven={givenVal !== null && !hasPlaced}
-        givenStyle={givenStyle as 'die' | 'die+num' | 'num+grey'}
+        givenStyle={givenStyle}
         isLeft={isLeft} ink={ink} paper={paper}
         refCb={el => { roomRefs.current[roomId] = el }}
         tint={tint}
