@@ -40,8 +40,8 @@ const SKILL_TABLES: Record<string, SkillTable> = {
 
   'splitsen-tot-5': {
     'dot-pattern-decompose':  [30, 35],
-    'splits-frame':           [20, 40],
-    'splits-herken-huisje':   [40, 40],
+    'splits-frame':           [20, 20],
+    'splits-herken-huisje':   [40, 50],
   },
 }
 
