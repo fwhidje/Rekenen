@@ -64,10 +64,34 @@ function PartDie({ n, colour, ink, paper, size }: {
   )
 }
 
+function SplitPartDie({ n, splitAt, colourA, colourB, ink, paper, size }: {
+  n: number; splitAt: number; colourA: string; colourB: string
+  ink: string; paper: string; size: number
+}) {
+  const positions = DOT_POS[n] ?? []
+  const dotSize = Math.round(size * 0.23)
+  return (
+    <div style={{
+      width: size, height: size, background: paper, border: `2px solid ${ink}`,
+      borderRadius: Math.round(size * 0.15), flexShrink: 0, position: 'relative',
+    }}>
+      {positions.map(([x, y], i) => (
+        <div key={i} style={{
+          position: 'absolute', left: `${x}%`, top: `${y}%`,
+          transform: 'translate(-50%,-50%)',
+          width: dotSize, height: dotSize, borderRadius: '50%',
+          background: i < splitAt ? colourA : colourB,
+        }} />
+      ))}
+    </div>
+  )
+}
+
 // ─── House roof ───────────────────────────────────────────────────────────────
 
-function Roof({ total, stage, ink, paper }: {
-  total: number; stage: Stage; ink: string; paper: string
+function Roof({ total, operandA, colourA, colourB, stage, ink, paper }: {
+  total: number; operandA: number; colourA: string; colourB: string
+  stage: Stage; ink: string; paper: string
 }) {
   const W = HOUSE_W, H = ROOF_H
   const content = stage === 'num-two'
@@ -77,10 +101,10 @@ function Roof({ total, stage, ink, paper }: {
       </div>
     : stage === 'die-numaid'
       ? <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <PartDie n={total} colour={ink} ink={ink} paper={paper} size={36} />
+          <SplitPartDie n={total} splitAt={operandA} colourA={colourA} colourB={colourB} ink={ink} paper={paper} size={36} />
           <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 20, color: ink }}>{total}</span>
         </div>
-      : <PartDie n={total} colour={ink} ink={ink} paper={paper} size={42} />
+      : <SplitPartDie n={total} splitAt={operandA} colourA={colourA} colourB={colourB} ink={ink} paper={paper} size={42} />
 
   return (
     <div style={{ position: 'relative', width: W, height: H }}>
@@ -205,12 +229,20 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         setTimeout(() => onResolve(optVal === (showA ? operandB : operandA)), 300)
       }
     } else {
-      // num-two: two rooms row0-right and row1-right
+      // num-two
+      if (givenRows === null) {
+        // total=2 fallback: single row with room IDs 'left'/'right'
+        const emptyRoom = showA ? 'right' : 'left'
+        if (roomId === emptyRoom) {
+          setTimeout(() => onResolve(optVal === (showA ? operandB : operandA)), 300)
+        }
+        return
+      }
       if (roomId !== 'row0-right' && roomId !== 'row1-right') return
       const nextR0 = roomId === 'row0-right' ? optVal : options[placed['row0-right'] ?? -1]
       const nextR1 = roomId === 'row1-right' ? optVal : options[placed['row1-right'] ?? -1]
       if (next['row0-right'] !== undefined && next['row1-right'] !== undefined) {
-        const b0 = total - givenRows![0], b1 = total - givenRows![1]
+        const b0 = total - givenRows[0], b1 = total - givenRows[1]
         setTimeout(() => onResolve(nextR0 === b0 && nextR1 === b1), 300)
       }
     }
@@ -317,7 +349,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
       }}>
         {/* House */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Roof total={total} stage={stage} ink={ink} paper={paper} />
+          <Roof total={total} operandA={operandA} colourA={colourA} colourB={colourB} stage={stage} ink={ink} paper={paper} />
           <div style={{ border: `2px solid ${ink}`, borderTop: 'none' }}>
             {stage === 'die-both' || stage === 'num-two' ? roomsContent : fixedRoomsContent}
           </div>
