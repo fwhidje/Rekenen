@@ -28,12 +28,12 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `getalbegrip-5`
 - `getalbegrip-10`
 - `splitsen-tot-5`
-- `splitsen-tot-10`
 
 ### Currently gated (5 subtree roots)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
+| `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
 | `+1-2-tot-5` | the whole `optellen` family (tot-5 and tot-10) | optellen exercises reworked and tested for `+` |
 | `-1-2-tot-5` | the whole `aftrekken` family (tot-5 and tot-10) | aftrekken-specific exercises built |
 | `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |

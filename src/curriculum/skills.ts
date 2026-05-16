@@ -119,6 +119,7 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'splitsen-tot-10',
+    disabled: true,  // WIP gate — exercises not yet built
     name: 'Splitsen tot 10',
     intent: 'Same as splitsen-tot-5 for 6, 7, 8, 9, 10. The "boss splitgetal" is 10 — its 11 splits get drilled to recall.',
     op: 'split',
