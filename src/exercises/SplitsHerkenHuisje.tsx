@@ -150,7 +150,7 @@ function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, pa
         <PartDie n={value} colour={colour} ink={ink} paper={paper} size={54} />
       )}
       {!isEmpty && isGiven && givenStyle === 'num' && (
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: ink }}>{value}</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: colour }}>{value}</span>
       )}
       {!isEmpty && !isGiven && (
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: colour }}>{value}</span>
