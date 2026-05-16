@@ -34,13 +34,14 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   },
 
   // ── Splitsen ─────────────────────────────────────────────────────────────────
-  // Only dot-pattern-decompose is built so far; will be tuned alongside the
-  // splitshuisje / splitsbenen / splits-* exercises as they come online.
+  // huisje stays flat at 40 — it's the foundation for the splitshuisje notation skill.
+  // splits-frame grows from 20 to 40 (more abstract, closer to written notation).
+  // dot-pattern stays roughly steady around 30–35.
 
   'splitsen-tot-5': {
-    'dot-pattern-decompose':  34,
-    'splits-frame':           33,
-    'splits-herken-huisje':   33,
+    'dot-pattern-decompose':  [30, 35],
+    'splits-frame':           [20, 40],
+    'splits-herken-huisje':   [40, 40],
   },
 }
 
