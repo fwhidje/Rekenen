@@ -87,10 +87,10 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 |---|---|---|
 | `getalbegrip-5` | ✅ all tested | ✅ tuned |
 | `getalbegrip-10` | ✅ all tested (same exercises as -5, handles 1–10) | ✅ tuned |
-| `splitsen-tot-5` *(to split → `splitsen-herken-5` + `splitsen-noteren-5`, see skill map)* | 🟡 `dot-pattern-decompose` + `splits-frame` done (herken side); notation exercises (splitshuisje, splitsbenen, splits-*) not yet built; rename pending | 🟡 partial (50/50 between the two built exercises) |
+| `splitsen-tot-5` *(to split → `splitsen-herken-5` + `splitsen-noteren-5`, see skill map)* | 🟡 `dot-pattern-decompose` + `splits-frame` + `splits-herken-huisje` done (herken side); notation exercises (splitshuisje, splitsbenen, splits-*) not yet built; skill rename + code split pending | 🟡 partial (34/33/33 across 3 herken exercises) |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
-| `+1-2-tot-5` and all optellen | 🔲 Pass 3 (fix existing 7 for non-`+` ops) | 🔲 |
+| `+1-2-tot-5` and all optellen | 🔲 **Next stop** — lift WIP gate, fix 7 exercise types for `+` op, tune matrix | 🔲 |
 | all aftrekken skills | 🔲 Pass 5 | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
@@ -106,6 +106,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `ten-frame-show` | `TenFrameShow.tsx` | ✅ done |
 | `dot-pattern-decompose` | `DotPatternDecompose.tsx` | ✅ done (4 reveal stages: die-die / die-numchoice / num-num / all-num at score 0/12/25/37) |
 | `splits-frame` | `SplitsFrame.tsx` | ✅ done (3 tiers: die-tap / num-tap / num-pad at score 0/15/35; `isCompatible` rejects a=0 or b=0) |
+| `splits-herken-huisje` | `SplitsHerkenHuisje.tsx` | ✅ done (4 tiers: die-both drag / die-one choose / die-numaid choose / num-two choose at score 0/12/25/37; drag-and-drop via pointer events) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
 | `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 12; uncertain whether worth a separate type (see skill map) |
 | `fill-vis` | `FillVisual.tsx` | ⚠️ `+` only — needs `-`, `split`, `count`, `half` |
@@ -115,7 +116,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `collect-tap` | `CollectTap.tsx` | ⚠️ `+` only |
 | `collect-counter` | `CollectCounter.tsx` | ⚠️ `+` only |
 | `numberline-jump` | `NumberLine.tsx` | ⚠️ `+` only |
-| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built (skill 2 — `splitsen-noteren-5`) |
+| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — **Next stop** (parallel to `+1-2-tot-5`; skill `splitsen-noteren-5` needs code split from `splitsen-tot-5`) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific (7 types) | — | 🔲 not built |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -168,6 +169,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/index.ts` | Imports all exercise files to trigger registration |
 | `src/exercises/DotPatternDecompose.tsx` | `dot-pattern-decompose` — perceptual splits exercise (4 stages, choice buttons, reveal animation) |
 | `src/exercises/SplitsFrame.tsx` | `splits-frame` — joined-square frame, 3 tiers (die-tap / num-tap / num-pad) |
+| `src/exercises/SplitsHerkenHuisje.tsx` | `splits-herken-huisje` — splitshuisje intro, house shape, drag-and-drop, 4 tiers |
 | `src/exercises/FillVisual.tsx` | `fill-vis` — visual fill (dots / scene groups) |
 | `src/exercises/FillPlain.tsx` | `fill-plain` — plain numpad |
 | `src/exercises/Choice.tsx` | `choice` — 4-option multiple choice |

@@ -71,9 +71,9 @@ function Roof({ total, stage, ink, paper }: {
 }) {
   const W = HOUSE_W, H = ROOF_H
   const content = stage === 'num-two'
-    ? <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink }}>{total}</span>
-        <PartDie n={total} colour={GREY} ink={ink} paper={paper} size={28} />
+    ? <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: ink }}>{total}</span>
+        <PartDie n={total} colour={GREY} ink={ink} paper={paper} size={22} />
       </div>
     : stage === 'die-numaid'
       ? <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -149,7 +149,7 @@ function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, pa
 
 function DragTile({ value, colour, ink, paper, variant, faded, onPD, onPM, onPU }: {
   value: number; colour: string; ink: string; paper: string
-  variant: 'die' | 'numdie' | 'num'
+  variant: 'die' | 'num'
   faded: boolean
   onPD: (e: React.PointerEvent) => void
   onPM: (e: React.PointerEvent) => void
@@ -167,12 +167,10 @@ function DragTile({ value, colour, ink, paper, variant, faded, onPD, onPM, onPU 
         opacity: faded ? 0.2 : 1, transition: 'opacity 0.1s',
       }}
     >
-      {variant === 'die'    && <DieDots count={value} colour={colour} size={DRAG - 18} />}
-      {variant === 'numdie' && <>
-        <DieDots count={value} colour={colour} size={36} />
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 14, color: colour }}>{value}</span>
-      </>}
-      {variant === 'num'    && <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 32, color: ink }}>{value}</span>}
+      {variant === 'die'
+        ? <DieDots count={value} colour={colour} size={DRAG - 18} />
+        : <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 32, color: ink }}>{value}</span>
+      }
     </div>
   )
 }
@@ -197,8 +195,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
     : stage === 'die-numaid' ? 'die+num' : 'num+grey'
 
   const dragVariant: 'die' | 'numdie' | 'num' =
-    stage === 'die-both' || stage === 'die-one' ? 'die'
-    : stage === 'die-numaid' ? 'numdie' : 'num'
+    stage === 'die-both' || stage === 'die-one' ? 'die' : 'num'
 
   // Which colour for the empty room in stages die-one / die-numaid
   const unknownColour = showA ? colourB : colourA
@@ -370,12 +367,10 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
           boxShadow: '0 6px 16px rgba(61,47,30,.28)',
           transform: 'scale(1.08)',
         }}>
-          {dragVariant === 'die'    && <DieDots count={drag.value} colour={stage === 'die-both' ? (drag.idx === 0 ? colourA : colourB) : unknownColour} size={DRAG - 18} />}
-          {dragVariant === 'numdie' && <>
-            <DieDots count={drag.value} colour={unknownColour} size={36} />
-            <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 14, color: unknownColour }}>{drag.value}</span>
-          </>}
-          {dragVariant === 'num'    && <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 32, color: ink }}>{drag.value}</span>}
+          {dragVariant === 'die'
+            ? <DieDots count={drag.value} colour={stage === 'die-both' ? (drag.idx === 0 ? colourA : colourB) : unknownColour} size={DRAG - 18} />
+            : <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 32, color: ink }}>{drag.value}</span>
+          }
         </div>
       )}
     </div>
