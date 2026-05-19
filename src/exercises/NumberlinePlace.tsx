@@ -18,6 +18,7 @@ function NumberlinePlaceComponent({ question, onResolve, disabled, scene }: Exer
   const labelFor = (n: number) => {
     if (showLabels) return String(n)
     if (n === 0 || n === max) return String(n)
+    if (n % 5 === 0) return String(n)
     return ''
   }
 

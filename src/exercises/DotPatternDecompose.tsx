@@ -183,10 +183,10 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   useEffect(() => {
     setStep(0)
     const timers: ReturnType<typeof setTimeout>[] = []
-    timers.push(setTimeout(() => setStep(1), 600))
-    timers.push(setTimeout(() => setStep(2), 1400))
+    timers.push(setTimeout(() => setStep(1), 900))
+    timers.push(setTimeout(() => setStep(2), 2000))
     options.forEach((_, i) => {
-      timers.push(setTimeout(() => setStep(3 + i), 2200 + i * 160))
+      timers.push(setTimeout(() => setStep(3 + i), 3100 + i * 220))
     })
     return () => timers.forEach(clearTimeout)
   }, [operandA, operandB, showA, stage, options])
@@ -204,7 +204,9 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
         background: cream, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>Hoeveel?</div>
+      }}>
+        {total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownCol }}>?</span>
+      </div>
 
       {/* Puzzle box: total + given/? row */}
       <div style={{
