@@ -346,9 +346,11 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>
-        {stage === 'die-both'
-          ? <>{total} is <span style={{ color: colourA }}>?</span> en <span style={{ color: colourB }}>?</span></>
-          : <>{total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownColour }}>?</span></>}
+        {stage === 'num-two'
+          ? <>Splits {total}</>
+          : stage === 'die-both'
+            ? <>{total} is <span style={{ color: colourA }}>?</span> en <span style={{ color: colourB }}>?</span></>
+            : <>{total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownColour }}>?</span></>}
       </div>
 
       {/* Puzzle card */}
