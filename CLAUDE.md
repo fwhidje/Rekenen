@@ -27,12 +27,13 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 
 - `getalbegrip-5`
 - `getalbegrip-10`
-- `splitsen-tot-5`
+- `splitsen-herken-5`
 
-### Currently gated (5 subtree roots)
+### Currently gated (6 subtree roots)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
+| `splitsen-noteren-5` | parallel notation track (no downstream gating in v2) | notation exercises (splitshuisje, splitsbenen, splits-vrij/-ontbreken-*/-alle) built |
 | `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
 | `+1-2-tot-5` | the whole `optellen` family (tot-5 and tot-10) | optellen exercises reworked and tested for `+` |
 | `-1-2-tot-5` | the whole `aftrekken` family (tot-5 and tot-10) | aftrekken-specific exercises built |
@@ -71,7 +72,7 @@ components. No exercise file needs to change.
 
 **Branch**: `claude/review-repo-setup-aokOj`
 
-Round 1 (done): curriculum data, engine, DebugMode. All 21 skills defined in `skills.ts`.
+Round 1 (done): curriculum data, engine, DebugMode. All 22 skills defined in `skills.ts` (splitsen-tot-5 split into herken/noteren halves).
 Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tuned per skill.
 
 ### Procedure (per skill)
@@ -87,7 +88,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 |---|---|---|
 | `getalbegrip-5` | ✅ all tested | ✅ tuned |
 | `getalbegrip-10` | ✅ all tested (same exercises as -5, handles 1–10) | ✅ tuned |
-| `splitsen-tot-5` *(to split → `splitsen-herken-5` + `splitsen-noteren-5`, see skill map)* | 🟡 `dot-pattern-decompose` + `splits-frame` + `splits-herken-huisje` done (herken side); notation exercises (splitshuisje, splitsbenen, splits-*) not yet built; skill rename + code split pending | 🟡 partial (34/33/33 across 3 herken exercises) |
+| `splitsen-herken-5` | ✅ `dot-pattern-decompose` + `splits-frame` + `splits-herken-huisje` done; `rekenrek-decompose` listed but not implemented | 🟡 partial (34/33/33 across 3 herken exercises; rekenrek-decompose at 0) |
+| `splitsen-noteren-5` *(disabled — no exercises built)* | 🔲 notation family not built (splitshuisje, splitsbenen, splits-vrij, splits-ontbreken-rechts/links, splits-alle) | 🔲 |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
 | `+1-2-tot-5` and all optellen | 🔲 **Next stop** — lift WIP gate, fix 7 exercise types for `+` op, tune matrix | 🔲 |
@@ -116,7 +118,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `collect-tap` | `CollectTap.tsx` | ⚠️ `+` only |
 | `collect-counter` | `CollectCounter.tsx` | ⚠️ `+` only |
 | `numberline-jump` | `NumberLine.tsx` | ⚠️ `+` only |
-| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — **Next stop** (parallel to `+1-2-tot-5`; skill `splitsen-noteren-5` needs code split from `splitsen-tot-5`) |
+| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — **Next stop** (skill `splitsen-noteren-5` is split out and disabled; lift WIP gate once any of these are built) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific (7 types) | — | 🔲 not built |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |

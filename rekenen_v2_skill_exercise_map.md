@@ -127,7 +127,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `splitsen-noteren-5`, `+1-2-tot-5`, `-1-2-tot-5`, `splitsen-tot-10` *(see open question above)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD if tot-10 also splits)*
 - **Generator**: total ∈ [2, 5]; (a, b) with a+b = total, a ≥ 1, b ≥ 1 (no trivial 0-splits)
-- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)*
+- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)*
 
 #### `splitsen-noteren-5`
 - **Name**: Splitsen noteren tot 5
@@ -335,7 +335,8 @@ These types live under `splitsen-herken-5` / `-10`. They show a total and ask "w
 |---|---|---|---|---|
 | `dot-pattern-decompose` | total shown as die-pattern dots, child picks the missing part | structured dots (1 or 2 dies) | 4-choice buttons | low–mid |
 | `splits-frame` | total above a row of cells; known cells filled, ghost cells to tap/count/type | joined-square frame | tap / numpad (per tier) | low–high |
-| `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) |
+| `splits-herken-huisje` | splitshuisje-shaped scaffold for recognition: total on the roof, two part-rooms below, child fills/picks the parts | splitshuisje silhouette + dots/numerals per tier | drag / choice (per tier) | low–mid |
+| `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) — *not yet implemented* |
 
 > **Parked**: `dot-pattern-decompose-pad` — same visual as `dot-pattern-decompose` but numpad input instead of choice buttons; would only be weighted from score ≥ 12 (i.e. where the child already reads numbers). Uncertain whether this adds enough over `splits-frame` tier 3 to be worth building as a separate exercise type.
 
@@ -361,7 +362,7 @@ These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flem
 | `finger-pattern-recognise` | hand picture, kid identifies how many | hands | choice | low |
 | `numberline-place` | "waar staat 7?" | empty number line | tap on line | mid |
 | `compare-more-less` | which group has more / fewer | two groups | choice | low–mid |
-| `rekenrek-show` | shows N beads in 5-structure, kid names the number | 20-bead rack | numpad / choice | mid |
+| `rekenrek-show` | shows N beads in 5-structure, kid names the number | 20-bead rack | numpad / choice | mid — *parked, not yet implemented (see CLAUDE.md)* |
 | `ten-frame-show` | partly filled ten-frame | ten-frame | numpad / choice | mid |
 
 ### Optellen presentations
