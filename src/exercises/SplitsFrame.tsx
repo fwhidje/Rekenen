@@ -233,8 +233,8 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
 // ─── Definition ──────────────────────────────────────────────────────────────
 
 function pickStage(score: number): Stage {
-  if (score < 15) return 'die-tap'
-  if (score < 35) return 'num-tap'
+  if (score < 30) return 'die-tap'
+  if (score < 70) return 'num-tap'
   return 'num-pad'
 }
 

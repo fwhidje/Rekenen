@@ -120,7 +120,7 @@ const CompareMoreLess: ExerciseDefinition<CompareMoreLessMeta> = {
       other,
       askMore:  Math.random() < 0.6,
       leftIsA:  Math.random() < 0.5,
-      style:    score < 15 ? 'counters' : score < 35 ? 'both' : 'numbers',
+      style:    score < 30 ? 'counters' : score < 70 ? 'both' : 'numbers',
     }
   },
   Component: CompareMoreLessComponent,

@@ -106,11 +106,11 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `numberline-place` | `NumberlinePlace.tsx` | ✅ done |
 | `compare-more-less` | `CompareMoreLess.tsx` | ✅ done |
 | `ten-frame-show` | `TenFrameShow.tsx` | ✅ done |
-| `dot-pattern-decompose` | `DotPatternDecompose.tsx` | ✅ done (4 reveal stages: die-die / die-numchoice / num-num / all-num at score 0/12/25/37) |
-| `splits-frame` | `SplitsFrame.tsx` | ✅ done (3 tiers: die-tap / num-tap / num-pad at score 0/15/35; `isCompatible` rejects a=0 or b=0) |
-| `splits-herken-huisje` | `SplitsHerkenHuisje.tsx` | ✅ done (4 tiers: die-both drag / die-one choose / die-numaid choose / num-two choose at score 0/12/25/37; drag-and-drop via pointer events) |
+| `dot-pattern-decompose` | `DotPatternDecompose.tsx` | ✅ done (4 reveal stages: die-die / die-numchoice / num-num / all-num at score 0/24/50/74) |
+| `splits-frame` | `SplitsFrame.tsx` | ✅ done (3 tiers: die-tap / num-tap / num-pad at score 0/30/70; `isCompatible` rejects a=0 or b=0) |
+| `splits-herken-huisje` | `SplitsHerkenHuisje.tsx` | ✅ done (4 tiers: die-both drag / die-one choose / die-numaid choose / num-two choose at score 0/24/50/74; drag-and-drop via pointer events) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
-| `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 12; uncertain whether worth a separate type (see skill map) |
+| `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 24; uncertain whether worth a separate type (see skill map) |
 | `fill-vis` | `FillVisual.tsx` | ⚠️ `+` only — needs `-`, `split`, `count`, `half` |
 | `fill-plain` | `FillPlain.tsx` | ⚠️ `+` only |
 | `choice` | `Choice.tsx` | ⚠️ `+` only |
@@ -146,7 +146,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 
 ## Core model (read first)
 
-Skills are narrow and atomic. Each carries a 0–50 score. The score controls which *exercise type* is chosen (via the weight matrix), not the math the skill covers.
+Skills are narrow and atomic. Each carries a 0–100 score (unlock at 60, archive at 100). The score controls which *exercise type* is chosen (via the weight matrix), not the math the skill covers.
 
 Three independent skill relationships:
 - **`unlockedBy`** — list of prereq skill ids; ALL must be ≥ UNLOCK_THRESHOLD before this skill becomes available.

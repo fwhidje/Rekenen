@@ -197,7 +197,7 @@ const CountAndTap: ExerciseDefinition<CountAndTapMeta> = {
   label: 'Tel en tik',
   supportsReveal: false,
   generateMeta(_a, _b, score) {
-    return { style: score < 20 ? 'emoji' : 'dots', sceneIndex: Math.floor(Math.random() * 24) }
+    return { style: score < 40 ? 'emoji' : 'dots', sceneIndex: Math.floor(Math.random() * 24) }
   },
   Component: CountAndTapComponent,
 }

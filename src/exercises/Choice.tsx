@@ -62,7 +62,7 @@ const Choice: ExerciseDefinition<ChoiceMeta> = {
       options: makeOptions(_operandA + _operandB),
       colorA,
       colorB,
-      showVisual: score < 25,
+      showVisual: score < 50,
     }
   },
 

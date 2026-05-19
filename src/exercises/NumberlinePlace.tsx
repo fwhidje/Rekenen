@@ -66,7 +66,7 @@ const NumberlinePlace: ExerciseDefinition<NumberlinePlaceMeta> = {
   label: 'Zet het getal op de lijn',
   supportsReveal: false,
   generateMeta(_a, _b, score) {
-    return { showLabels: score < 25, max: _a <= 5 ? 5 : 10 }
+    return { showLabels: score < 50, max: _a <= 5 ? 5 : 10 }
   },
   Component: NumberlinePlaceComponent,
 }
