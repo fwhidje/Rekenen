@@ -139,6 +139,10 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
   const showLabels = stage !== 'die-tap'
   const showNumpad = stage === 'num-pad'
 
+  // Briefly true once the right answer is in: flips the "?" label to unknownVal
+  // before onResolve hands control to the success screen.
+  const [solved, setSolved] = useState(false)
+
   // Tier 1 & 2: tap state
   const [tapped, setTapped] = useState<boolean[]>(() => Array(unknownVal).fill(false))
   const handleTap = (i: number) => {
@@ -146,7 +150,10 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
     const next = [...tapped]
     next[i] = true
     setTapped(next)
-    if (next.every(Boolean)) setTimeout(() => onResolve(true), 300)
+    if (next.every(Boolean)) {
+      setSolved(true)
+      setTimeout(() => onResolve(true), 300)
+    }
   }
 
   // Tier 3: numpad
@@ -154,7 +161,17 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
   const handleKey = (key: string) => {
     if (disabled) return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
-    if (key === '✓') { if (input) onResolve(parseInt(input, 10) === unknownVal); return }
+    if (key === '✓') {
+      if (!input) return
+      const correct = parseInt(input, 10) === unknownVal
+      if (correct) {
+        setSolved(true)
+        setTimeout(() => onResolve(true), 500)
+      } else {
+        onResolve(false)
+      }
+      return
+    }
     if (input.length < 2) setInput(v => v + key)
   }
 
@@ -199,7 +216,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
               <div style={{
                 width: unknownLabelW, textAlign: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 20, color: unknownCol,
-              }}>?</div>
+              }}>{solved ? unknownVal : '?'}</div>
             </div>
           )}
           <JoinedFrame

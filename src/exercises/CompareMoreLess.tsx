@@ -96,7 +96,7 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>
-        {askMore ? 'Meer' : 'Minder'}
+        {askMore ? 'Welke is meer?' : 'Welke is minder?'}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 }}>
         <GroupPanel val={leftVal}  onPick={() => handlePick(true)}  />
