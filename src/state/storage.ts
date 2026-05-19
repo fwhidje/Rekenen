@@ -37,10 +37,31 @@ export function loadAppState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultAppState()
-    return JSON.parse(raw) as AppState
+    const parsed = JSON.parse(raw) as AppState
+    return { ...parsed, profiles: parsed.profiles.map(migrateProfile) }
   } catch {
     return defaultAppState()
   }
+}
+
+// Migrates an older profile to the current skill set: backfills any missing
+// skill states and carries forward score from the pre-split `splitsen-tot-5`
+// into `splitsen-herken-5` (recognition is the prereq for the +/- track).
+function migrateProfile(profile: Profile): Profile {
+  const skills: Record<string, SkillState> = { ...profile.skills }
+
+  const legacy = skills['splitsen-tot-5']
+  if (legacy && !skills['splitsen-herken-5']) {
+    skills['splitsen-herken-5'] = { ...legacy }
+  }
+
+  for (const skill of SKILLS) {
+    if (!skills[skill.id]) {
+      skills[skill.id] = { score: 0, unlocked: false, archived: false }
+    }
+  }
+
+  return applyEvaluations({ ...profile, skills })
 }
 
 export function saveAppState(state: AppState): void {

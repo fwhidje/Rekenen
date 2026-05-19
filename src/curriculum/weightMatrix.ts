@@ -38,7 +38,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // splits-frame grows from 20 to 40 (more abstract, closer to written notation).
   // dot-pattern stays roughly steady around 30–35.
 
-  'splitsen-tot-5': {
+  'splitsen-herken-5': {
     'dot-pattern-decompose':  [30, 35],
     'splits-frame':           [20, 20],
     'splits-herken-huisje':   [40, 50],

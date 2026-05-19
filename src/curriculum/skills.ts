@@ -71,7 +71,7 @@ export const SKILLS: SkillDefinition[] = [
     intent: 'Recognises quantity, cijfersymbool, position on number line, dot-pattern, and finger-pattern for 1–5.',
     op: 'count',
     unlockedBy: [],
-    unlocks: ['splitsen-tot-5', 'getalbegrip-10'],
+    unlocks: ['splitsen-herken-5', 'getalbegrip-10'],
     subsumedBy: 'getalbegrip-10',
     applicableExercises: [
       EX.countAndTap, EX.dotPatternRecognise, EX.fingerPatternRecognise,
@@ -98,17 +98,35 @@ export const SKILLS: SkillDefinition[] = [
   // ── Splitsen ────────────────────────────────────────────────────────────────
 
   {
-    id: 'splitsen-tot-5',
-    name: 'Splitsen tot 5',
-    intent: 'Knows the splits of 2, 3, 4, 5 in both orders (5 = 1+4 and 4+1, 5 = 2+3 and 3+2).',
+    id: 'splitsen-herken-5',
+    name: 'Splitsen herkennen tot 5',
+    intent: 'Recognises a split visually — given a structured representation of a total, names the two parts. Perceptual, not yet about producing the notation.',
     op: 'split',
     unlockedBy: ['getalbegrip-5'],
-    unlocks: ['+1-2-tot-5', '-1-2-tot-5', 'splitsen-tot-10'],
+    unlocks: ['splitsen-noteren-5', '+1-2-tot-5', '-1-2-tot-5', 'splitsen-tot-10'],
+    subsumedBy: 'splitsen-tot-10',
+    applicableExercises: [
+      EX.dotPatternDecompose, EX.splitsFrame, EX.splitsHerkenHuisje, EX.rekenrekDecompose,
+    ],
+    generate: () => {
+      const total = rnd(2, 5)
+      const a = rnd(1, total - 1)
+      return { a, b: total - a, op: 'split' }
+    },
+  },
+
+  {
+    id: 'splitsen-noteren-5',
+    disabled: true,  // WIP gate — notation exercises not yet built
+    name: 'Splitsen noteren tot 5',
+    intent: 'Produces a split in standard Flemish primary-school notation (splitshuisje / splitsbenen), enumerates splits, fills missing addends. Builds on recognition; expresses the same understanding in writing.',
+    op: 'split',
+    unlockedBy: ['splitsen-herken-5'],
+    unlocks: [],
     subsumedBy: 'splitsen-tot-10',
     applicableExercises: [
       EX.splitsVrij, EX.splitsOntbrekenRechts, EX.splitsOntbrekenLinks,
       EX.splitsAlle, EX.splitshuisje, EX.splitsbenen,
-      EX.dotPatternDecompose, EX.splitsFrame, EX.splitsHerkenHuisje, EX.rekenrekDecompose,
     ],
     generate: () => {
       const total = rnd(2, 5)
@@ -121,9 +139,9 @@ export const SKILLS: SkillDefinition[] = [
     id: 'splitsen-tot-10',
     disabled: true,  // WIP gate — exercises not yet built
     name: 'Splitsen tot 10',
-    intent: 'Same as splitsen-tot-5 for 6, 7, 8, 9, 10. The "boss splitgetal" is 10 — its 11 splits get drilled to recall.',
+    intent: 'Same as splitsen-herken-5 / splitsen-noteren-5 for 6, 7, 8, 9, 10. The "boss splitgetal" is 10 — its 11 splits get drilled to recall.',
     op: 'split',
-    unlockedBy: ['splitsen-tot-5', 'getalbegrip-10'],
+    unlockedBy: ['splitsen-herken-5', 'getalbegrip-10'],
     unlocks: ['tienvrienden', 'optellen-tot-10', 'aftrekken-wegnemen-10'],
     subsumedBy: null,
     applicableExercises: [
@@ -164,7 +182,7 @@ export const SKILLS: SkillDefinition[] = [
     name: '+1 / +2 tot 5',
     intent: 'Add 1 or add 2 within 5 — counting on, no structural reasoning required.',
     op: '+',
-    unlockedBy: ['splitsen-tot-5'],
+    unlockedBy: ['splitsen-herken-5'],
     unlocks: ['optellen-tot-5'],
     subsumedBy: 'optellen-tot-5',
     applicableExercises: [
@@ -293,7 +311,7 @@ export const SKILLS: SkillDefinition[] = [
     name: '−1 / −2 tot 5',
     intent: 'Take away 1 or 2 within 5 — counting back.',
     op: '-',
-    unlockedBy: ['splitsen-tot-5'],
+    unlockedBy: ['splitsen-herken-5'],
     unlocks: ['aftrekken-wegnemen-5'],
     subsumedBy: 'aftrekken-wegnemen-5',
     applicableExercises: [
