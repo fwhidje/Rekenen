@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
 import { NumPad } from '../ui/components/NumPad'
@@ -145,6 +145,18 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
 
   // Tier 1 & 2: tap state
   const [tapped, setTapped] = useState<boolean[]>(() => Array(unknownVal).fill(false))
+
+  // Tier 3: numpad
+  const [input, setInput] = useState('')
+
+  // Reset per-question state when the question changes — the component is
+  // reused across questions, so useState initialisers don't re-run.
+  useEffect(() => {
+    setSolved(false)
+    setTapped(Array(unknownVal).fill(false))
+    setInput('')
+  }, [operandA, operandB, showA, stage, unknownVal])
+
   const handleTap = (i: number) => {
     if (disabled || tapped[i]) return
     const next = [...tapped]
@@ -156,8 +168,6 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
     }
   }
 
-  // Tier 3: numpad
-  const [input, setInput] = useState('')
   const handleKey = (key: string) => {
     if (disabled) return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps } from './types'
 import { NATURE_TOKENS } from '../presentation/tokens'
@@ -202,6 +202,12 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
   const [drag, setDrag] = useState<{ idx: number; value: number; x: number; y: number } | null>(null)
   // placed: roomId → option index
   const [placed, setPlaced] = useState<Record<string, number>>({})
+
+  // Reset per-question state — the component is reused across questions.
+  useEffect(() => {
+    setDrag(null)
+    setPlaced({})
+  }, [operandA, operandB, showA, stage])
   const roomRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const placedIndices = new Set(Object.values(placed))
 
@@ -340,9 +346,11 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>
-        {stage === 'die-both'
-          ? <>{total} is <span style={{ color: colourA }}>?</span> en <span style={{ color: colourB }}>?</span></>
-          : <>{total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownColour }}>?</span></>}
+        {stage === 'num-two'
+          ? <>Splits {total}</>
+          : stage === 'die-both'
+            ? <>{total} is <span style={{ color: colourA }}>?</span> en <span style={{ color: colourB }}>?</span></>
+            : <>{total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownColour }}>?</span></>}
       </div>
 
       {/* Puzzle card */}
