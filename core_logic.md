@@ -8,14 +8,14 @@ The previous 4-level model is **abandoned** and should not be used as a framewor
 - **Skills are atomic and narrow**, defined as data with an unlock graph between them.
   Example: `"+1/+2 within 5"` is one skill. `"+3/+4 within 5"` is another. `"+1/+2 within 10"` is another.
 
-- **Each skill carries its own 0–50 score.** Score goes up on correct answer, down on wrong answer.
+- **Each skill carries its own 0–100 score.** Score goes up on correct answer, down on wrong answer.
 
 - **Unlocks are one-way.** A dropping score only changes presentation *within* that skill — it never re-locks downstream skills that have already been unlocked.
 
 - **Score-to-exercise-type weighting is where difficulty lives.**
   - Low score → scaffolded types (visual representation, collect mechanic, sequential reveal, etc.)
   - High score → ~80% plain sums, no frills
-  - Capped skills (score = 50) stay in rotation, pinned at the top of that distribution.
+  - Capped skills (score = 100) stay in rotation, pinned at the top of that distribution.
 
 - **The skill's math definition never moves with the score.**
   `"+1/+2 within 5"` stays `"+1/+2 within 5"` forever. Only the presentation around it shifts as score changes.
