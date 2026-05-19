@@ -17,10 +17,10 @@ v2 also moves off a single artifact into a proper project, partly so the codebas
 **Logic model** (see `core_logic.md`):
 
 - Atomic narrow skills as data, with an unlock graph between them
-- Per-skill 0–50 score, up on correct, down on wrong
+- Per-skill 0–100 score, up on correct, down on wrong
 - Unlocks one-way (dropping score never re-locks downstream skills)
 - Score → exercise-type weighting is where difficulty lives within a skill
-- Initial score on unlock = 0; unlock threshold ~25 (global tweakable)
+- Initial score on unlock = 0; unlock threshold 60 (global tweakable)
 
 **Product-level intents** (carried over from POC):
 

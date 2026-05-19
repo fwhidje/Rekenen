@@ -10,7 +10,7 @@ This is meant as input for Claude Code. All open questions from earlier drafts h
 
 - **Skill IDs**: kebab-case, lowercase, scope-suffixed (e.g. `splitsen-tot-10`, `aftrekken-wegnemen-5`).
 - **Vocabulary**: Flemish (splitsen, tienvrienden, dubbel, helft, buurgetal, wegnemen, verschil, aanvullen) — not NL variants.
-- **Score model**: each skill has its own 0–50 score; unlock threshold ~25 (one-way); presentation difficulty lives in the score → exercise-type weight, not in the skill itself.
+- **Score model**: each skill has its own 0–100 score; unlock threshold 60 (one-way); presentation difficulty lives in the score → exercise-type weight, not in the skill itself.
 - **Generator pattern**: a small predicate over (a, b, op) describing what the engine may sample for that skill.
 
 ### Three independent skill relationships
@@ -19,20 +19,20 @@ Each skill carries three pieces of metadata, each with one job:
 
 - **`unlocked_by`** — list of skills that must be ≥ threshold for this skill to become available.
 - **`unlocks`** — list of skills this skill (at threshold) opens up. Just the inverse of `unlocked_by` from the other side.
-- **`subsumed_by`** — *single* skill that, once unlocked, archives this one when its own score caps at 50. `null` if this skill should never be archived in v2 scope (e.g. fact-recall drills like `tienvrienden`).
+- **`subsumed_by`** — *single* skill that, once unlocked, archives this one when its own score caps at 100. `null` if this skill should never be archived in v2 scope (e.g. fact-recall drills like `tienvrienden`).
 
 `subsumed_by` is **not** the inverse of `unlocks`. A skill can unlock several downstream skills but be subsumed by only one of them — usually a strict math superset further along the same track.
 
 ### Subsume rule
 
 ```
-if child.score == 50 AND child.subsumed_by != null AND child.subsumed_by.unlocked == true:
+if child.score == 100 AND child.subsumed_by != null AND child.subsumed_by.unlocked == true:
     archive(child)
 ```
 
 Score is preserved on archive. The skill no longer enters rotation. There is no auto-resurrection — once archived, a skill stays archived (unlocks are one-way per the v2 logic).
 
-The combination "capped (50) AND parent unlocked" gives every skill a guaranteed period of dual-rotation with its parent before it drops out, so there's no risk of a half-learned skill being archived.
+The combination "capped (100) AND parent unlocked" gives every skill a guaranteed period of dual-rotation with its parent before it drops out, so there's no risk of a half-learned skill being archived.
 
 ---
 
@@ -403,15 +403,15 @@ Per the v2 logic, this is where difficulty lives. Below is a high-level shape; t
 
 | Score band | Bias |
 |---|---|
-| 0–10 | scene visuals + collect/tap; numpad mostly avoided; reveal animations on |
-| 10–25 | mix of fill-vis and choice; rekenrek/ten-frame appear; collect-counter replaces collect-tap |
-| 25–40 | fill-plain becomes plurality; tf appears; visuals only on the "harder" instances of the skill |
-| 40–50 | ~80% fill-plain; tf and choice fill the rest; visuals ≤ 10% |
+| 0–20 | scene visuals + collect/tap; numpad mostly avoided; reveal animations on |
+| 20–50 | mix of fill-vis and choice; rekenrek/ten-frame appear; collect-counter replaces collect-tap |
+| 50–80 | fill-plain becomes plurality; tf appears; visuals only on the "harder" instances of the skill |
+| 80–100 | ~80% fill-plain; tf and choice fill the rest; visuals ≤ 10% |
 
 Notes:
 
-- Capped skills (score 50, not yet subsumed) stay in rotation, pinned at the top of this distribution. Once subsumed, they leave rotation entirely.
-- For splitsen skills specifically, `splitshuisje` and `splitsbenen` should never disappear entirely — they're the classroom notation. Suggest a floor of ~10% even at score 50.
+- Capped skills (score 100, not yet subsumed) stay in rotation, pinned at the top of this distribution. Once subsumed, they leave rotation entirely.
+- For splitsen skills specifically, `splitshuisje` and `splitsbenen` should never disappear entirely — they're the classroom notation. Suggest a floor of ~10% even at score 100.
 - For subtraction-semantic skills, the *strategy-suggestive* presentations should remain dominant within that skill (a `verschil-5` skill at high score still shows verschil presentations 60–70% of the time, just with less ornament).
 
 ---
@@ -466,7 +466,7 @@ For Claude Code context — what was considered and chosen during the design con
 2. **Tot-10 progression**: intermediate `+3-4-tot-10` and `-3-4-tot-10` skills inserted between the easy version and the full one. Avoids the leap from "+1/+2" straight to "anything within 10."
 3. **Subtraction semantics**: three separate skills per range (`wegnemen`, `verschil`, `aanvullen`), not a single skill with semantic exercise variants. Heavier but produces per-meaning fluency tracking. `verschil` and `aanvullen` unlock in parallel from `wegnemen`, not serially.
 4. **Tienvrienden**: sibling of `splitsen-tot-10`, not a sub-skill. Independent score so automaticity is visible.
-5. **Subsume model**: explicit `subsumed_by` field per skill, separate from `unlocks`. Rule: child capped (50) AND parent unlocked → archive, score preserved. Fact-recall skills (`tienvrienden`, `dubbels-tot-10`, `helften-tot-10`) have `subsumed_by: null` to keep them in rotation.
+5. **Subsume model**: explicit `subsumed_by` field per skill, separate from `unlocks`. Rule: child capped (100) AND parent unlocked → archive, score preserved. Fact-recall skills (`tienvrienden`, `dubbels-tot-10`, `helften-tot-10`) have `subsumed_by: null` to keep them in rotation.
 6. **Splitsen-tot-10 gating**: only gates the *full* tot-10 arithmetic skills, not the `+1-2` / `+3-4` / `-1-2` / `-3-4` intermediates. Avoids stalling the arithmetic track on splitsen maturity.
 7. **Helften location**: hangs off `optellen-tot-10` (not aftrekken).
 8. **Verschil/aanvullen at tot-10**: dual deps (tot-10 wegnemen *and* tot-5 cousin). Belt-and-braces.

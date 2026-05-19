@@ -149,7 +149,7 @@ Skills are narrow and atomic. Each carries a 0–100 score (unlock at 60, archiv
 Three independent skill relationships:
 - **`unlockedBy`** — list of prereq skill ids; ALL must be ≥ UNLOCK_THRESHOLD before this skill becomes available.
 - **`unlocks`** — inverse, kept for readability; the engine derives behaviour from `unlockedBy` only.
-- **`subsumedBy`** — single parent skill; when this skill caps at 50 AND the parent is unlocked, this skill is archived (removed from rotation, score preserved). `null` means never archive (typically fact-recall: tienvrienden, dubbels, helften).
+- **`subsumedBy`** — single parent skill; when this skill caps at 100 AND the parent is unlocked, this skill is archived (removed from rotation, score preserved). `null` means never archive (typically fact-recall: tienvrienden, dubbels, helften).
 
 A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill has a `generate()` function returning `{ a, b, op }`. Archived skills still count as unlocked for downstream prerequisite checks.
 
