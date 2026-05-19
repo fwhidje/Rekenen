@@ -138,8 +138,8 @@ const FillVisual: ExerciseDefinition<FillVisualMeta> = {
 
   generateMeta(_operandA, _operandB, score) {
     const revealKind: RevealKind =
-      score < 20 ? 'visual' :
-      score < 40 ? 'equation' :
+      score < 40 ? 'visual' :
+      score < 80 ? 'equation' :
       'instant'
     const visualKind: VisualKind =
       revealKind === 'visual' ? (Math.random() < 0.5 ? 'dots' : 'scene') : 'none'

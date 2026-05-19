@@ -401,9 +401,9 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
 // ─── Definition ──────────────────────────────────────────────────────────────
 
 function pickStage(score: number): Stage {
-  if (score < 12) return 'die-both'
-  if (score < 25) return 'die-one'
-  if (score < 37) return 'die-numaid'
+  if (score < 24) return 'die-both'
+  if (score < 50) return 'die-one'
+  if (score < 74) return 'die-numaid'
   return 'num-two'
 }
 

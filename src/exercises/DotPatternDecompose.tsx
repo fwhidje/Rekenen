@@ -295,9 +295,9 @@ function makeOptions(correct: number, total: number): number[] {
 }
 
 function pickStage(score: number): Stage {
-  if (score < 12) return 'die-die'
-  if (score < 25) return 'die-numchoice'
-  if (score < 37) return 'num-num'
+  if (score < 24) return 'die-die'
+  if (score < 50) return 'die-numchoice'
+  if (score < 74) return 'num-num'
   return 'all-num'
 }
 
