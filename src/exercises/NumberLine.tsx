@@ -1,6 +1,10 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'jump', minScore: 0, label: 'sprong', description: 'Read the result of jumping +b along the number line, then pick it. Single tier; the line visualises counting on.' },
+]
 
 function makeOptions(correct: number): number[] {
   const pool = new Set([correct])
@@ -14,6 +18,7 @@ function makeOptions(correct: number): number[] {
 
 interface NumberLineMeta {
   options: number[]
+  tierId: string
 }
 
 function NumberLineDisplay({ operandA, operandB }: { operandA: number; operandB: number }) {
@@ -68,7 +73,7 @@ function NumberLineComponent({ question, onResolve, disabled }: ExerciseComponen
       </div>
 
       <NumberLineDisplay operandA={operandA} operandB={operandB} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} />
+      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} />
     </div>
   )
 }
@@ -77,8 +82,14 @@ const NumberLine: ExerciseDefinition<NumberLineMeta> = {
   id: 'numberline-jump',
   label: 'Spring op de getallenlijn',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Model addition as a forward jump on the number line — links counting on to a spatial structure.',
+    pitfalls: ['Off-by-one from counting the start cell as the first jump', 'Reading the start instead of the landing cell'],
+    progression: 'Single tier; the number line itself is the scaffold for counting on.',
+  },
   generateMeta(operandA, operandB) {
-    return { options: makeOptions(operandA + operandB) }
+    return { options: makeOptions(operandA + operandB), tierId: 'jump' }
   },
   Component: NumberLineComponent,
 }

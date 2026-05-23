@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react'
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters/emoji one by one — the most concrete count. Below score 40.' },
+  { id: 'dots',  minScore: 40, label: 'stippen',    description: 'Tap subitising die-patterns — structured dots that nudge toward seeing rather than counting.' },
+]
 
 interface CountAndTapMeta {
   style: 'emoji' | 'dots'
   sceneIndex: number
+  tierId: string
 }
 
 // Canonical subitising positions for 1–5 as [x%, y%] in a square container
@@ -70,10 +77,10 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
 
   useEffect(() => {
     if (done) {
-      const t = setTimeout(() => onResolve(true), 700)
+      const t = setTimeout(() => onResolve(true, { givenAnswer: operandA, tapCount: operandA }), 700)
       return () => clearTimeout(t)
     }
-  }, [done, onResolve])
+  }, [done, onResolve, operandA])
 
   const tap = (i: number) => {
     if (done || tapped.has(i)) return
@@ -196,8 +203,15 @@ const CountAndTap: ExerciseDefinition<CountAndTapMeta> = {
   id: 'count-and-tap',
   label: 'Tel en tik',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Establish stable one-to-one counting of a quantity and link it to its numeral.',
+    pitfalls: ['Skipping or double-tapping items', 'Reciting numbers faster than tapping'],
+    progression: 'emoji counters (concrete) → die-pattern dots (structured), pushing from counting toward subitising as score rises.',
+  },
   generateMeta(_a, _b, score) {
-    return { style: score < 40 ? 'emoji' : 'dots', sceneIndex: Math.floor(Math.random() * 24) }
+    const tier = pickTier(TIERS, score)
+    return { style: tier.id as CountAndTapMeta['style'], sceneIndex: Math.floor(Math.random() * 24), tierId: tier.id }
   },
   Component: CountAndTapComponent,
 }

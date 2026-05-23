@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickScene } from '../presentation/scenes'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'tap', minScore: 0, label: 'tikken', description: 'Tap every item to collect them and count the whole — concrete one-to-one counting. Single tier (lowest support).' },
+]
 
 interface CollectTapMeta {
   sceneIndex: number
+  tierId: string
 }
 
 function CollectTapComponent({ question, onResolve }: ExerciseComponentProps<CollectTapMeta>) {
@@ -14,7 +19,7 @@ function CollectTapComponent({ question, onResolve }: ExerciseComponentProps<Col
   const total = operandA + operandB
   const done = gone.size === total
 
-  useEffect(() => { if (done) setTimeout(() => onResolve(true), 700) }, [done, onResolve])
+  useEffect(() => { if (done) setTimeout(() => onResolve(true, { givenAnswer: total, tapCount: total }), 700) }, [done, onResolve, total])
 
   const items = [
     ...Array.from({ length: operandA }, (_, i) => ({ key: `a${i}` })),
@@ -58,7 +63,13 @@ const CollectTap: ExerciseDefinition<CollectTapMeta> = {
   id: 'collect-tap',
   label: 'Tel samen door tikken',
   supportsReveal: false,
-  generateMeta: () => ({ sceneIndex: Math.floor(Math.random() * 24) }),
+  tiers: TIERS,
+  didactics: {
+    goal: 'Establish that two groups combine into one whole by physically collecting and counting every item.',
+    pitfalls: ['Miscounting when groups are large', 'Losing track of which items are already collected'],
+    progression: 'Single tier; the most concrete combine presentation, used at the lowest scores.',
+  },
+  generateMeta: () => ({ sceneIndex: Math.floor(Math.random() * 24), tierId: 'tap' }),
   Component: CollectTapComponent,
 }
 

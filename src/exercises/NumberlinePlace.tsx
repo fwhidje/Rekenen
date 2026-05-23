@@ -1,10 +1,17 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'labelled', minScore: 0,  label: 'met getallen', description: 'Every cell is labelled — the child matches the numeral to its position.' },
+  { id: 'sparse',   minScore: 50, label: 'enkel ankers', description: 'Only 0, the max and multiples of 5 are labelled — the child reasons about position from the anchors.' },
+]
 
 interface NumberlinePlaceMeta {
   showLabels: boolean
   max: number
+  tierId: string
 }
 
 function NumberlinePlaceComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberlinePlaceMeta>) {
@@ -39,7 +46,7 @@ function NumberlinePlaceComponent({ question, onResolve, disabled, scene }: Exer
           return (
             <div
               key={n}
-              onClick={() => !disabled && onResolve(n === answer)}
+              onClick={() => !disabled && onResolve(n === answer, { givenAnswer: n })}
               onPointerDown={e => { if (!disabled) (e.currentTarget as HTMLDivElement).style.background = cream }}
               onPointerUp={e =>   { (e.currentTarget as HTMLDivElement).style.background = paper }}
               onPointerLeave={e =>{ (e.currentTarget as HTMLDivElement).style.background = paper }}
@@ -66,8 +73,15 @@ const NumberlinePlace: ExerciseDefinition<NumberlinePlaceMeta> = {
   id: 'numberline-place',
   label: 'Zet het getal op de lijn',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Locate a numeral by its position on the number line — ordinal/positional number sense.',
+    pitfalls: ['Off-by-one (counting cells from 1 instead of 0)', 'Losing the position once labels are sparse'],
+    progression: 'labelled (all cells numbered) → sparse (only anchor labels), forcing positional reasoning as score rises.',
+  },
   generateMeta(_a, _b, score) {
-    return { showLabels: score < 50, max: _a <= 5 ? 5 : 10 }
+    const tier = pickTier(TIERS, score)
+    return { showLabels: tier.id === 'labelled', max: _a <= 5 ? 5 : 10, tierId: tier.id }
   },
   Component: NumberlinePlaceComponent,
 }

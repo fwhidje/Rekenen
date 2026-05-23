@@ -1,8 +1,14 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { pickColors } from '../presentation/scenes'
 import { DotGroup } from '../presentation/components/DotGroup'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'visual', minScore: 0,  label: 'met stippen', description: 'Dots illustrate both addends alongside the equation as a counting aid.' },
+  { id: 'plain',  minScore: 50, label: 'enkel som',   description: 'No dots — the child works from the symbolic equation alone.' },
+]
 
 function makeOptions(correct: number): number[] {
   const pool = new Set([correct])
@@ -19,6 +25,7 @@ interface ChoiceMeta {
   colorA: string
   colorB: string
   showVisual: boolean
+  tierId: string
 }
 
 function ChoiceComponent({ question, onResolve, disabled }: ExerciseComponentProps<ChoiceMeta>) {
@@ -46,7 +53,7 @@ function ChoiceComponent({ question, onResolve, disabled }: ExerciseComponentPro
         <span style={{ color: '#FF6B35' }}>?</span>
       </div>
 
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} />
+      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} />
     </div>
   )
 }
@@ -55,14 +62,22 @@ const Choice: ExerciseDefinition<ChoiceMeta> = {
   id: 'choice',
   label: 'Kies het goede antwoord',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Pick the correct sum from four options — recognition rather than production.',
+    pitfalls: ['Choosing an off-by-one distractor', 'Choosing a regurgitated operand'],
+    progression: 'Below score 50 supporting dots accompany the equation; from 50 the dots drop and only the symbols remain.',
+  },
 
   generateMeta(_operandA, _operandB, score) {
     const [colorA, colorB] = pickColors()
+    const tier = pickTier(TIERS, score)
     return {
       options: makeOptions(_operandA + _operandB),
       colorA,
       colorB,
-      showVisual: score < 50,
+      showVisual: tier.id === 'visual',
+      tierId: tier.id,
     }
   },
 

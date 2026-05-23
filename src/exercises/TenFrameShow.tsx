@@ -1,10 +1,15 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
+const TIERS: ExerciseTier[] = [
+  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a quantity from a ten-frame and pick its numeral. Single tier; the frame structures around 5 and 10.' },
+]
+
 interface TenFrameShowMeta {
   options: number[]
+  tierId: string
 }
 
 function makeOptions(correct: number): number[] {
@@ -64,7 +69,7 @@ function TenFrameShowComponent({ question, onResolve, disabled, scene }: Exercis
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
       <TenFrame n={operandA} ink={ink} paper={paper} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} tokens={scene?.tokens} />
+      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -75,7 +80,13 @@ const TenFrameShow: ExerciseDefinition<TenFrameShowMeta> = {
   id: 'ten-frame-show',
   label: 'Tienveld — hoeveel?',
   supportsReveal: false,
-  generateMeta(operandA) { return { options: makeOptions(operandA) } },
+  tiers: TIERS,
+  didactics: {
+    goal: 'Read a quantity from a ten-frame, building the 5- and 10-anchored structure of numbers.',
+    pitfalls: ['Counting filled cells one by one', 'Ignoring the empty cells when reasoning toward 10'],
+    progression: 'Single tier; the ten-frame itself is the structural scaffold.',
+  },
+  generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },
   Component: TenFrameShowComponent,
 }
 

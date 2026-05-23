@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const DOT_POS: Record<number, [number, number][]> = {
@@ -17,10 +18,20 @@ const GREY = '#b9aa92'
 
 type Stage = 'die-die' | 'die-numchoice' | 'num-num' | 'all-num'
 
+// Tier ids match the Stage values; thresholds (0/24/50/74) live here, not in a
+// pickStage() function. The component still switches on `stage` (= tier id).
+const TIERS: ExerciseTier[] = [
+  { id: 'die-die',       minScore: 0,  label: 'stip → stip',   description: 'Total and given part shown as die-dots; choose the missing part as a die. Fully perceptual.' },
+  { id: 'die-numchoice', minScore: 24, label: 'stip → getal',  description: 'Dot total with a numeral assist; choose the missing part as a numeral.' },
+  { id: 'num-num',       minScore: 50, label: 'getal → getal', description: 'Given part shown as a numeral alongside the dot total; choose the missing numeral.' },
+  { id: 'all-num',       minScore: 74, label: 'enkel getal',   description: 'Total and given part as numerals only; the split is purely symbolic.' },
+]
+
 interface DotPatternDecomposeMeta {
   showA:   boolean
   options: number[]
   stage:   Stage
+  tierId:  string
 }
 
 // ─── Primitive: positioned dots ──────────────────────────────────────────────
@@ -278,7 +289,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
               value={opt} colour={unknownCol}
               ink={ink} paper={paper}
               showDie={showChoiceDie} showNumber={showChoiceNum}
-              onClick={() => onResolve(opt === unknownVal)}
+              onClick={() => onResolve(opt === unknownVal, { givenAnswer: opt })}
               disabled={disabled || !fullyRevealed}
             />
           </div>
@@ -296,19 +307,18 @@ function makeOptions(correct: number, total: number): number[] {
   return [...shuffled.slice(0, Math.min(3, pool.length)), correct].sort(() => Math.random() - 0.5)
 }
 
-function pickStage(score: number): Stage {
-  if (score < 24) return 'die-die'
-  if (score < 50) return 'die-numchoice'
-  if (score < 74) return 'num-num'
-  return 'all-num'
-}
-
 const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
   id: 'dot-pattern-decompose',
   label: 'Splits het stippenpatroon',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Perceptually decompose a total into two parts — see the split in a structured dot pattern before notating it.',
+    pitfalls: ['Counting all dots instead of seeing the parts', 'Giving the known part back', 'Off-by-one on the missing part'],
+    progression: 'die→die (fully perceptual) → die→numeral → numeral→numeral → all-numeral, fading the dots into symbols as score rises.',
+  },
   generateMeta(operandA, operandB, score) {
-    const stage = pickStage(score)
+    const stage = pickTier(TIERS, score).id as Stage
     const showA = stage === 'die-die' ? true : Math.random() < 0.5
     const unknown = showA ? operandB : operandA
     const total = operandA + operandB
@@ -316,6 +326,7 @@ const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
       showA,
       options: makeOptions(unknown, total),
       stage,
+      tierId: stage,
     }
   },
   Component: DotPatternDecomposeComponent,

@@ -159,14 +159,17 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 
 | Path | Responsibility |
 |---|---|
-| `src/curriculum/types.ts` | `SkillDefinition`, `Operation`, `WeightFunction` types |
-| `src/curriculum/skills.ts` | All 21 skill definitions (data — add new skills here) |
+| `src/curriculum/types.ts` | `SkillDefinition` (incl. `didactics`, `semanticForm`), `SkillDidactics`, `SemanticForm`, `Operation`, `WeightFunction` types |
+| `src/curriculum/skills.ts` | All skill definitions (data — add new skills here) |
 | `src/curriculum/weightMatrix.ts` | Per-skill weight tables (`SKILL_TABLES`); falls back to default global curve for untuned skills |
+| `src/curriculum/exercisePlan.ts` | Per-skill exercise-progression narrative (`EXERCISE_PLAN`) — the "why this order" doc layer over the weight curves; coverage-checked |
 | `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD |
+| `src/engine/diagnostics.ts` | `AnswerRecord`, `ErrorType`, `classifyError`, `DiagnosticsSink` (+ in-memory singleton `diagnostics`). Per-question capture; persistence deferred |
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question |
-| `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Includes optional `isCompatible(a, b)` guard so a definition can refuse generated operand pairs it can't render. |
+| `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Carries `tiers` (declared scaffolding levels) and `didactics`; optional `isCompatible(a, b)` guard. Also `ExerciseTier`, `ExerciseDidactics`, `AnswerDetail` (the optional `onResolve` payload). |
+| `src/exercises/tiers.ts` | Shared `pickTier(tiers, score)` — picks the active scaffolding tier (highest `minScore <= score`) |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
 | `src/exercises/index.ts` | Imports all exercise files to trigger registration |
 | `src/exercises/DotPatternDecompose.tsx` | `dot-pattern-decompose` — perceptual splits exercise (4 stages, choice buttons, reveal animation) |
@@ -180,6 +183,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
+| `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing (locked feedback constraints) |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
 | `src/presentation/components/` | DotGroup, SceneGroup |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
@@ -192,14 +196,41 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 ## Adding a new exercise type
 
 1. Create `src/exercises/MyExercise.tsx` with a typed `Meta` interface, a component, and call `registerExercise(...)`.
-2. Import it in `src/exercises/index.ts`.
-3. Reference its id in any skill's `applicableExercises` in `skills.ts`.
-4. Add a weight in `src/curriculum/weightMatrix.ts` (or skip — defaults to 0 = never picked).
+2. Declare `const TIERS: ExerciseTier[]` (even a single `minScore: 0` tier). In `generateMeta`, derive the active tier with `pickTier(TIERS, score)` and stamp `meta.tierId = tier.id` — don't reintroduce an inline `pickStage`/threshold function. The component switches on the tier.
+3. Fill `tiers` and `didactics` on the definition (see Blueprint). When the child answers, pass what you cheaply know via the optional `onResolve(correct, { givenAnswer, tapCount })` so diagnostics can classify.
+4. Import it in `src/exercises/index.ts`.
+5. Reference its id in any skill's `applicableExercises` in `skills.ts`.
+6. Add a weight in `src/curriculum/weightMatrix.ts` (or skip — defaults to 0 = never picked).
 
 ## Adding a new skill
 
-1. Add a `SkillDefinition` entry in `src/curriculum/skills.ts`. All fields required, including `intent` description, `unlockedBy`, `unlocks`, `subsumedBy`, `applicableExercises`, and `generate()`.
-2. No code changes needed.
+1. Add a `SkillDefinition` entry in `src/curriculum/skills.ts`. All fields required, including `intent` (one-line tagline), `didactics` (see Blueprint), `unlockedBy`, `unlocks`, `subsumedBy`, `applicableExercises`, and `generate()`. Set `semanticForm` for subtraction skills (`wegnemen` / `verschil` / `aanvullen`).
+2. Add an `EXERCISE_PLAN[id]` entry in `src/curriculum/exercisePlan.ts` (a `TODO` stub is fine, but the key must exist — a dev warning fires if it's missing).
+3. No other code changes needed.
+
+## Blueprint — clean design for skills & exercises
+
+The didactic + diagnostic fields are *required* and exist to make the curriculum legible and the data capturable. A `'TODO'` stub is an acceptable placeholder, but the field must be present and, once the skill/exercise is "done", actually filled.
+
+**Where each piece lives (hybrid rule):** short structured facts that must stay honest with the code go *inline* on the definitions (`skills.ts`, the exercise file). The long-form cross-cutting narrative (the exercise-progression story) goes in the companion `exercisePlan.ts`. Don't move the inline facts out — they rot when separated from the code.
+
+**Field dictionary:**
+- Skill `didactics.startingPoint` — what the child can already do *entering* this skill (the assumed prerequisite ability, not the prereq skill id).
+- Skill `didactics.goal` — what mastery looks like, concretely.
+- Skill `didactics.pitfalls` — the top 1–3 errors/misconceptions to watch (these inform error tags).
+- Skill `semanticForm` — subtraction flavour; drives the `semantic-narrow` classifier. Omit for non-subtraction.
+- Exercise `didactics.goal` — what this presentation teaches/trains.
+- Exercise `didactics.pitfalls` — misreads this *specific* presentation risks.
+- Exercise `didactics.progression` — how the tiers scaffold concrete → abstract, and why that order.
+- Exercise `tiers[].description` — what scaffolding *this* tier provides (one line per tier).
+- `EXERCISE_PLAN[skillId]` — prose: which exercise dominates at low vs high score and why (documents the `weightMatrix.ts` curve). `intent` is a tagline; this is the paragraph.
+
+**Clean design requires:**
+- A skill states its starting point, its goal, and its top pitfalls — no empty `goal`/`startingPoint` once done.
+- An exercise documents every tier's scaffolding intent and the concrete→abstract logic of their order.
+- Scaffolding thresholds live in `TIERS`, never in an inline `if (score < n)` — and `generateMeta` stamps `tierId`.
+- An exercise reports `givenAnswer` (and `tapCount` for multi-step) via `onResolve` wherever it cheaply can, so answers are classifiable.
+- Every skill has an `EXERCISE_PLAN` entry.
 
 ## Dev commands
 

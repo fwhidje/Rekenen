@@ -1,11 +1,15 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { NumPad } from '../ui/components/NumPad'
 import { useState } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
+const TIERS: ExerciseTier[] = [
+  { id: 'plain', minScore: 0, label: 'invullen', description: 'Type the answer on the numpad — fully symbolic, no scaffolding. Single tier.' },
+]
+
 interface FillPlainMeta {
-  _unused?: never
+  tierId: string
 }
 
 function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<FillPlainMeta>) {
@@ -16,7 +20,7 @@ function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseCo
   const handleKey = (key: string) => {
     if (disabled) return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
-    if (key === '✓') { if (input) onResolve(parseInt(input, 10) === answer); return }
+    if (key === '✓') { if (input) { const given = parseInt(input, 10); onResolve(given === answer, { givenAnswer: given }) } return }
     if (input.length < 2) setInput(v => v + key)
   }
 
@@ -51,7 +55,13 @@ const FillPlain: ExerciseDefinition<FillPlainMeta> = {
   id: 'fill-plain',
   label: 'Schrijf het antwoord',
   supportsReveal: false,
-  generateMeta: () => ({}),
+  tiers: TIERS,
+  didactics: {
+    goal: 'Produce the answer symbolically, with no visual support — the most abstract presentation.',
+    pitfalls: ['Off-by-one', 'Reversal (a−b vs b−a)', 'Typing a regurgitated operand'],
+    progression: 'Single tier: used at higher scores once a skill no longer needs scaffolding.',
+  },
+  generateMeta: () => ({ tierId: 'plain' }),
   Component: FillPlainComponent,
 }
 

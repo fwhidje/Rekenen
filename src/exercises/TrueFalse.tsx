@@ -1,10 +1,15 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { TFButtons } from '../ui/components/TFButtons'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'judge', minScore: 0, label: 'waar/niet', description: 'Judge whether a shown sum is correct — recognition of a stated equation. Single tier.' },
+]
 
 interface TrueFalseMeta {
   shownAnswer: number   // the (possibly wrong) answer displayed to the child
   isCorrect: boolean
+  tierId: string
 }
 
 function TrueFalseComponent({ question, onResolve, disabled }: ExerciseComponentProps<TrueFalseMeta>) {
@@ -30,6 +35,12 @@ const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
   id: 'tf',
   label: 'Waar of niet waar?',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Decide whether a presented equation is true — checks whether the child can verify, not just compute.',
+    pitfalls: ['Saying "waar" without actually evaluating', 'Missing a near-miss (off-by-one) false statement'],
+    progression: 'Single tier; the difficulty lives in how close the false distractor sits to the true answer.',
+  },
 
   generateMeta(operandA, operandB) {
     const correct = operandA + operandB
@@ -38,6 +49,7 @@ const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
     return {
       shownAnswer: Math.max(1, correct + offset),
       isCorrect,
+      tierId: 'judge',
     }
   },
 

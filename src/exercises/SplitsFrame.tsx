@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
@@ -17,9 +18,17 @@ const CELL = 54   // cell size (px)
 
 type Stage = 'die-tap' | 'num-tap' | 'num-pad'
 
+// Tier ids match the Stage values; thresholds (0/30/70) live here.
+const TIERS: ExerciseTier[] = [
+  { id: 'die-tap', minScore: 0,  label: 'stippen tikken', description: 'Tap the dots in a split-die to fill the missing part — concrete, one-to-one.' },
+  { id: 'num-tap', minScore: 30, label: 'cellen tikken',  description: 'The total is a numeral; tap frame cells to build the missing part.' },
+  { id: 'num-pad', minScore: 70, label: 'intikken',        description: 'Type the missing part on the numpad — symbolic, no tapping aid.' },
+]
+
 interface SplitsFrameMeta {
   showA: boolean
   stage: Stage
+  tierId: string
 }
 
 // ─── Die visual (tier 1) ─────────────────────────────────────────────────────
@@ -164,7 +173,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
     setTapped(next)
     if (next.every(Boolean)) {
       setSolved(true)
-      setTimeout(() => onResolve(true), 300)
+      setTimeout(() => onResolve(true, { givenAnswer: unknownVal, tapCount: unknownVal }), 300)
     }
   }
 
@@ -173,12 +182,13 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
     if (key === '✓') {
       if (!input) return
-      const correct = parseInt(input, 10) === unknownVal
+      const given = parseInt(input, 10)
+      const correct = given === unknownVal
       if (correct) {
         setSolved(true)
-        setTimeout(() => onResolve(true), 500)
+        setTimeout(() => onResolve(true, { givenAnswer: given }), 500)
       } else {
-        onResolve(false)
+        onResolve(false, { givenAnswer: given })
       }
       return
     }
@@ -259,22 +269,23 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
 
 // ─── Definition ──────────────────────────────────────────────────────────────
 
-function pickStage(score: number): Stage {
-  if (score < 30) return 'die-tap'
-  if (score < 70) return 'num-tap'
-  return 'num-pad'
-}
-
 const SplitsFrame: ExerciseDefinition<SplitsFrameMeta> = {
   id: 'splits-frame',
   label: 'Vul het frame in',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Complete a part-whole frame: given a total and one part, produce the other part.',
+    pitfalls: ['Filling the whole frame instead of just the missing part', 'Off-by-one', 'Reading the total as the answer'],
+    progression: 'die-tap (tap dots) → num-tap (tap cells under a numeral total) → num-pad (type it). Concrete tapping gives way to symbolic entry.',
+  },
   isCompatible: (a, b) => a > 0 && b > 0,
   generateMeta(_a, _b, score) {
-    const stage = pickStage(score)
+    const stage = pickTier(TIERS, score).id as Stage
     return {
       showA: stage === 'die-tap' ? true : Math.random() < 0.5,
       stage,
+      tierId: stage,
     }
   },
   Component: SplitsFrameComponent,

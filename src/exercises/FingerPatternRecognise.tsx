@@ -1,11 +1,16 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
+const TIERS: ExerciseTier[] = [
+  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a quantity from a finger pattern and pick its numeral. Single tier; hands carry the 5-structure for 6–10.' },
+]
+
 interface FingerPatternRecogniseMeta {
   options: number[]
+  tierId: string
 }
 
 function makeOptions(correct: number): number[] {
@@ -52,7 +57,7 @@ function FingerPatternRecogniseComponent({ question, onResolve, disabled, scene 
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
       <FingerPattern n={operandA} ink={ink} paper={paper} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} tokens={scene?.tokens} />
+      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -63,7 +68,13 @@ const FingerPatternRecognise: ExerciseDefinition<FingerPatternRecogniseMeta> = {
   id: 'finger-pattern-recognise',
   label: 'Herken het vingerpatroon',
   supportsReveal: false,
-  generateMeta(operandA) { return { options: makeOptions(operandA) } },
+  tiers: TIERS,
+  didactics: {
+    goal: 'Read quantities from finger patterns, reinforcing the 5-anchored structure of numbers.',
+    pitfalls: ['Counting fingers one by one instead of seeing 5 + n', 'Off-by-one on two-hand patterns'],
+    progression: 'Single tier; the hand image supplies the 5-structure scaffold for 6–10.',
+  },
+  generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },
   Component: FingerPatternRecogniseComponent,
 }
 

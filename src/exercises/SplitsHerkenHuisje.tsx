@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -24,11 +25,20 @@ const DRAG = 68
 
 type Stage = 'die-both' | 'die-one' | 'die-numaid' | 'num-two'
 
+// Tier ids match the Stage values; thresholds (0/24/50/74) live here.
+const TIERS: ExerciseTier[] = [
+  { id: 'die-both',   minScore: 0,  label: 'beide stippen',  description: 'Drag both die-parts into the colour-coded rooms — always correct, an orientation to the house shape.' },
+  { id: 'die-one',    minScore: 24, label: 'één stip',       description: 'One die-part given; drag the matching die for the other room.' },
+  { id: 'die-numaid', minScore: 50, label: 'getal + stip',   description: 'One numeral part given with a die aid in the roof; drag the missing numeral.' },
+  { id: 'num-two',    minScore: 74, label: 'twee getallen',  description: 'Two-row numeral splitshuisje; drag numerals to complete both splits. Most abstract.' },
+]
+
 interface SplitsHerkenHuisjeMeta {
   stage: Stage
   showA: boolean                       // which part is given in stages die-one / die-numaid
   givenRows: [number, number] | null   // given values (left side) for each row in num-two
   options: number[]                    // draggable values
+  tierId: string
 }
 
 // ─── Primitives ──────────────────────────────────────────────────────────────
@@ -233,7 +243,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
     } else if (stage === 'die-one' || stage === 'die-numaid') {
       const emptyRoom = showA ? 'right' : 'left'
       if (roomId === emptyRoom) {
-        setTimeout(() => onResolve(optVal === (showA ? operandB : operandA)), 300)
+        setTimeout(() => onResolve(optVal === (showA ? operandB : operandA), { givenAnswer: optVal }), 300)
       }
     } else {
       // num-two
@@ -241,7 +251,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         // total=2 fallback: single row with room IDs 'left'/'right'
         const emptyRoom = showA ? 'right' : 'left'
         if (roomId === emptyRoom) {
-          setTimeout(() => onResolve(optVal === (showA ? operandB : operandA)), 300)
+          setTimeout(() => onResolve(optVal === (showA ? operandB : operandA), { givenAnswer: optVal }), 300)
         }
         return
       }
@@ -413,13 +423,6 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
 
 // ─── Definition ──────────────────────────────────────────────────────────────
 
-function pickStage(score: number): Stage {
-  if (score < 24) return 'die-both'
-  if (score < 50) return 'die-one'
-  if (score < 74) return 'die-numaid'
-  return 'num-two'
-}
-
 function makeOptions3(correct: number, total: number): number[] {
   const pool = Array.from({ length: total + 1 }, (_, i) => i).filter(v => v !== correct)
   const shuffled = [...pool].sort(() => Math.random() - 0.5)
@@ -436,19 +439,25 @@ const SplitsHerkenHuisje: ExerciseDefinition<SplitsHerkenHuisjeMeta> = {
   id: 'splits-herken-huisje',
   label: 'Splitshuisje herkennen',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Recognise the split of a total in the splitshuisje shape — the bridge from perceptual splits to the standard notation.',
+    pitfalls: ['Dragging the known part back', 'Swapping the two parts', 'Off-by-one on the missing part'],
+    progression: 'die-both (orient) → die-one (drag a die) → die-numaid (numeral with die aid) → num-two (two numeral splits). Dots fade to numerals as score rises.',
+  },
   isCompatible: (a, b) => a > 0 && b > 0,
   generateMeta(operandA, operandB, score) {
-    const stage = pickStage(score)
+    const stage = pickTier(TIERS, score).id as Stage
     const total = operandA + operandB
     const showA = stage === 'die-both' ? true : Math.random() < 0.5
 
     if (stage === 'die-both') {
-      return { stage, showA, givenRows: null, options: [operandA, operandB] }
+      return { stage, showA, givenRows: null, options: [operandA, operandB], tierId: stage }
     }
 
     if (stage === 'die-one' || stage === 'die-numaid') {
       const unknown = showA ? operandB : operandA
-      return { stage, showA, givenRows: null, options: makeOptions3(unknown, total) }
+      return { stage, showA, givenRows: null, options: makeOptions3(unknown, total), tierId: stage }
     }
 
     // num-two: pick 2 distinct given values (left-side) from {1..total-1}
@@ -456,12 +465,12 @@ const SplitsHerkenHuisje: ExerciseDefinition<SplitsHerkenHuisjeMeta> = {
     if (candidates.length < 2) {
       // total=2: only one split, fall back to single-row
       const unknown = showA ? operandB : operandA
-      return { stage, showA, givenRows: null, options: makeOptions3(unknown, total) }
+      return { stage, showA, givenRows: null, options: makeOptions3(unknown, total), tierId: stage }
     }
     const shuffled = [...candidates].sort(() => Math.random() - 0.5)
     const [a0, a1] = shuffled
     const b0 = total - a0, b1 = total - a1
-    return { stage, showA: true, givenRows: [a0, a1], options: makeOptions4(b0, b1, total) }
+    return { stage, showA: true, givenRows: [a0, a1], options: makeOptions4(b0, b1, total), tierId: stage }
   },
   Component: SplitsHerkenHuisjeComponent,
 }

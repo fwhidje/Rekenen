@@ -1,14 +1,22 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import type { CounterProps } from '../presentation/nature/Counters'
 import type { ComponentType } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
+
+const TIERS: ExerciseTier[] = [
+  { id: 'counters', minScore: 0,  label: 'enkel beeld',   description: 'Compare two counter groups by quantity alone — no numerals shown.' },
+  { id: 'both',     minScore: 30, label: 'beeld + getal', description: 'Counter groups labelled with their numerals — links quantity to symbol.' },
+  { id: 'numbers',  minScore: 70, label: 'enkel getal',   description: 'Compare two bare numerals — purely symbolic magnitude judgement.' },
+]
 
 interface CompareMoreLessMeta {
   other: number
   askMore: boolean
   leftIsA: boolean
   style: 'counters' | 'both' | 'numbers'
+  tierId: string
 }
 
 // ─── Counter group ────────────────────────────────────────────────────────────
@@ -112,15 +120,23 @@ const CompareMoreLess: ExerciseDefinition<CompareMoreLessMeta> = {
   id: 'compare-more-less',
   label: 'Meer of minder?',
   supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Judge which of two quantities is more / less — ordinal number sense.',
+    pitfalls: ['Picking the longer row regardless of count', 'Confusing "meer" and "minder"'],
+    progression: 'counters (quantity only) → both (quantity + numeral) → numbers (numeral only). Symbol replaces image as score rises.',
+  },
   generateMeta(operandA, _b, score) {
     const max  = operandA <= 5 ? 5 : 10
     const pool = Array.from({ length: max }, (_, i) => i + 1).filter(n => n !== operandA)
     const other = pool[Math.floor(Math.random() * pool.length)]
+    const tier = pickTier(TIERS, score)
     return {
       other,
       askMore:  Math.random() < 0.6,
       leftIsA:  Math.random() < 0.5,
-      style:    score < 30 ? 'counters' : score < 70 ? 'both' : 'numbers',
+      style:    tier.id as CompareMoreLessMeta['style'],
+      tierId:   tier.id,
     }
   },
   Component: CompareMoreLessComponent,
