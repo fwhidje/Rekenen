@@ -22,11 +22,29 @@ export interface GeneratedProblem {
 //   max — archives this one out of rotation. `null` means never archive
 //   (typically fact-recall drills like tienvrienden, dubbels, helften).
 
+// Subtraction (and some splitsen) problems carry a semantic flavour that
+// the bare `a − b` doesn't capture. It drives error classification
+// (e.g. treating a `verschil` problem as plain `wegnemen`). Only meaningful
+// for subtraction-family skills; left undefined elsewhere.
+export type SemanticForm = 'wegnemen' | 'verschil' | 'aanvullen'
+
+// ─── Skill didactics ────────────────────────────────────────────────────────
+// Structured pedagogical context, co-located with the skill so it stays honest
+// with the code. Fill on every skill — a 'TODO' stub is acceptable as a
+// placeholder, but the field must be present. See CLAUDE.md → Blueprint.
+export interface SkillDidactics {
+  startingPoint: string   // what the child can already do entering this skill
+  goal: string            // what mastery of this skill looks like
+  pitfalls: string[]      // the top 1–3 common errors / things to watch
+}
+
 export interface SkillDefinition {
   id: string
   name: string             // Dutch display label
-  intent: string           // plain-language description for documentation
+  intent: string           // one-line plain-language tagline for documentation
+  didactics: SkillDidactics
   op: Operation            // primary operation this skill teaches
+  semanticForm?: SemanticForm  // subtraction flavour, when applicable
   unlockedBy: string[]
   unlocks: string[]
   subsumedBy: string | null

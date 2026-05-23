@@ -1,8 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
+import { getExercisePlan } from '../curriculum/exercisePlan'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
+import { pickTier } from '../exercises/tiers'
 import { computeAnswer } from '../engine/answer'
-import type { ExerciseQuestion } from '../exercises/types'
+import { diagnostics, classifyError } from '../engine/diagnostics'
+import type { AnswerRecord } from '../engine/diagnostics'
+import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { THEMES } from '../presentation/themes'
 
 import '../exercises/index'
@@ -31,6 +35,8 @@ export function DebugMode({ onClose }: Props) {
   const [feedback, setFeedback]     = useState<Feedback | null>(null)
   const [bgIdx, setBgIdx]           = useState(0)
   const [counterIdx, setCounterIdx] = useState(0)
+  const [logTick, setLogTick]       = useState(0)
+  const questionStartRef            = useRef(Date.now())
 
   const theme = THEMES[0]
   const { Background } = theme.backgrounds[bgIdx % theme.backgrounds.length]
@@ -67,13 +73,44 @@ export function DebugMode({ onClose }: Props) {
     setQKey(k => k + 1)
   }, [])
 
-  const handleResolve = useCallback((correct: boolean) => {
+  useEffect(() => { questionStartRef.current = Date.now() }, [question])
+
+  const handleResolve = useCallback((correct: boolean, detail?: AnswerDetail) => {
     if (feedback || !question) return
     setFeedback({ ok: correct, message: correct ? 'Goed!' : `Antwoord was ${question.answer}` })
+
+    const skill = SKILLS_BY_ID[question.skillId]
+    const given = detail?.givenAnswer
+    const record: AnswerRecord = {
+      timestamp: Date.now(),
+      skillId: question.skillId,
+      exerciseId: question.exerciseId,
+      tierId: (question.meta as { tierId?: string }).tierId,
+      op: question.op,
+      semanticForm: skill?.semanticForm,
+      operandA: question.operandA,
+      operandB: question.operandB,
+      correctAnswer: question.answer,
+      givenAnswer: given,
+      correct,
+      errorType: correct ? null : classifyError({
+        skillId: question.skillId, op: question.op, semanticForm: skill?.semanticForm,
+        operandA: question.operandA, operandB: question.operandB,
+        correctAnswer: question.answer, givenAnswer: given,
+      }),
+      responseTimeMs: Date.now() - questionStartRef.current,
+      tapCount: detail?.tapCount,
+    }
+    diagnostics.record(record)
+    setLogTick(t => t + 1)
+
     setTimeout(regenerate, correct ? 1100 : 2000)
   }, [feedback, question, regenerate])
 
-  const ExerciseComponent = exerciseId ? getExercise(exerciseId).Component : null
+  const def = exerciseId ? getExercise(exerciseId) : null
+  const ExerciseComponent = def ? def.Component : null
+  const activeTier = def ? pickTier(def.tiers, score) : null
+  const records = useMemo(() => [...diagnostics.getAll()].reverse(), [logTick])
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
@@ -173,6 +210,41 @@ export function DebugMode({ onClose }: Props) {
           </div>
         </div>
 
+        {/* Didactics + tier info for the current selection */}
+        <div style={{
+          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
+          borderRadius: 16, padding: 14, marginBottom: 18, fontSize: 12.5, color: INK, lineHeight: 1.5,
+        }}>
+          <div style={{ fontWeight: 800, marginBottom: 4 }}>Skill: {skill.name}</div>
+          <div><b>Start:</b> {skill.didactics.startingPoint}</div>
+          <div><b>Doel:</b> {skill.didactics.goal}</div>
+          {skill.didactics.pitfalls.length > 0 && (
+            <div><b>Valkuilen:</b> {skill.didactics.pitfalls.join('; ')}</div>
+          )}
+          <div style={{ marginTop: 6 }}><b>Oefeningvolgorde:</b> {getExercisePlan(skill.id)}</div>
+
+          {def && (
+            <div style={{ marginTop: 10, borderTop: `1px solid ${INK}33`, paddingTop: 8 }}>
+              <div style={{ fontWeight: 800, marginBottom: 4 }}>Oefening: {def.label}</div>
+              <div><b>Doel:</b> {def.didactics.goal}</div>
+              {def.didactics.pitfalls.length > 0 && (
+                <div><b>Valkuilen:</b> {def.didactics.pitfalls.join('; ')}</div>
+              )}
+              <div><b>Opbouw:</b> {def.didactics.progression}</div>
+              <div style={{ marginTop: 6 }}>
+                {def.tiers.map(t => (
+                  <div key={t.id} style={{
+                    opacity: activeTier?.id === t.id ? 1 : 0.5,
+                    fontWeight: activeTier?.id === t.id ? 700 : 400,
+                  }}>
+                    {activeTier?.id === t.id ? '▶ ' : '• '}[{t.minScore}+] {t.label} — {t.description}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Exercise — no card, directly on scene */}
         {question && ExerciseComponent && (
           <div key={qKey} style={{
@@ -189,6 +261,38 @@ export function DebugMode({ onClose }: Props) {
             />
           </div>
         )}
+
+        {/* Diagnostics log — session only, in-memory (not persisted) */}
+        <div style={{
+          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
+          borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12, color: INK,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontWeight: 800 }}>Diagnostiek ({records.length})</span>
+            <button
+              onClick={() => { diagnostics.clear(); setLogTick(t => t + 1) }}
+              style={{ ...buttonStyle(false), padding: '4px 12px', fontSize: 12 }}
+            >Wissen</button>
+          </div>
+          {records.length === 0 ? (
+            <div style={{ fontStyle: 'italic', color: '#8a795f' }}>
+              Nog geen antwoorden vastgelegd. Beantwoord een oefening.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontFamily: 'monospace', maxHeight: 220, overflowY: 'auto' }}>
+              {records.map((r, i) => (
+                <div key={i} style={{ color: r.correct ? '#2e7d32' : '#b3431f' }}>
+                  {r.correct ? '✓' : '✗'} {r.operandA}{opSymbol(r.op)}{r.operandB}={r.correctAnswer}
+                  {r.givenAnswer !== undefined ? ` →${r.givenAnswer}` : ''}
+                  {' '}[{r.tierId ?? '–'}]
+                  {r.errorType ? ` ${r.errorType}` : ''}
+                  {r.tapCount !== undefined ? ` taps:${r.tapCount}` : ''}
+                  {r.responseTimeMs !== undefined ? ` ${Math.round(r.responseTimeMs / 100) / 10}s` : ''}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Feedback — full-screen overlay */}

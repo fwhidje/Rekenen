@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
+import { pickTier } from './tiers'
 import { DotGroup } from '../presentation/components/DotGroup'
 import { SceneGroup } from '../presentation/components/SceneGroup'
 import { NumPad } from '../ui/components/NumPad'
@@ -18,7 +19,16 @@ interface FillVisualMeta {
   sceneIndex: number
   colorA: string
   colorB: string
+  tierId: string
 }
+
+// Tier ids double as the reveal kind: the score band picks how much of the
+// equation is built up before input unlocks.
+const TIERS: ExerciseTier[] = [
+  { id: 'visual',   minScore: 0,  label: 'volledige opbouw', description: 'Full piece-by-piece reveal: visual groups, then numbers, then "= ?". Maximum support.' },
+  { id: 'equation', minScore: 40, label: 'som opbouw',       description: 'Numbers-only reveal — no visual groups; the equation animates in then unlocks.' },
+  { id: 'instant',  minScore: 80, label: 'meteen',           description: 'Equation shown instantly, no reveal — the child works abstractly at speed.' },
+]
 
 // ─── Reveal timing ────────────────────────────────────────────────────────────
 // visual (7 steps):  visA → visPlus → visB → numA → eqPlus → numB → complete
@@ -80,7 +90,7 @@ function FillVisualComponent({ question, onResolve, disabled }: ExerciseComponen
   const handleKey = (key: string) => {
     if (disabled || !complete) return
     if (key === '⌫') { setInput(s => s.slice(0, -1)); return }
-    if (key === '✓') { if (input) onResolve(parseInt(input, 10) === answer); return }
+    if (key === '✓') { if (input) { const given = parseInt(input, 10); onResolve(given === answer, { givenAnswer: given }) } return }
     if (input.length < 2) setInput(s => s + key)
   }
 
@@ -135,16 +145,20 @@ const FillVisual: ExerciseDefinition<FillVisualMeta> = {
   id: 'fill-vis',
   label: 'Tel en tel op',
   supportsReveal: true,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Compute a sum, scaffolded by a timed reveal that builds the equation from concrete groups to symbols.',
+    pitfalls: ['Counting all from 1 instead of counting on', 'Off-by-one', 'Typing before the reveal completes'],
+    progression: 'visual (full concrete→symbolic reveal) → equation (symbols only) → instant (no reveal). Support fades as score rises.',
+  },
 
   generateMeta(_operandA, _operandB, score) {
-    const revealKind: RevealKind =
-      score < 40 ? 'visual' :
-      score < 80 ? 'equation' :
-      'instant'
+    const tier = pickTier(TIERS, score)
+    const revealKind = tier.id as RevealKind
     const visualKind: VisualKind =
       revealKind === 'visual' ? (Math.random() < 0.5 ? 'dots' : 'scene') : 'none'
     const [colorA, colorB] = pickColors()
-    return { visualKind, revealKind, sceneIndex: Math.floor(Math.random() * 24), colorA, colorB }
+    return { visualKind, revealKind, sceneIndex: Math.floor(Math.random() * 24), colorA, colorB, tierId: tier.id }
   },
 
   Component: FillVisualComponent,

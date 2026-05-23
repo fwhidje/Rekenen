@@ -1,11 +1,14 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import type { Profile } from '../state/types'
-import type { ExerciseQuestion } from '../exercises/types'
+import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { getExercise } from '../exercises/registry'
 import { selectExercise } from '../engine/exerciseSelector'
-import { SKILLS } from '../curriculum/skills'
+import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
+import { diagnostics, classifyError } from '../engine/diagnostics'
+import type { AnswerRecord } from '../engine/diagnostics'
+import { FEEDBACK } from '../presentation/feedback'
 import { THEMES } from '../presentation/themes'
 
 // Import exercises to register them
@@ -13,7 +16,6 @@ import '../exercises/index'
 
 const THEME_ROUNDS = 10  // re-pick theme every N rounds (random, may repeat)
 
-const PRAISE = ['Geweldig!', 'Super!', 'Waanzinnig!', 'Fantastisch!', 'Bravo!', 'Perfect!', 'Top!', 'Goed zo!']
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
 const pickIdx = (len: number): number => Math.floor(Math.random() * len)
 
@@ -35,6 +37,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [history, setHistory] = useState<boolean[]>([])
   const [qKey, setQKey] = useState(0)
+  const questionStartRef = useRef(Date.now())
   const [roundsDone, setRoundsDone] = useState(0)
   const [themeIdx, setThemeIdx] = useState(() => pickIdx(THEMES.length))
   const [bgIdx, setBgIdx] = useState(() => pickIdx(THEMES[0].backgrounds.length))
@@ -52,6 +55,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setFeedback(null)
     setQKey(k => k + 1)
     setRoundsDone(completed)
+    questionStartRef.current = Date.now()
     // re-pick theme every THEME_ROUNDS rounds (random — may land on the same theme)
     const nextThemeIdx = completed % THEME_ROUNDS === 0 ? pickIdx(THEMES.length) : themeIdx
     setThemeIdx(nextThemeIdx)
@@ -60,20 +64,45 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setCounterIdx(pickIdx(THEMES[nextThemeIdx].counters.length))
   }, [themeIdx])
 
-  const handleResolve = useCallback((correct: boolean) => {
+  const handleResolve = useCallback((correct: boolean, detail?: AnswerDetail) => {
     if (feedback || !question) return
 
     const msg = correct
-      ? pick(PRAISE)
-      : `Het antwoord is ${question.answer} 💡`
+      ? pick(FEEDBACK.positive)
+      : FEEDBACK.wrongMessage(question.answer)
 
     setFeedback({ ok: correct, message: msg })
     setHistory(h => [...h, correct])
 
+    // Diagnostic capture — held in the in-memory sink (not yet persisted).
+    const skill = SKILLS_BY_ID[question.skillId]
+    const given = detail?.givenAnswer
+    const record: AnswerRecord = {
+      timestamp: Date.now(),
+      skillId: question.skillId,
+      exerciseId: question.exerciseId,
+      tierId: (question.meta as { tierId?: string }).tierId,
+      op: question.op,
+      semanticForm: skill?.semanticForm,
+      operandA: question.operandA,
+      operandB: question.operandB,
+      correctAnswer: question.answer,
+      givenAnswer: given,
+      correct,
+      errorType: correct ? null : classifyError({
+        skillId: question.skillId, op: question.op, semanticForm: skill?.semanticForm,
+        operandA: question.operandA, operandB: question.operandB,
+        correctAnswer: question.answer, givenAnswer: given,
+      }),
+      responseTimeMs: Date.now() - questionStartRef.current,
+      tapCount: detail?.tapCount,
+    }
+    diagnostics.record(record)
+
     const updatedProfile = recordAnswer(profile, question.skillId, correct)
     onProfileUpdate(updatedProfile)
     const completed = roundsDone + 1
-    setTimeout(() => nextQuestion(updatedProfile, completed), correct ? 1100 : 2400)
+    setTimeout(() => nextQuestion(updatedProfile, completed), correct ? FEEDBACK.correctMs : FEEDBACK.wrongMs)
   }, [feedback, question, profile, onProfileUpdate, nextQuestion, roundsDone])
 
   if (!question) {
@@ -164,10 +193,10 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       {feedback && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 10,
-          background: feedback.ok ? 'rgba(6,214,160,.82)' : 'rgba(239,100,100,.82)',
+          background: feedback.ok ? FEEDBACK.correctTone.bg : FEEDBACK.wrongTone.bg,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           fontFamily: 'Fredoka One, cursive', textAlign: 'center',
-          color: feedback.ok ? '#013d1e' : '#5c0000', gap: 8,
+          color: feedback.ok ? FEEDBACK.correctTone.text : FEEDBACK.wrongTone.text, gap: 8,
         }}>
           <div style={{ fontSize: 32 }}>{feedback.message}</div>
         </div>

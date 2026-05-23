@@ -1,10 +1,15 @@
 import { registerExercise } from './registry'
-import type { ExerciseDefinition, ExerciseComponentProps } from './types'
+import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
+const TIERS: ExerciseTier[] = [
+  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a quantity from a die/subitising dot pattern and pick its numeral. Single tier; the 5-structure does the scaffolding for 6–10.' },
+]
+
 interface DotPatternRecogniseMeta {
   options: number[]
+  tierId: string
 }
 
 // Canonical subitising positions for 1–5 as [x%, y%] in a square container
@@ -83,7 +88,7 @@ function DotPatternRecogniseComponent({ question, onResolve, disabled, scene }: 
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>Hoeveel?</div>
       <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer)} disabled={disabled} tokens={scene?.tokens} />
+      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -94,7 +99,13 @@ const DotPatternRecognise: ExerciseDefinition<DotPatternRecogniseMeta> = {
   id: 'dot-pattern-recognise',
   label: 'Herken het stippenpatroon',
   supportsReveal: false,
-  generateMeta(operandA) { return { options: makeOptions(operandA) } },
+  tiers: TIERS,
+  didactics: {
+    goal: 'Subitise structured dot patterns — see a quantity at a glance rather than counting it.',
+    pitfalls: ['Reverting to one-by-one counting', 'Off-by-one on 6–10 by miscounting the second die'],
+    progression: 'Single tier; difficulty scales with the quantity, leaning on the 5-structure for 6–10.',
+  },
+  generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },
   Component: DotPatternRecogniseComponent,
 }
 
