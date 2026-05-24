@@ -68,14 +68,14 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: 'getalbegrip-5',
     name: 'Getalbegrip tot 5',
-    intent: 'Recognises quantity, cijfersymbool, position on number line, dot-pattern, and finger-pattern for 1–5.',
+    intent: 'Builds the bidirectional links between quantity, cijfersymbool, structured visual (dot / finger / ten-frame), and number-line position for 1–5 — the foundation everything else in the curriculum hangs off.',
     didactics: {
-      startingPoint: 'Can say number words and point to objects, but counting may not be stable and the numeral symbols are not yet secure.',
-      goal: 'Links quantity ↔ cijfersymbool ↔ number-line position ↔ dot/finger pattern for 1–5, fluently and in any direction.',
+      startingPoint: 'Recites the number sequence to at least 5 and points to items while counting, but cardinality — the awareness that the last word spoken is the count — may not be stable, and the written numerals 1–5 are not yet secure.',
+      goal: 'Given any of {structured pattern, numeral, position on the number line, spoken word} for a quantity 1–5, produces the other three at a glance — no counting from 1. Given two quantities 1–5, says which is meer, minder, or evenveel.',
       pitfalls: [
-        'Counting from 1 every time instead of subitising small quantities',
-        'Reciting number words without one-to-one correspondence',
-        'Confusing the numeral shape with the quantity it represents',
+        'Cardinality gap — counts the items correctly but cannot answer "hoeveel?" without recounting; the count hasn\'t become a quantity.',
+        'One-to-one correspondence breaks — words and items go out of sync (skips, double-counts, recites past the last item).',
+        'Compares by length, not count — picks the longer row or bigger-looking pattern instead of subitising both groups. Often doesn\'t yet have evenveel as a stable third answer.',
       ],
     },
     op: 'count',
@@ -92,13 +92,14 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: 'getalbegrip-10',
     name: 'Getalbegrip tot 10',
-    intent: 'Same as getalbegrip-5 for 1–10, with explicit awareness of the 5-structure (6=5+1, 7=5+2, …) — entry point for the rekenrek.',
+    intent: 'Extends number sense to 1–10 with the 5-structure made explicit (6 = 5 + 1, 7 = 5 + 2, …) — so 6–10 are seen through the 5-anchor, never counted from 1. Sets up the rekenrek and ten-frame as natural representations.',
     didactics: {
-      startingPoint: 'Secure with getalbegrip tot 5; can subitise structured quantities up to 5.',
-      goal: 'Same fluency for 1–10, anchored on the 5-structure (6=5+1, …) so 6–10 are seen, not counted by ones.',
+      startingPoint: 'Secure with getalbegrip tot 5 — subitises 1–5 from structured patterns, reads the written numerals 1–5, and can compare and place them on the number line.',
+      goal: 'Given any of {5-anchored structured pattern, numeral, number-line position, spoken word} for a quantity 1–10, produces the other three at a glance — 6–10 read directly as 5 + n, not counted up from 1. Given two quantities 1–10, says which is meer, minder, or evenveel.',
       pitfalls: [
-        'Losing the 5-anchor and counting 6–10 one by one',
-        'Reversing teen-shaped numerals',
+        'Losing the 5-anchor — counts 6–10 by ones from 1 instead of reading them as 5 + n.',
+        'Half-anchoring — uses 5 for the first hand or die-group but resets to 1 for the second instead of continuing 6, 7, 8 …',
+        'Written-but-not-known — recognises the cijfer 6–10 but the quantity behind it isn\'t internalised.',
       ],
     },
     op: 'count',

@@ -82,8 +82,11 @@ const TenFrameShow: ExerciseDefinition<TenFrameShowMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Read a quantity from a ten-frame, building the 5- and 10-anchored structure of numbers.',
-    pitfalls: ['Counting filled cells one by one', 'Ignoring the empty cells when reasoning toward 10'],
+    goal: 'Read a quantity from a ten-frame, using the 5-anchor (top row complete) and the 10-anchor (full frame) as built-in structure — the frame does the chunking.',
+    pitfalls: [
+      'Counts filled cells one by one instead of seeing the row-of-5 as a chunk.',
+      'Reads only the top row when the bottom row also has filled cells.',
+    ],
     progression: 'Single tier; the ten-frame itself is the structural scaffold.',
   },
   generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },

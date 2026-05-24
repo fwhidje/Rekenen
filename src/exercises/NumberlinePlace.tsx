@@ -75,8 +75,11 @@ const NumberlinePlace: ExerciseDefinition<NumberlinePlaceMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Locate a numeral by its position on the number line — ordinal/positional number sense.',
-    pitfalls: ['Off-by-one (counting cells from 1 instead of 0)', 'Losing the position once labels are sparse'],
+    goal: 'Locate a numeral on the number line — the position is the quantity, expressed ordinally. Number sense in its positional form.',
+    pitfalls: [
+      'Off-by-one — counts cells starting at 1 instead of from 0.',
+      'Loses the position when labels go sparse; no longer reasons from the visible anchors (0, 5, 10).',
+    ],
     progression: 'labelled (all cells numbered) → sparse (only anchor labels), forcing positional reasoning as score rises.',
   },
   generateMeta(_a, _b, score) {

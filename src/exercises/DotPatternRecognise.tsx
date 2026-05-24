@@ -4,7 +4,7 @@ import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a quantity from a die/subitising dot pattern and pick its numeral. Single tier; the 5-structure does the scaffolding for 6–10.' },
+  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a die / dot pattern and pick its numeral — the 5-structure carries 6–10.' },
 ]
 
 interface DotPatternRecogniseMeta {
@@ -101,8 +101,11 @@ const DotPatternRecognise: ExerciseDefinition<DotPatternRecogniseMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Subitise structured dot patterns — see a quantity at a glance rather than counting it.',
-    pitfalls: ['Reverting to one-by-one counting', 'Off-by-one on 6–10 by miscounting the second die'],
+    goal: 'Conceptual subitising: read a structured die / dot pattern as a single quantity, without counting. For 6–10, see it as 5 + n.',
+    pitfalls: [
+      'Reverts to one-by-one counting (defeats the purpose — the pattern is meant to be seen).',
+      'Off-by-one on 6–10 by counting the second die-group from 1 instead of continuing from 5.',
+    ],
     progression: 'Single tier; difficulty scales with the quantity, leaning on the 5-structure for 6–10.',
   },
   generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },

@@ -13,6 +13,8 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 - **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Dutch teaching materials use the rekenrek at this age — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants.
 
+- **Five getalbegrip exercise skeletons** — `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`. The files exist under `src/exercises/` with full didactics + tiers declared, but have **no program reference at all**: not in the `EX` map, not in any skill's `applicableExercises`, not imported in `index.ts`. They are pure design artifacts captured in code form. To bring one online: add it to `EX`, reference it from `getalbegrip-5` / `getalbegrip-10` applicableExercises, implement the real component + generateMeta, import it in `index.ts`, and weight it in `weightMatrix.ts`.
+
 ---
 
 ## WIP gate — disabled skills

@@ -6,7 +6,7 @@ import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters/emoji one by one — the most concrete count. Below score 40.' },
+  { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters one by one — recognisable items to count, the most concrete presentation.' },
   { id: 'dots',  minScore: 40, label: 'stippen',    description: 'Tap subitising die-patterns — structured dots that nudge toward seeing rather than counting.' },
 ]
 
@@ -205,9 +205,13 @@ const CountAndTap: ExerciseDefinition<CountAndTapMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Establish stable one-to-one counting of a quantity and link it to its numeral.',
-    pitfalls: ['Skipping or double-tapping items', 'Reciting numbers faster than tapping'],
-    progression: 'emoji counters (concrete) → die-pattern dots (structured), pushing from counting toward subitising as score rises.',
+    goal: 'Operationalises one-to-one correspondence and cardinality (the telprincipes): every item gets exactly one count, and the last spoken word is the quantity. Links the count to its written numeral.',
+    pitfalls: [
+      'Skipping or double-tapping items (one-to-one breakdown).',
+      'Tapping faster than the count, so the synchrony breaks unnoticed.',
+      'Cardinality gap — taps every item, watches the counter rise, but doesn\'t connect the final number to "this many".',
+    ],
+    progression: 'Themed counters at low score (concrete, recognisable items to count) shift to die-pattern dots at higher score — the same count, but the pattern starts doing the seeing for the child. First step out of counting toward subitising.',
   },
   generateMeta(_a, _b, score) {
     const tier = pickTier(TIERS, score)
