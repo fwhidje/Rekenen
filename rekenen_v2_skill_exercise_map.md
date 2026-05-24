@@ -102,36 +102,36 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 
 #### `getalbegrip-5`
 - **Name**: Getalbegrip tot 5 — number sense to 5
-- **Intent**: recognises quantity, cijfersymbool, position on number line, dot-pattern, and finger-pattern for 1–5
+- **Intent**: Builds the bidirectional links between quantity, cijfersymbool, structured visual (dot / finger / ten-frame), and number-line position for 1–5 — the foundation everything else in the curriculum hangs off.
 - **`unlocked_by`**: [] (root)
-- **`unlocks`**: `splitsen-tot-5`, `getalbegrip-10`
+- **`unlocks`**: `splitsen-herken-5`, `getalbegrip-10`
 - **`subsumed_by`**: `getalbegrip-10`
 - **Generator**: pick n ∈ [1, 5]
-- **Applicable exercise types**: `count-and-tap`, `dot-pattern-recognise`, `finger-pattern-recognise`, `numberline-place`, `compare-more-less`
+- **Applicable exercise types**: `count-and-tap`, `dot-pattern-recognise`, `finger-pattern-recognise`, `numberline-place`, `compare-more-less` · *(skeletons — see catalog)* `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
 
 #### `getalbegrip-10`
 - **Name**: Getalbegrip tot 10
-- **Intent**: same for 1–10, with explicit awareness of the **5-structure** (6 = 5+1, 7 = 5+2, …) — entry point for the rekenrek
+- **Intent**: Extends number sense to 1–10 with the 5-structure made explicit (6 = 5 + 1, 7 = 5 + 2, …) — so 6–10 are seen through the 5-anchor, never counted from 1. Sets up the rekenrek and ten-frame as natural representations.
 - **`unlocked_by`**: `getalbegrip-5`
 - **`unlocks`**: `splitsen-tot-10`, `+1-2-tot-10`, `-1-2-tot-10`
 - **`subsumed_by`**: `null` (would be `getalbegrip-20`, out of scope)
 - **Generator**: n ∈ [1, 10]
-- **Applicable exercise types**: as `getalbegrip-5` plus `rekenrek-show`, `ten-frame-show`
+- **Applicable exercise types**: as `getalbegrip-5` plus `rekenrek-show`, `ten-frame-show` · *(skeletons — see catalog)* `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
 
 ### Splitsen
 
 #### `splitsen-herken-5`
 - **Name**: Splitsen herkennen tot 5
-- **Intent**: recognises a split *visually* — given a structured representation of a total, names the two parts. Perceptual skill, not yet about producing the notation.
+- **Intent**: First half of the part-whole spine: perceptually identifies the two parts of a structured total 2–5. The recognition foundation under all upcoming +/− work; production (notation) runs in parallel.
 - **`unlocked_by`**: `getalbegrip-5`
 - **`unlocks`**: `splitsen-noteren-5`, `+1-2-tot-5`, `-1-2-tot-5`, `splitsen-tot-10` *(see open question above)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD if tot-10 also splits)*
 - **Generator**: total ∈ [2, 5]; (a, b) with a+b = total, a ≥ 1, b ≥ 1 (no trivial 0-splits)
-- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)*
+- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)* · *(skeletons — see catalog)* `same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`
 
 #### `splitsen-noteren-5`
 - **Name**: Splitsen noteren tot 5
-- **Intent**: produces a split in standard Flemish primary-school notation (splitshuisje / splitsbenen), enumerates splits, fills missing addends. Builds on recognition; expresses the same understanding in writing.
+- **Intent**: Second half of the part-whole spine: produces splits of totals 2–5 in the canonical Flemish notations (splitshuisje, splitsbenen, missing-part equations). Where herken reads a split that's shown, noteren generates one or completes it — the production complement to recognition. Runs parallel to the +/− track, not a prereq for it.
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: *(nothing in the v2 graph — runs parallel to the +/- track, doesn't gate arithmetic)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD — if tot-10 also splits, this becomes `splitsen-noteren-10`)*
@@ -162,7 +162,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 
 #### `+1-2-tot-5`
 - **Intent**: add 1 or add 2 within 5 — counting on, no structural reasoning required
-- **`unlocked_by`**: `splitsen-tot-5`
+- **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: `optellen-tot-5`
 - **`subsumed_by`**: `optellen-tot-5`
 - **Generator**: a ∈ [1, 4], b ∈ {1, 2}, a + b ≤ 5
@@ -220,7 +220,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 
 #### `-1-2-tot-5`
 - **Intent**: take away 1 or 2 within 5 — counting back
-- **`unlocked_by`**: `splitsen-tot-5`
+- **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: `aftrekken-wegnemen-5`
 - **`subsumed_by`**: `aftrekken-wegnemen-5`
 - **Generator**: a ∈ [1, 5], b ∈ {1, 2}, b ≤ a
@@ -337,8 +337,14 @@ These types live under `splitsen-herken-5` / `-10`. They show a total and ask "w
 | `splits-frame` | total above a row of cells; known cells filled, ghost cells to tap/count/type | joined-square frame | tap / numpad (per tier) | low–high |
 | `splits-herken-huisje` | splitshuisje-shaped scaffold for recognition: total on the roof, two part-rooms below, child fills/picks the parts | splitshuisje silhouette + dots/numerals per tier | drag / choice (per tier) | low–mid |
 | `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) — *not yet implemented* |
+| `same-split-or-different` | two splits shown; "is it the same split or different?" (order-independence; cross-representation at higher score) | two split visuals | ja / nee | low–mid — *skeleton — design artifact, not implemented* |
+| `splits-match` | match a split across representations (dots ↔ splitshuisje ↔ ten-frame); memory-pairs at higher score | mixed split representations | choice / tap | mid — *skeleton — design artifact, not implemented* |
+| `splits-shuffle` | dots regroup into a new split via animation; conservation check ("still 5?") then identify the new split | animated dot regroup | ja-nee / choice | low–mid — *skeleton — design artifact, not implemented* |
+| `splits-build-it` | swipe to cut the total into two groups; targeted cut ("left = 2") at higher score | dot row / die-pattern | swipe-to-cut | low–mid — *skeleton — design artifact, not implemented* |
 
 > **Parked**: `dot-pattern-decompose-pad` — same visual as `dot-pattern-decompose` but numpad input instead of choice buttons; would only be weighted from score ≥ 12 (i.e. where the child already reads numbers). Uncertain whether this adds enough over `splits-frame` tier 3 to be worth building as a separate exercise type.
+
+> **Skeletons** (`same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`): captured in code under `src/exercises/` with full didactics + tiers, but **no program reference** — not in `EX`, not in any `applicableExercises`, not imported in `index.ts`. Pure design artifacts. See CLAUDE.md → Parked.
 
 ### Splitsen notation (production)
 
@@ -364,6 +370,13 @@ These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flem
 | `compare-more-less` | which group has more / fewer | two groups | choice | low–mid |
 | `rekenrek-show` | shows N beads in 5-structure, kid names the number | 20-bead rack | numpad / choice | mid — *parked, not yet implemented (see CLAUDE.md)* |
 | `ten-frame-show` | partly filled ten-frame | ten-frame | numpad / choice | mid |
+| `number-sequence-order` | drag numerals into low→high order on a strip; gap-fill at higher score | shuffled numeral tiles + strip | drag | low–mid — *skeleton — design artifact, not implemented* |
+| `show-me-on-ten-frame` | reverse of `ten-frame-show`: tap cells to fill exactly N | empty ten-frame | tap | low–mid — *skeleton — design artifact, not implemented* |
+| `numberline-read` | reverse of `numberline-place`: name the numeral at a marked position | number line, one cell marked | choice / numpad | mid — *skeleton — design artifact, not implemented* |
+| `quantity-match` | match the same quantity across representations (dots/fingers/ten-frame/numeral); memory-pairs at higher score | mixed representations | choice / tap | mid — *skeleton — design artifact, not implemented* |
+| `subitise-flash` | pattern flashes ~1s then hides; name the quantity (retry replays the same pattern) | timed structured pattern | choice / numpad | mid — *skeleton — design artifact, not implemented* |
+
+> **Skeletons** (`number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`): captured in code under `src/exercises/` with full didactics + tiers, but **no program reference** — not in `EX`, not in any `applicableExercises`, not imported in `index.ts`. Pure design artifacts. See CLAUDE.md → Parked.
 
 ### Optellen presentations
 
