@@ -32,7 +32,7 @@ Everything else (question generator, scheduler, eventual repetition tracker, deb
 ## Decided
 
 - **Initial score on unlock**: 0. Every newly unlocked skill starts at maximum scaffolding.
-- **Unlock threshold**: earlier than 50 — provisional value ~25, exposed as a global tweakable. Real value depends on how the skill/exercise matrix ends up designed. Skills overlap: when a skill hits the threshold its successors become available while it continues scoring up to 50.
+- **Unlock threshold**: earlier than 100 — provisional value ~50, exposed as a global tweakable. Real value depends on how the skill/exercise matrix ends up designed. Skills overlap: when a skill hits the threshold its successors become available while it continues scoring up to 100.
 
 ## Open / parked
 
