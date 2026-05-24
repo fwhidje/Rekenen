@@ -27,6 +27,11 @@ const EX = {
   compareMoreLess:       'compare-more-less',
   rekenrekShow:          'rekenrek-show',
   tenFrameShow:          'ten-frame-show',
+  numberSequenceOrder:   'number-sequence-order',
+  showMeOnTenFrame:      'show-me-on-ten-frame',
+  numberlineRead:        'numberline-read',
+  quantityMatch:         'quantity-match',
+  subitiseFlash:         'subitise-flash',
 
   // Splitsen-specific
   splitsVrij:             'splits-vrij',
@@ -85,6 +90,8 @@ export const SKILLS: SkillDefinition[] = [
     applicableExercises: [
       EX.countAndTap, EX.dotPatternRecognise, EX.fingerPatternRecognise,
       EX.numberlinePlace, EX.compareMoreLess, EX.tenFrameShow, EX.rekenrekShow,
+      EX.numberSequenceOrder, EX.showMeOnTenFrame, EX.numberlineRead,
+      EX.quantityMatch, EX.subitiseFlash,
     ],
     generate: () => ({ a: rnd(1, 5), b: 0, op: 'count' }),
   },
@@ -109,6 +116,8 @@ export const SKILLS: SkillDefinition[] = [
     applicableExercises: [
       EX.countAndTap, EX.dotPatternRecognise, EX.fingerPatternRecognise,
       EX.numberlinePlace, EX.compareMoreLess, EX.rekenrekShow, EX.tenFrameShow,
+      EX.numberSequenceOrder, EX.showMeOnTenFrame, EX.numberlineRead,
+      EX.quantityMatch, EX.subitiseFlash,
     ],
     generate: () => ({ a: rnd(1, 10), b: 0, op: 'count' }),
   },
