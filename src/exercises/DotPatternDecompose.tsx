@@ -313,9 +313,13 @@ const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Perceptually decompose a total into two parts — see the split in a structured dot pattern before notating it.',
-    pitfalls: ['Counting all dots instead of seeing the parts', 'Giving the known part back', 'Off-by-one on the missing part'],
-    progression: 'die→die (fully perceptual) → die→numeral → numeral→numeral → all-numeral, fading the dots into symbols as score rises.',
+    goal: 'Perceptually decompose a total into two parts — sees the split inside the structured pattern (the 5-of-dots contains a 2-and-3) rather than counting the whole and arithmeticking the known part off it. The part-whole perception move that all of splitsen rests on.',
+    pitfalls: [
+      'Counts all the dots and arithmeticks off the known part — bypasses the perceptual move entirely.',
+      'Gives the known part back as the answer — near-miss, didn\'t engage with the split, just echoed a visible operand.',
+      'Off-by-one on the missing part — the split was read but one dot was miscounted in the chunk.',
+    ],
+    progression: 'die-die (both sides as dots — fully perceptual) → die-numchoice (dots for total, numeral for answer — first symbol enters) → num-num (given part as numeral, total still as dots — half-symbolic) → all-num (everything symbolic, dots gone). The visual fades out of the question as score rises.',
   },
   generateMeta(operandA, operandB, score) {
     const stage = pickTier(TIERS, score).id as Stage
