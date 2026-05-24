@@ -275,9 +275,13 @@ const SplitsFrame: ExerciseDefinition<SplitsFrameMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Complete a part-whole frame: given a total and one part, produce the other part.',
-    pitfalls: ['Filling the whole frame instead of just the missing part', 'Off-by-one', 'Reading the total as the answer'],
-    progression: 'die-tap (tap dots) → num-tap (tap cells under a numeral total) → num-pad (type it). Concrete tapping gives way to symbolic entry.',
+    goal: 'Complete a part-whole frame: given the total and one part shown together, identify the other. The widest scaffolding ladder in splitsen-herken — concrete dot-tap at low score, symbolic numpad at high — the bridge inside this skill toward fully written work.',
+    pitfalls: [
+      'Fills the whole frame instead of just the missing part — doesn\'t yet read the frame as "what\'s there" + "what\'s missing".',
+      'Reads the total as the answer — near-miss, just echoes a visible number.',
+      'Off-by-one on the missing part, especially when counting dots at the die-tap tier.',
+    ],
+    progression: 'die-tap (total and answer both as dots — concrete, one-to-one) → num-tap (total as a numeral but the slot is still tapped — symbol meets action) → num-pad (numerals only, missing part typed — fully symbolic). The dot scaffold fades first, then the tapping does.',
   },
   isCompatible: (a, b) => a > 0 && b > 0,
   generateMeta(_a, _b, score) {

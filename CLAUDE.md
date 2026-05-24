@@ -15,6 +15,8 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 - **Five getalbegrip exercise skeletons** — `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`. The files exist under `src/exercises/` with full didactics + tiers declared, but have **no program reference at all**: not in the `EX` map, not in any skill's `applicableExercises`, not imported in `index.ts`. They are pure design artifacts captured in code form. To bring one online: add it to `EX`, reference it from `getalbegrip-5` / `getalbegrip-10` applicableExercises, implement the real component + generateMeta, import it in `index.ts`, and weight it in `weightMatrix.ts`.
 
+- **Four splitsen-herken exercise skeletons** — `same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`. Same status as the getalbegrip skeletons above: files under `src/exercises/` with full didactics + tiers, but **no program reference** (not in `EX`, not in any `applicableExercises`, not imported in `index.ts`). Pure design artifacts. Bring online the same way, referencing them from `splitsen-herken-5` applicableExercises.
+
 ---
 
 ## WIP gate — disabled skills

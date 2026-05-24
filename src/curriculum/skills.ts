@@ -118,14 +118,14 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: 'splitsen-herken-5',
     name: 'Splitsen herkennen tot 5',
-    intent: 'Recognises a split visually — given a structured representation of a total, names the two parts. Perceptual, not yet about producing the notation.',
+    intent: 'First half of the part-whole spine: perceptually identifies the two parts of a structured total 2–5. The recognition foundation under all upcoming +/− work; production (notation) runs in parallel.',
     didactics: {
-      startingPoint: 'Secure getalbegrip tot 5; can subitise small structured quantities.',
-      goal: 'Given a structured total ≤ 5, instantly names the two parts — perceptual recognition, no written notation yet.',
+      startingPoint: 'Secure getalbegrip tot 5 — subitises 1–5 from structured patterns, reads the written numerals, and treats a quantity like 5 as a single whole rather than five separate items. That whole-perception is what makes a split visible as a part-of-something.',
+      goal: 'Given a structured total 2–5 arranged visually as two parts (two dot groups, two ten-frame chunks, splitshuisje rooms), reads both parts without counting from 1, and recognises that 2 + 3 and 3 + 2 are the same split of the same whole. Perceptual only; written notation belongs to splitsen-noteren-5.',
       pitfalls: [
-        'Counting all the dots instead of seeing the two parts',
-        'Naming only one of the two parts',
-        'Treating a+b and b+a as different splits',
+        'Counts the whole instead of seeing the parts — registers "five dots" as one undifferentiated count, never decomposes. The subitising-the-split move hasn\'t happened.',
+        'Names one part and stops — fixates on whichever chunk pops out first (often the larger or the more familiar pattern) and doesn\'t return for the second.',
+        'Order-dependence — treats 2 + 3 and 3 + 2 as different splits. The part-whole structure isn\'t yet symmetric in the kid\'s head.',
       ],
     },
     op: 'split',
@@ -146,11 +146,15 @@ export const SKILLS: SkillDefinition[] = [
     id: 'splitsen-noteren-5',
     disabled: true,  // WIP gate — notation exercises not yet built
     name: 'Splitsen noteren tot 5',
-    intent: 'Produces a split in standard Flemish primary-school notation (splitshuisje / splitsbenen), enumerates splits, fills missing addends. Builds on recognition; expresses the same understanding in writing.',
+    intent: 'Second half of the part-whole spine: produces splits of totals 2–5 in the canonical Flemish notations (splitshuisje, splitsbenen, missing-part equations). Where herken reads a split that\'s shown, noteren generates one or completes it — the production complement to recognition. Runs parallel to the +/− track, not a prereq for it.',
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with splitsen-herken-5 — sees both parts of a structured total 2–5, treats a + b and b + a as the same split, and reads the written numerals 1–5. Ready to externalise the part-whole structure in writing rather than only see it.',
+      goal: 'Given any total 2–5: produces a valid splitsing on demand, fills a splitshuisje (one configuration or — at higher score — systematically all of them), completes missing-part equations in either position (5 = 3 + ?, 5 = ? + 3) without confusing them, and writes the canonical Flemish notations cleanly.',
+      pitfalls: [
+        'Position confusion — 5 = ? + 3 is harder than 5 = 3 + ? because the missing slot reads left-to-right after the total, and the kid wants to count up from 5 instead of subtracting.',
+        'One-split bias — asked "geef een splitsing van 5", defaults to halves (2 + 3) or "1 + rest" every time instead of varying which part-pair to produce.',
+        'Incomplete enumeration — asked for all splits, lists two or three obvious ones and stops, or accidentally produces duplicates by treating 2 + 3 and 3 + 2 as different splits.',
+      ],
     },
     op: 'split',
     unlockedBy: ['splitsen-herken-5'],
