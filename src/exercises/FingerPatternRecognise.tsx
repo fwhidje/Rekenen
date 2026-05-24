@@ -5,7 +5,7 @@ import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a quantity from a finger pattern and pick its numeral. Single tier; hands carry the 5-structure for 6–10.' },
+  { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a finger pattern and pick its numeral — one open hand carries the 5-anchor.' },
 ]
 
 interface FingerPatternRecogniseMeta {
@@ -70,8 +70,11 @@ const FingerPatternRecognise: ExerciseDefinition<FingerPatternRecogniseMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Read quantities from finger patterns, reinforcing the 5-anchored structure of numbers.',
-    pitfalls: ['Counting fingers one by one instead of seeing 5 + n', 'Off-by-one on two-hand patterns'],
+    goal: 'Read a structured finger pattern as a quantity, without counting. Hands are an embodied 5-anchor: one open hand = 5, two hands and you\'re past 5 into 5 + n.',
+    pitfalls: [
+      'Counts fingers one by one (1, 2, 3, 4, 5) instead of seeing the whole hand as 5.',
+      'On two-hand patterns, restarts the second hand from 1 instead of continuing from 5.',
+    ],
     progression: 'Single tier; the hand image supplies the 5-structure scaffold for 6–10.',
   },
   generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },

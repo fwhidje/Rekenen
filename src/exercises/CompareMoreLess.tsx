@@ -122,8 +122,12 @@ const CompareMoreLess: ExerciseDefinition<CompareMoreLessMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Judge which of two quantities is more / less — ordinal number sense.',
-    pitfalls: ['Picking the longer row regardless of count', 'Confusing "meer" and "minder"'],
+    goal: 'Compares two quantities and names the relation — meer, minder, or evenveel. Comparison vocabulary as a core component of number sense.',
+    pitfalls: [
+      'Picks the longer row or bigger-looking pattern regardless of count.',
+      'Confuses "meer" and "minder".',
+      'Doesn\'t yet have evenveel as a stable third answer — wants every comparison to have a winner.',
+    ],
     progression: 'counters (quantity only) → both (quantity + numeral) → numbers (numeral only). Symbol replaces image as score rises.',
   },
   generateMeta(operandA, _b, score) {
