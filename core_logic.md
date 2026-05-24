@@ -8,14 +8,14 @@ The previous 4-level model is **abandoned** and should not be used as a framewor
 - **Skills are atomic and narrow**, defined as data with an unlock graph between them.
   Example: `"+1/+2 within 5"` is one skill. `"+3/+4 within 5"` is another. `"+1/+2 within 10"` is another.
 
-- **Each skill carries its own 0–50 score.** Score goes up on correct answer, down on wrong answer.
+- **Each skill carries its own 0–100 score.** Score goes up on correct answer, down on wrong answer.
 
 - **Unlocks are one-way.** A dropping score only changes presentation *within* that skill — it never re-locks downstream skills that have already been unlocked.
 
 - **Score-to-exercise-type weighting is where difficulty lives.**
   - Low score → scaffolded types (visual representation, collect mechanic, sequential reveal, etc.)
   - High score → ~80% plain sums, no frills
-  - Capped skills (score = 50) stay in rotation, pinned at the top of that distribution.
+  - Capped skills (score = 100) stay in rotation, pinned at the top of that distribution.
 
 - **The skill's math definition never moves with the score.**
   `"+1/+2 within 5"` stays `"+1/+2 within 5"` forever. Only the presentation around it shifts as score changes.
@@ -32,7 +32,7 @@ Everything else (question generator, scheduler, eventual repetition tracker, deb
 ## Decided
 
 - **Initial score on unlock**: 0. Every newly unlocked skill starts at maximum scaffolding.
-- **Unlock threshold**: earlier than 50 — provisional value ~25, exposed as a global tweakable. Real value depends on how the skill/exercise matrix ends up designed. Skills overlap: when a skill hits the threshold its successors become available while it continues scoring up to 50.
+- **Unlock threshold**: earlier than 100 — provisional value ~50, exposed as a global tweakable. Real value depends on how the skill/exercise matrix ends up designed. Skills overlap: when a skill hits the threshold its successors become available while it continues scoring up to 100.
 
 ## Open / parked
 
