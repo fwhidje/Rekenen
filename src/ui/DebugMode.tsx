@@ -8,6 +8,7 @@ import { diagnostics, classifyError } from '../engine/diagnostics'
 import type { AnswerRecord } from '../engine/diagnostics'
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { THEMES } from '../presentation/themes'
+import { SkillBalance } from './SkillBalance'
 
 import '../exercises/index'
 
@@ -292,6 +293,15 @@ export function DebugMode({ onClose }: Props) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Skill balance — tiers × weight curves for the selected skill */}
+        <div style={{
+          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
+          borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12, color: INK,
+        }}>
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>Balans — {skill.id}</div>
+          <SkillBalance skill={skill} score={score} />
         </div>
       </div>
 
