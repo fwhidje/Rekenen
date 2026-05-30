@@ -7,8 +7,9 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import type { SceneTokens } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'choose', minScore: 0,  label: 'kiezen', description: 'A target quantity shown in one representation; four options shown in different representations (dot pattern, finger pattern, ten-frame, numeral). Kid picks the option with the same quantity.' },
-  { id: 'pairs',  minScore: 50, label: 'memory', description: 'Six tiles, three pairs hidden — kid taps to reveal and matches each quantity to its alternate representation. Memory format; raises the working-memory demand.' },
+  { id: 'choose', minScore: 0,  label: 'kiezen',   description: 'A target quantity shown in one representation; four options shown in different representations (dot pattern, finger pattern, ten-frame, numeral). Kid picks the option with the same quantity.' },
+  { id: 'match',  minScore: 30, label: 'koppelen', description: 'Two columns of three tiles. Each quantity appears once on each side in a different representation. Kid taps a left tile and its matching right tile to pair them. All tiles visible — pure cross-representation matching, no memory load.' },
+  { id: 'pairs',  minScore: 60, label: 'memory',   description: 'Six tiles, three pairs hidden — kid taps to reveal and matches each quantity to its alternate representation. Memory format; raises the working-memory demand.' },
 ]
 
 type RepKind = 'numeral' | 'dots' | 'fingers' | 'tenframe'
@@ -19,8 +20,10 @@ interface RepSpec { count: number; rep: RepKind }
 interface QuantityMatchMeta {
   tierId: string
   targetRep: RepKind
-  options: RepSpec[]   // choose tier (4)
-  tiles: RepSpec[]     // pairs tier (6, shuffled)
+  options: RepSpec[]    // choose tier (4)
+  leftCol: RepSpec[]    // match tier (3)
+  rightCol: RepSpec[]   // match tier (3, shuffled independently of leftCol)
+  tiles: RepSpec[]      // pairs tier (6, shuffled)
 }
 
 const DOT_POS: Record<number, [number, number][]> = {
@@ -110,9 +113,9 @@ function RepView({ kind, n, size, tokens }: { kind: RepKind; n: number; size: nu
 
 function QuantityMatchComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<QuantityMatchMeta>) {
   const { operandA, meta } = question
-  const { tierId, targetRep, options, tiles } = meta
+  const { tierId, targetRep, options, leftCol, rightCol, tiles } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream } = tokens
+  const { ink, paper, cream, accent, confirm, refuse } = tokens
 
   // ── pairs (memory) state ──
   const [flipped, setFlipped] = useState<number[]>([])
@@ -120,9 +123,42 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
   const [lock, setLock] = useState(false)
   const mismatchRef = useRef(0)
 
+  // ── match (two-column) state ──
+  const [selected, setSelected] = useState<{ col: 'L' | 'R'; idx: number } | null>(null)
+  const [matchedL, setMatchedL] = useState<Set<number>>(new Set())
+  const [matchedR, setMatchedR] = useState<Set<number>>(new Set())
+  const [wrongPair, setWrongPair] = useState<{ l: number; r: number } | null>(null)
+
   useEffect(() => {
     setFlipped([]); setMatched(new Set()); setLock(false); mismatchRef.current = 0
+    setSelected(null); setMatchedL(new Set()); setMatchedR(new Set()); setWrongPair(null)
   }, [operandA, tierId])
+
+  const tapMatchTile = (col: 'L' | 'R', idx: number) => {
+    if (disabled || wrongPair) return
+    const matchedSet = col === 'L' ? matchedL : matchedR
+    if (matchedSet.has(idx)) return
+    if (!selected) { setSelected({ col, idx }); return }
+    if (selected.col === col) {
+      // same column → switch selection (or deselect if same tile)
+      setSelected(selected.idx === idx ? null : { col, idx })
+      return
+    }
+    const lIdx = col === 'L' ? idx : selected.idx
+    const rIdx = col === 'R' ? idx : selected.idx
+    if (leftCol[lIdx].count === rightCol[rIdx].count) {
+      const nL = new Set(matchedL); nL.add(lIdx)
+      const nR = new Set(matchedR); nR.add(rIdx)
+      setMatchedL(nL); setMatchedR(nR); setSelected(null)
+      if (nL.size === leftCol.length) {
+        setTimeout(() => onResolve(true, { tapCount: mismatchRef.current }), 400)
+      }
+    } else {
+      mismatchRef.current += 1
+      setWrongPair({ l: lIdx, r: rIdx })
+      setTimeout(() => { setWrongPair(null); setSelected(null) }, 600)
+    }
+  }
 
   const tapTile = (i: number) => {
     if (disabled || lock || matched.has(i) || flipped.includes(i)) return
@@ -149,7 +185,10 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
         background: cream, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>{tierId === 'pairs' ? 'Zoek de paren' : 'Welke hoort erbij?'}</div>
+      }}>
+        {tierId === 'pairs' ? 'Zoek de paren' :
+         tierId === 'match' ? 'Koppel de paren' : 'Welke hoort erbij?'}
+      </div>
 
       {tierId === 'choose' ? (
         <>
@@ -180,6 +219,37 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
             ))}
           </div>
         </>
+      ) : tierId === 'match' ? (
+        <div style={{ display: 'flex', gap: 24, justifyContent: 'center' }}>
+          {(['L', 'R'] as const).map(col => {
+            const list = col === 'L' ? leftCol : rightCol
+            const matchedSet = col === 'L' ? matchedL : matchedR
+            return (
+              <div key={col} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {list.map((tile, i) => {
+                  const isMatched = matchedSet.has(i)
+                  const isSelected = selected?.col === col && selected.idx === i
+                  const isWrong = wrongPair && ((col === 'L' && wrongPair.l === i) || (col === 'R' && wrongPair.r === i))
+                  return (
+                    <button key={i} onClick={() => tapMatchTile(col, i)}
+                      style={{
+                        width: 110, height: 86, borderRadius: 16,
+                        border: `${isSelected ? 4 : 2}px solid ${isWrong ? refuse : isMatched ? confirm : isSelected ? accent : ink}`,
+                        background: isWrong ? `${refuse}22` : isMatched ? `${confirm}22` : paper,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: disabled || isMatched ? 'default' : 'pointer',
+                        boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
+                        opacity: isMatched ? 0.7 : 1, transition: 'background .15s, border-color .15s',
+                        userSelect: 'none',
+                      }}>
+                      <RepView kind={tile.rep} n={tile.count} size={72} tokens={tokens} />
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, maxWidth: 340, width: '100%' }}>
           {tiles.map((tile, i) => {
@@ -216,7 +286,7 @@ const QuantityMatch: ExerciseDefinition<QuantityMatchMeta> = {
       'Counts the target, then counts every option until something matches — doesn\'t use the structure of either side.',
       'Stuck at one representation — can read the dot pattern but freezes on the finger-pattern option.',
     ],
-    progression: 'choose (single-shot, all options visible) → pairs (memory game, holding multiple representations in working memory at once). Cognitive demand shifts from match-now to match-with-recall.',
+    progression: 'choose (single-shot, 4 options, one match) → match (two columns of 3 all visible, pair them — pure cross-rep matching, no memory) → pairs (memory game, holding representations in working memory). Cognitive demand grows from match-now → match-all-visible → match-with-recall.',
   },
   generateMeta(operandA, _b, score) {
     const tierId = pickTier(TIERS, score).id
@@ -234,15 +304,24 @@ const QuantityMatch: ExerciseDefinition<QuantityMatchMeta> = {
       ;[options[ci].rep, options[sj].rep] = [options[sj].rep, options[ci].rep]
     }
 
-    // pairs: 3 quantities (incl. operandA), each in 2 distinct reps → 6 tiles.
+    // 3 quantities (incl. operandA), each rendered in 2 distinct representations.
+    // Used by both match (split into two columns) and pairs (shuffled into 6 tiles).
     const counts3 = makeCounts(operandA, max, 3)
+    const leftCol: RepSpec[] = []
+    const rightCol: RepSpec[] = []
     const tiles: RepSpec[] = []
     for (const c of counts3) {
       const [r0, r1] = shuffle([...REPS]).slice(0, 2)
+      leftCol.push({ count: c, rep: r0 })
+      rightCol.push({ count: c, rep: r1 })
       tiles.push({ count: c, rep: r0 }, { count: c, rep: r1 })
     }
 
-    return { tierId, targetRep, options, tiles: shuffle(tiles) }
+    return {
+      tierId, targetRep, options,
+      leftCol, rightCol: shuffle(rightCol),
+      tiles: shuffle(tiles),
+    }
   },
   Component: QuantityMatchComponent,
 }

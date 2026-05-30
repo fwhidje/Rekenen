@@ -5,8 +5,9 @@ import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'shuffle',  minScore: 0,  label: 'door elkaar', description: 'Several numerals shuffled — kid drags each into its position on a strip from low to high.' },
-  { id: 'gap-fill', minScore: 50, label: 'gaten',       description: 'Sequence shown with one or two gaps; kid drags only the missing numerals into their slots — forces predecessor / successor reasoning rather than visual sorting.' },
+  { id: 'with-start', minScore: 0,  label: 'met startgetal', description: 'Strip with the starting numeral already placed; kid drags the other three numerals into ascending positions next to it.' },
+  { id: 'shuffle',    minScore: 30, label: 'door elkaar',    description: 'Several numerals shuffled — kid drags each into its position on a strip from low to high.' },
+  { id: 'gap-fill',   minScore: 60, label: 'gaten',          description: 'Sequence shown with one or two gaps; kid drags only the missing numerals into their slots — forces predecessor / successor reasoning rather than visual sorting.' },
 ]
 
 const SLOT = 58
@@ -150,7 +151,7 @@ const NumberSequenceOrder: ExerciseDefinition<NumberSequenceOrderMeta> = {
       'At gap-fill tier with no neighbouring labels, lacks an anchor and falls back to guessing.',
       'Reads the strip but can\'t decide whether 4 or 6 goes between 5 and 7 — written numerals not linked to quantities.',
     ],
-    progression: 'shuffle (full sequence visible, visual sort task) → gap-fill (sparse, neighbours-only anchors). Visual sorting at low score grows into successor / predecessor reasoning at higher score.',
+    progression: 'with-start (start anchored, sort 3) → shuffle (full sequence, sort 4) → gap-fill (sparse, neighbours-only anchors). Visual sorting at low score grows into successor / predecessor reasoning at higher score.',
   },
   generateMeta(operandA, _b, score) {
     const tierId = pickTier(TIERS, score).id
@@ -158,6 +159,11 @@ const NumberSequenceOrder: ExerciseDefinition<NumberSequenceOrderMeta> = {
     const len = Math.min(4, max)
     const start = rnd(1, max - len + 1)
     const sequence = Array.from({ length: len }, (_, i) => start + i)
+
+    if (tierId === 'with-start') {
+      const givenMask = sequence.map((_, i) => i === 0)
+      return { tierId, sequence, givenMask, options: shuffle(sequence.slice(1)) }
+    }
 
     if (tierId === 'shuffle') {
       return { tierId, sequence, givenMask: sequence.map(() => false), options: shuffle(sequence) }

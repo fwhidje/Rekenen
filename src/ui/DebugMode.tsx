@@ -210,41 +210,6 @@ export function DebugMode({ onClose }: Props) {
           </div>
         </div>
 
-        {/* Didactics + tier info for the current selection */}
-        <div style={{
-          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
-          borderRadius: 16, padding: 14, marginBottom: 18, fontSize: 12.5, color: INK, lineHeight: 1.5,
-        }}>
-          <div style={{ fontWeight: 800, marginBottom: 4 }}>Skill: {skill.name}</div>
-          <div><b>Start:</b> {skill.didactics.startingPoint}</div>
-          <div><b>Doel:</b> {skill.didactics.goal}</div>
-          {skill.didactics.pitfalls.length > 0 && (
-            <div><b>Valkuilen:</b> {skill.didactics.pitfalls.join('; ')}</div>
-          )}
-          <div style={{ marginTop: 6 }}><b>Oefeningvolgorde:</b> {getExercisePlan(skill.id)}</div>
-
-          {def && (
-            <div style={{ marginTop: 10, borderTop: `1px solid ${INK}33`, paddingTop: 8 }}>
-              <div style={{ fontWeight: 800, marginBottom: 4 }}>Oefening: {def.label}</div>
-              <div><b>Doel:</b> {def.didactics.goal}</div>
-              {def.didactics.pitfalls.length > 0 && (
-                <div><b>Valkuilen:</b> {def.didactics.pitfalls.join('; ')}</div>
-              )}
-              <div><b>Opbouw:</b> {def.didactics.progression}</div>
-              <div style={{ marginTop: 6 }}>
-                {def.tiers.map(t => (
-                  <div key={t.id} style={{
-                    opacity: activeTier?.id === t.id ? 1 : 0.5,
-                    fontWeight: activeTier?.id === t.id ? 700 : 400,
-                  }}>
-                    {activeTier?.id === t.id ? '▶ ' : '• '}[{t.minScore}+] {t.label} — {t.description}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Exercise — no card, directly on scene */}
         {question && ExerciseComponent && (
           <div key={qKey} style={{
@@ -290,6 +255,41 @@ export function DebugMode({ onClose }: Props) {
                   {r.responseTimeMs !== undefined ? ` ${Math.round(r.responseTimeMs / 100) / 10}s` : ''}
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Didactics + tier info for the current selection — bottom reference */}
+        <div style={{
+          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
+          borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12.5, color: INK, lineHeight: 1.5,
+        }}>
+          <div style={{ fontWeight: 800, marginBottom: 4 }}>Skill: {skill.name}</div>
+          <div><b>Start:</b> {skill.didactics.startingPoint}</div>
+          <div><b>Doel:</b> {skill.didactics.goal}</div>
+          {skill.didactics.pitfalls.length > 0 && (
+            <div><b>Valkuilen:</b> {skill.didactics.pitfalls.join('; ')}</div>
+          )}
+          <div style={{ marginTop: 6 }}><b>Oefeningvolgorde:</b> {getExercisePlan(skill.id)}</div>
+
+          {def && (
+            <div style={{ marginTop: 10, borderTop: `1px solid ${INK}33`, paddingTop: 8 }}>
+              <div style={{ fontWeight: 800, marginBottom: 4 }}>Oefening: {def.label}</div>
+              <div><b>Doel:</b> {def.didactics.goal}</div>
+              {def.didactics.pitfalls.length > 0 && (
+                <div><b>Valkuilen:</b> {def.didactics.pitfalls.join('; ')}</div>
+              )}
+              <div><b>Opbouw:</b> {def.didactics.progression}</div>
+              <div style={{ marginTop: 6 }}>
+                {def.tiers.map(t => (
+                  <div key={t.id} style={{
+                    opacity: activeTier?.id === t.id ? 1 : 0.5,
+                    fontWeight: activeTier?.id === t.id ? 700 : 400,
+                  }}>
+                    {activeTier?.id === t.id ? '▶ ' : '• '}[{t.minScore}+] {t.label} — {t.description}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
