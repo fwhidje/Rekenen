@@ -8,8 +8,8 @@ import type { SceneTokens } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choose', minScore: 0,  label: 'kiezen',   description: 'A target quantity shown in one representation; four options shown in different representations (dot pattern, finger pattern, ten-frame, numeral). Kid picks the option with the same quantity.' },
-  { id: 'match',  minScore: 30, label: 'koppelen', description: 'Six tiles face-up in a 3×2 grid (same layout as pairs); three hidden pairs across representations. Kid taps two tiles to pair them. A wrong pair counts as a mistake (logged + the grid flashes red) and ends the question.' },
-  { id: 'pairs',  minScore: 60, label: 'memory',   description: 'Six tiles, three pairs hidden — kid taps to reveal and matches each quantity to its alternate representation. Memory format; raises the working-memory demand.' },
+  { id: 'match',  minScore: 50, label: 'koppelen', description: 'Six tiles face-up in a 3×2 grid (same layout as pairs); three hidden pairs across representations. Kid taps two tiles to pair them. A wrong pair counts as a mistake (logged + the grid flashes red) and ends the question.' },
+  { id: 'pairs',  minScore: 75, label: 'memory',   description: 'Six tiles, three pairs hidden — kid taps to reveal and matches each quantity to its alternate representation. Memory format; raises the working-memory demand.' },
 ]
 
 type RepKind = 'numeral' | 'dots' | 'fingers' | 'tenframe'

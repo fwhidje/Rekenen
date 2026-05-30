@@ -29,24 +29,24 @@ interface Props {
   score: number
 }
 
+const N_SAMPLES = 21   // every 5 score-points across 0–100
+
 export function SkillBalance({ skill, score }: Props) {
-  const rows = useMemo(() => {
+  const { rows, samples, maxWeight } = useMemo(() => {
     const registered = new Set(getAllExerciseIds())
-    const w0  = getWeights(skill.id, 0)
-    const w100 = getWeights(skill.id, 100)
-    return skill.applicableExercises
-      .filter(id => registered.has(id))
-      .map(id => ({
-        id,
-        tiers: getExercise(id).tiers,
-        w0:  w0[id]  ?? 0,
-        w100: w100[id] ?? 0,
-      }))
+    const ids = skill.applicableExercises.filter(id => registered.has(id))
+    const samples = Array.from({ length: N_SAMPLES }, (_, i) => {
+      const s = (i / (N_SAMPLES - 1)) * 100
+      return { score: s, weights: getWeights(skill.id, s) }
+    })
+    const rows = ids.map(id => ({ id, tiers: getExercise(id).tiers }))
+    let mw = 50
+    for (const sp of samples) for (const r of rows) mw = Math.max(mw, sp.weights[r.id] ?? 0)
+    return { rows, samples, maxWeight: mw }
   }, [skill])
 
   const totalH = HEADER_H + AXIS_H + rows.length * ROW_H + 8
   const xOf = (s: number) => LABEL_W + (s / 100) * SCORE_W
-  const maxWeight = Math.max(50, ...rows.flatMap(r => [r.w0, r.w100]))
   const sc = WEIGHT_H / maxWeight
   const markerX = xOf(score)
   const gridBottom = HEADER_H + AXIS_H + rows.length * ROW_H
@@ -77,9 +77,13 @@ export function SkillBalance({ skill, score }: Props) {
         const tierY = y + 2
         const stripY = tierY + TIER_H + 2
         const baseY = stripY + WEIGHT_H
-        const top0 = baseY - Math.min(maxWeight, r.w0) * sc
-        const top100 = baseY - Math.min(maxWeight, r.w100) * sc
-        const hasWeight = r.w0 > 0 || r.w100 > 0
+        const w0 = samples[0].weights[r.id] ?? 0
+        const w100 = samples[samples.length - 1].weights[r.id] ?? 0
+        const peak = samples.reduce((m, sp) => Math.max(m, sp.weights[r.id] ?? 0), 0)
+        const hasWeight = peak > 0
+        const topPts = samples
+          .map(sp => `${xOf(sp.score)},${baseY - Math.min(maxWeight, sp.weights[r.id] ?? 0) * sc}`)
+          .join(' ')
         return (
           <g key={r.id}>
             <text x={LABEL_W - 6} y={y + ROW_H / 2 + 3} fontFamily="Nunito, sans-serif"
@@ -106,7 +110,7 @@ export function SkillBalance({ skill, score }: Props) {
               fill="#faf6e8" stroke={GRID} />
             {hasWeight ? (
               <polygon
-                points={`${LABEL_W},${baseY} ${LABEL_W + SCORE_W},${baseY} ${LABEL_W + SCORE_W},${top100} ${LABEL_W},${top0}`}
+                points={`${LABEL_W},${baseY} ${topPts} ${LABEL_W + SCORE_W},${baseY}`}
                 fill={WEIGHT_FILL} fillOpacity="0.55" stroke={WEIGHT_FILL} strokeWidth="1" />
             ) : (
               <text x={LABEL_W + SCORE_W / 2} y={stripY + WEIGHT_H / 2 + 3}
@@ -116,7 +120,7 @@ export function SkillBalance({ skill, score }: Props) {
 
             <text x={LABEL_W + SCORE_W + 6} y={y + ROW_H / 2 + 3} fontFamily="monospace"
               fontSize="10" fill={hasWeight ? WEIGHT_FILL : MUTED} fontWeight="700">
-              {r.w0 === r.w100 ? r.w0 : `${r.w0}→${r.w100}`}
+              {w0 === w100 ? w0 : `${w0}→${w100}`}
             </text>
           </g>
         )

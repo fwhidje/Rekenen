@@ -8,7 +8,7 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choice', minScore: 0,  label: 'kiezen',   description: 'Kid taps "Klaar?" to start. Pattern flashes for ~1 second then hides. Kid picks the numeral from 4 options. One retry button available — replays the same pattern, never a fresh one; retry-used is logged.' },
-  { id: 'typed',  minScore: 60, label: 'intikken', description: 'Same flash mechanic, but kid types on the numpad. Retry still available.' },
+  { id: 'typed',  minScore: 75, label: 'intikken', description: 'Same flash mechanic, but kid types on the numpad. Retry still available.' },
 ]
 
 const FLASH_MS = 900
