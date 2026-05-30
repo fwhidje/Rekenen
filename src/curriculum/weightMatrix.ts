@@ -1,12 +1,18 @@
 import type { WeightFunction, WeightMap } from './types'
 
 // ─── Per-skill weight tables ──────────────────────────────────────────────────
-// Each entry maps exercise ids to [weightAtScore0, weightAtScore100] lerp bounds.
+// Each entry maps exercise ids to one of:
+//   • a constant number (flat weight)
+//   • a LerpPair [w@0, w@100] (linear interpolation across the full 0–100 range)
+//   • Breakpoints [[score, weight], ...] (piecewise linear; weight is 0 below
+//     the first breakpoint's score, held constant above the last, and linearly
+//     interpolated between adjacent breakpoints)
 // Skills not listed here fall through to the default global curve below.
-// Round 3 goal: every skill has its own table.
 
 type LerpPair = [number, number]
-type SkillTable = Record<string, LerpPair | number>
+type Breakpoints = [number, number][]
+type WeightSpec = number | LerpPair | Breakpoints
+type SkillTable = Record<string, WeightSpec>
 
 const SKILL_TABLES: Record<string, SkillTable> = {
 
@@ -22,6 +28,11 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'finger-pattern-recognise':  [ 5, 25],
     'numberline-place':          [15, 20],
     'compare-more-less':         15,
+    'number-sequence-order':     25,
+    'show-me-on-ten-frame':      15,
+    'numberline-read':           [15, 20],
+    'quantity-match':            [[25, 30], [100, 30]],   // 0 below 25, then flat 30
+    'subitise-flash':            [[50,  0], [100, 50]],   // 0 below 50, then ramp 0→50
   },
 
   'getalbegrip-10': {
@@ -31,6 +42,11 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'finger-pattern-recognise':  [ 5, 25],
     'numberline-place':          [15, 20],
     'compare-more-less':         15,
+    'number-sequence-order':     25,
+    'show-me-on-ten-frame':      15,
+    'numberline-read':           [15, 20],
+    'quantity-match':            [[25, 30], [100, 30]],   // 0 below 25, then flat 30
+    'subitise-flash':            [[50,  0], [100, 50]],   // 0 below 50, then ramp 0→50
   },
 
   // ── Splitsen ─────────────────────────────────────────────────────────────────
@@ -77,11 +93,32 @@ export const getWeights: WeightFunction = (skillId: string, score: number): Weig
   const t = score / 100
   const result: WeightMap = {}
   for (const [id, val] of Object.entries(table)) {
-    result[id] = Array.isArray(val) ? lerp(val[0], val[1], t) : val
+    if (typeof val === 'number') result[id] = val
+    else if (Array.isArray(val[0])) result[id] = evalBreakpoints(val as Breakpoints, score)
+    else result[id] = lerp((val as LerpPair)[0], (val as LerpPair)[1], t)
   }
   return result
 }
 
 function lerp(from: number, to: number, t: number): number {
   return Math.round(from + (to - from) * t)
+}
+
+// Piecewise-linear evaluation. Below the first breakpoint's score, weight is 0
+// (so a single breakpoint `[[25, 30]]` means "starts contributing at 25"). At
+// and above the last breakpoint, weight is held at that breakpoint's value.
+function evalBreakpoints(bps: Breakpoints, score: number): number {
+  if (bps.length === 0) return 0
+  if (score < bps[0][0]) return 0
+  const last = bps[bps.length - 1]
+  if (score >= last[0]) return last[1]
+  for (let i = 0; i < bps.length - 1; i++) {
+    const [s0, w0] = bps[i]
+    const [s1, w1] = bps[i + 1]
+    if (score >= s0 && score <= s1) {
+      const t = s1 === s0 ? 1 : (score - s0) / (s1 - s0)
+      return Math.round(w0 + (w1 - w0) * t)
+    }
+  }
+  return 0
 }
