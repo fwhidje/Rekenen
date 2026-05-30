@@ -45,6 +45,10 @@ const EX = {
   splitsFrame:            'splits-frame',
   splitsHerkenHuisje:     'splits-herken-huisje',
   rekenrekDecompose:      'rekenrek-decompose',
+  sameSplitOrDifferent:   'same-split-or-different',
+  splitsMatch:            'splits-match',
+  splitsShuffle:          'splits-shuffle',
+  splitsBuildIt:          'splits-build-it',
 
   // Tienvrienden-specific
   tienveldFill:    'tienveld-fill',
@@ -143,6 +147,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'splitsen-tot-10',
     applicableExercises: [
       EX.dotPatternDecompose, EX.splitsFrame, EX.splitsHerkenHuisje, EX.rekenrekDecompose,
+      EX.sameSplitOrDifferent, EX.splitsMatch, EX.splitsShuffle, EX.splitsBuildIt,
     ],
     generate: () => {
       const total = rnd(2, 5)
