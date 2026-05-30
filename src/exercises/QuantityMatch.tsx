@@ -69,11 +69,11 @@ function DotsRep({ n, dot, refuse, size }: { n: number; dot: string; refuse: str
 }
 
 function FingersRep({ n, size }: { n: number; size: number }) {
-  if (n <= 5) return <HandSVG n={n} size={size * 0.72} />
+  if (n <= 5) return <HandSVG n={n} size={size} />
   return (
     <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
-      <HandSVG n={5} size={size * 0.5} />
-      <HandSVG n={n - 5} size={size * 0.5} />
+      <HandSVG n={5} size={size * 0.65} />
+      <HandSVG n={n - 5} size={size * 0.65} />
     </div>
   )
 }
