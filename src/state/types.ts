@@ -1,7 +1,7 @@
 // ─── Per-skill runtime state ──────────────────────────────────────────────────
 
 export interface SkillState {
-  score: number          // 0–50
+  score: number          // 0–100, the scaffolding dial (not the mastery gate)
   unlocked: boolean
   archived: boolean      // subsumed by a parent and removed from rotation
   unlockedAt?: number    // timestamp

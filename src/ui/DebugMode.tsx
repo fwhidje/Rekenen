@@ -6,6 +6,7 @@ import { pickTier } from '../exercises/tiers'
 import { computeAnswer } from '../engine/answer'
 import { diagnostics, classifyError } from '../engine/diagnostics'
 import type { AnswerRecord } from '../engine/diagnostics'
+import { familyStats, PAR_MIN_ATTEMPTS, PAR_MIN_ACCURACY, PAR_WINDOW, VLOT_MAX_MS } from '../engine/mastery'
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { THEMES } from '../presentation/themes'
 import { SkillBalance } from './SkillBalance'
@@ -116,6 +117,16 @@ export function DebugMode({ onClose }: Props) {
   const def = exerciseId ? getExercise(exerciseId) : null
   const ExerciseComponent = def ? def.Component : null
   const activeTier = def ? pickTier(def.tiers, score) : null
+
+  // Mastery gate state for the selected skill, computed over debug-profile
+  // answers — grind here to watch par/vlot fill up and tune the thresholds.
+  const gateStats = useMemo(
+    () => familyStats(diagnostics.getForSkill(DEBUG_PROFILE_ID, skillId), skill),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [skillId, skill, logTick]
+  )
+  const parMet = gateStats.length > 0 && gateStats.every(s => s.metPar)
+  const vlotMet = gateStats.length > 0 && gateStats.every(s => s.metVlot)
   // Persisted across reloads (all profiles); newest first, capped for rendering.
   const records = useMemo(() => [...diagnostics.getAll()].reverse().slice(0, 200), [logTick])
 
@@ -264,6 +275,36 @@ export function DebugMode({ onClose }: Props) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Mastery gate — per-family par/vlot over the debug profile's records */}
+        <div style={{
+          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
+          borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12, color: INK,
+        }}>
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>
+            Poort — {skill.id} · {parMet ? '✓ par' : '✗ par'} · {vlotMet ? '✓ vlot' : '✗ vlot'}
+          </div>
+          {gateStats.length === 0 ? (
+            <div style={{ fontStyle: 'italic', color: '#8a795f' }}>
+              Geen poort-families: geen oefening is geregistreerd én gewogen voor deze skill.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontFamily: 'monospace' }}>
+              {gateStats.map(s => (
+                <div key={s.exerciseId} style={{ color: s.metPar ? '#2e7d32' : '#8a795f' }}>
+                  {s.metPar ? '✓' : '·'} {s.exerciseId} — {s.attempts}/{PAR_MIN_ATTEMPTS} pogingen,
+                  {' '}{Math.round(s.accuracy * 100)}% juist
+                  {s.medianCorrectMs !== null ? `, ${(s.medianCorrectMs / 1000).toFixed(1)}s mediaan` : ''}
+                  {s.metVlot ? ' (vlot)' : ''}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: 6, fontSize: 11, color: '#8a795f' }}>
+            par: ≥{PAR_MIN_ATTEMPTS} pogingen én ≥{Math.round(PAR_MIN_ACCURACY * 100)}% juist per familie
+            (venster {PAR_WINDOW}) · vlot: par + mediaan ≤ {VLOT_MAX_MS / 1000}s · debug-profiel, retries tellen niet mee
+          </div>
         </div>
 
         {/* Didactics + tier info for the current selection — bottom reference */}

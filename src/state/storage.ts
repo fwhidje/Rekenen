@@ -3,6 +3,7 @@ import { SKILLS } from '../curriculum/skills'
 import { applyCorrect, applyWrong } from '../engine/scoring'
 import { evaluateUnlocks } from '../engine/unlockEvaluator'
 import { evaluateSubsumes } from '../engine/subsumeEvaluator'
+import { diagnostics } from '../engine/diagnostics'
 
 const STORAGE_KEY = 'rekenen_v2'
 
@@ -93,7 +94,7 @@ function applyEvaluations(profile: Profile): Profile {
   const now = Date.now()
   let updated = profile
 
-  const unlocks = evaluateUnlocks(updated, SKILLS)
+  const unlocks = evaluateUnlocks(updated, SKILLS, diagnostics.getAll(updated.id))
   if (unlocks.length > 0) {
     const newSkills = { ...updated.skills }
     for (const id of unlocks) {
