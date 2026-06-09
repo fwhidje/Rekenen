@@ -3,7 +3,7 @@ import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getExercisePlan } from '../curriculum/exercisePlan'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { pickTier } from '../exercises/tiers'
-import { computeAnswer } from '../engine/answer'
+import { computeAnswer, problemOperands } from '../engine/answer'
 import { diagnostics, classifyError } from '../engine/diagnostics'
 import type { AnswerRecord } from '../engine/diagnostics'
 import { familyStats, PAR_MIN_ATTEMPTS, PAR_MIN_ACCURACY, PAR_WINDOW, VLOT_MAX_MS } from '../engine/mastery'
@@ -68,9 +68,10 @@ export function DebugMode({ onClose }: Props) {
   const question: ExerciseQuestion | null = useMemo(() => {
     if (!exerciseId) return null
     const def = getExercise(exerciseId)
-    const { a, b, op } = skill.generate()
+    const problem = skill.generate()
+    const { a, b } = problemOperands(problem)
     const meta = def.generateMeta(a, b, score)
-    return { exerciseId, skillId: skill.id, operandA: a, operandB: b, op, answer: computeAnswer(a, b, op), meta }
+    return { exerciseId, skillId: skill.id, problem, operandA: a, operandB: b, op: problem.op, answer: computeAnswer(problem), meta }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillId, score, exerciseId, qKey])
 

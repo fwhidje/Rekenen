@@ -4,10 +4,25 @@
 // 'count' is for getalbegrip (just identify a quantity); 'half' is helften.
 export type Operation = '+' | '-' | 'split' | 'count' | 'half'
 
-export interface GeneratedProblem {
-  a: number
-  b: number  // 0 for 'count' (only `a` is meaningful)
-  op: Operation
+// ─── Problem ──────────────────────────────────────────────────────────────────
+// A generated problem with named roles per operation, so exercises can read
+// what a number *means* instead of decoding positional a/b conventions.
+// Subtraction names whole/part deliberately: wegnemen, verschil and aanvullen
+// presentations all read their roles from the same shape. The engine derives
+// the legacy operandA/operandB pair for existing components (see
+// engine/answer.ts); new exercises should consume `question.problem`.
+export type Problem =
+  | { op: '+';     terms: [number, number] }
+  | { op: '-';     whole: number; part: number }
+  | { op: 'split'; partA: number; partB: number }
+  | { op: 'count'; n: number }
+  | { op: 'half';  total: number }
+
+// Optional context handed to a skill's generator. The seam for per-fact
+// sampling: drill skills (tienvrienden, dubbels) can oversample the facts the
+// recent record stream shows to be weak. No generator uses it yet.
+export interface GenerateContext {
+  recentRecords?: ReadonlyArray<import('../engine/diagnostics').AnswerRecord>
 }
 
 // ─── Skill ────────────────────────────────────────────────────────────────────
@@ -50,7 +65,7 @@ export interface SkillDefinition {
   unlocks: string[]
   subsumedBy: string | null
   applicableExercises: string[]  // exercise type ids this skill may use
-  generate(): GeneratedProblem
+  generate(ctx?: GenerateContext): Problem
   disabled?: boolean       // WIP gate: skill is hidden from rotation AND
                            // never satisfies downstream prerequisites.
                            // Lift by removing the flag once the skill is
