@@ -3,6 +3,7 @@ import type { Profile } from '../state/types'
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { getExercise } from '../exercises/registry'
 import { selectExercise } from '../engine/exerciseSelector'
+import type { SelectionContext } from '../engine/exerciseSelector'
 import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
@@ -49,13 +50,16 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const Counter = theme.counters[counterIdx % theme.counters.length]
   const scene = useMemo(() => ({ Counter, containerBg, tokens: theme.tokens }), [Counter, containerBg, theme])
 
-  const nextQuestion = useCallback((updatedProfile: Profile, completed: number) => {
-    const next = selectExercise(updatedProfile, SKILLS, getWeights)
+  const nextQuestion = useCallback((updatedProfile: Profile, completed: number, ctx?: SelectionContext) => {
+    const next = selectExercise(updatedProfile, SKILLS, getWeights, ctx)
     setQuestion(next)
     setFeedback(null)
     setQKey(k => k + 1)
     setRoundsDone(completed)
     questionStartRef.current = Date.now()
+    // On a retry the scene stays put — the child should read it as the same
+    // problem with more help, not as a new task.
+    if (ctx?.retry) return
     // re-pick theme every THEME_ROUNDS rounds (random — may land on the same theme)
     const nextThemeIdx = completed % THEME_ROUNDS === 0 ? pickIdx(THEMES.length) : themeIdx
     setThemeIdx(nextThemeIdx)
@@ -90,6 +94,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       correctAnswer: question.answer,
       givenAnswer: given,
       correct,
+      isRetry: question.isRetry,
       errorType: correct ? null : classifyError({
         skillId: question.skillId, op: question.op, semanticForm: skill?.semanticForm,
         operandA: question.operandA, operandB: question.operandB,
@@ -103,7 +108,12 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     const updatedProfile = recordAnswer(profile, question.skillId, correct)
     onProfileUpdate(updatedProfile)
     const completed = roundsDone + 1
-    setTimeout(() => nextQuestion(updatedProfile, completed), correct ? FEEDBACK.correctMs : FEEDBACK.wrongMs)
+    // Failure response (didactics: re-scaffold, don't move on): a wrong answer
+    // brings the same problem back one tier down — once. A wrong retry moves on.
+    const ctx: SelectionContext = correct || question.isRetry
+      ? { lastQuestion: question }
+      : { retry: question, lastQuestion: question }
+    setTimeout(() => nextQuestion(updatedProfile, completed, ctx), correct ? FEEDBACK.correctMs : FEEDBACK.wrongMs)
   }, [feedback, question, profile, onProfileUpdate, nextQuestion, roundsDone])
 
   if (!question) {

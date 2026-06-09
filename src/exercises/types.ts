@@ -14,6 +14,7 @@ export interface ExerciseQuestion<Meta = Record<string, unknown>> {
   op: Operation
   answer: number
   meta: Meta
+  isRetry?: boolean   // re-scaffolded re-presentation of a just-failed problem
 }
 
 // ─── Answer detail ─────────────────────────────────────────────────────────
