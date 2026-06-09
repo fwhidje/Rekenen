@@ -14,6 +14,10 @@ import '../exercises/index'
 
 const SCORE_BRACKETS = [0, 20, 40, 60, 80, 100] as const
 
+// Debug answers are recorded under a sentinel profile so they never pollute a
+// real child's mastery data.
+export const DEBUG_PROFILE_ID = 'debug'
+
 const INK   = '#3d2f1e'
 const CREAM = 'rgba(244,236,216,0.96)'
 
@@ -84,6 +88,7 @@ export function DebugMode({ onClose }: Props) {
     const given = detail?.givenAnswer
     const record: AnswerRecord = {
       timestamp: Date.now(),
+      profileId: DEBUG_PROFILE_ID,
       skillId: question.skillId,
       exerciseId: question.exerciseId,
       tierId: (question.meta as { tierId?: string }).tierId,
@@ -111,7 +116,8 @@ export function DebugMode({ onClose }: Props) {
   const def = exerciseId ? getExercise(exerciseId) : null
   const ExerciseComponent = def ? def.Component : null
   const activeTier = def ? pickTier(def.tiers, score) : null
-  const records = useMemo(() => [...diagnostics.getAll()].reverse(), [logTick])
+  // Persisted across reloads (all profiles); newest first, capped for rendering.
+  const records = useMemo(() => [...diagnostics.getAll()].reverse().slice(0, 200), [logTick])
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
@@ -228,7 +234,7 @@ export function DebugMode({ onClose }: Props) {
           </div>
         )}
 
-        {/* Diagnostics log — session only, in-memory (not persisted) */}
+        {/* Diagnostics log — persisted answer stream (localStorage, all profiles) */}
         <div style={{
           width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
           borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12, color: INK,

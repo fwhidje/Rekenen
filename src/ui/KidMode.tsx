@@ -74,11 +74,12 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setFeedback({ ok: correct, message: msg })
     setHistory(h => [...h, correct])
 
-    // Diagnostic capture — held in the in-memory sink (not yet persisted).
+    // Diagnostic capture — persisted per profile via the localStorage sink.
     const skill = SKILLS_BY_ID[question.skillId]
     const given = detail?.givenAnswer
     const record: AnswerRecord = {
       timestamp: Date.now(),
+      profileId: profile.id,
       skillId: question.skillId,
       exerciseId: question.exerciseId,
       tierId: (question.meta as { tierId?: string }).tierId,

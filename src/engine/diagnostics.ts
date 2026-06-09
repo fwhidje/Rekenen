@@ -1,4 +1,5 @@
 import type { Operation, SemanticForm } from '../curriculum/types'
+import { LocalStorageDiagnosticsSink } from '../state/diagnosticsStorage'
 
 // ─── Error taxonomy ───────────────────────────────────────────────────────────
 // Source of truth: rekenen_v2_skill_exercise_map.md. `errorType` is null on a
@@ -12,11 +13,18 @@ export type ErrorType =
   | 'unclassified'
 
 // ─── Per-question record ──────────────────────────────────────────────────────
+// This schema is a long-term contract: mastery gates, vlot milestones and any
+// future error-driven remediation are all derivations over this stream. Extend
+// it additively; don't repurpose fields.
 export interface AnswerRecord {
   timestamp: number
+  profileId: string
   skillId: string
   exerciseId: string
   tierId?: string
+  variant?: string              // presentation / semantic framing (e.g. future
+                                // samenvoegen vs erbij scenes); unset today
+  isRetry?: boolean             // re-scaffolded retry of the previous problem
   op: Operation
   semanticForm?: SemanticForm
   operandA: number
@@ -69,27 +77,33 @@ export function classifyError(input: ClassifierInput): ErrorType {
 }
 
 // ─── Sink ─────────────────────────────────────────────────────────────────────
-// The seam between answer capture and storage. This pass ships an in-memory
-// implementation only; a LocalStorageDiagnosticsSink can be dropped in later
-// without touching the capture sites.
+// The seam between answer capture and storage. The app uses the
+// localStorage-backed sink (state/diagnosticsStorage.ts); the in-memory
+// implementation below remains for tests.
 export interface DiagnosticsSink {
   record(r: AnswerRecord): void
-  getAll(): AnswerRecord[]
+  getAll(profileId?: string): AnswerRecord[]
+  getForSkill(profileId: string, skillId: string): AnswerRecord[]
   clear(): void
 }
 
-class InMemoryDiagnosticsSink implements DiagnosticsSink {
+export class InMemoryDiagnosticsSink implements DiagnosticsSink {
   private records: AnswerRecord[] = []
   record(r: AnswerRecord): void {
     this.records.push(r)
   }
-  getAll(): AnswerRecord[] {
-    return this.records
+  getAll(profileId?: string): AnswerRecord[] {
+    return profileId === undefined
+      ? this.records
+      : this.records.filter(r => r.profileId === profileId)
+  }
+  getForSkill(profileId: string, skillId: string): AnswerRecord[] {
+    return this.records.filter(r => r.profileId === profileId && r.skillId === skillId)
   }
   clear(): void {
     this.records = []
   }
 }
 
-// Process-wide singleton for the current session.
-export const diagnostics: DiagnosticsSink = new InMemoryDiagnosticsSink()
+// Process-wide singleton for the current session, persisted to localStorage.
+export const diagnostics: DiagnosticsSink = new LocalStorageDiagnosticsSink()
