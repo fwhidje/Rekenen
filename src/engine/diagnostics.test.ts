@@ -1,0 +1,67 @@
+import { describe, it, expect } from 'vitest'
+import { classifyError, InMemoryDiagnosticsSink } from './diagnostics'
+import type { AnswerRecord, ClassifierInput } from './diagnostics'
+
+const base: Omit<ClassifierInput, 'givenAnswer'> = {
+  skillId: 'aftrekken-wegnemen-5',
+  op: '-',
+  semanticForm: 'wegnemen',
+  operandA: 5,
+  operandB: 3,
+  correctAnswer: 2,
+}
+
+describe('classifyError', () => {
+  it('unclassified without a given answer', () => {
+    expect(classifyError({ ...base })).toBe('unclassified')
+  })
+
+  it('off-by-one', () => {
+    expect(classifyError({ ...base, givenAnswer: 1 })).toBe('off-by-one')
+  })
+
+  it('off-by-one wins over other matches (first match wins, by design)', () => {
+    // given == operandB would also be a near-miss; |3 − 2| == 1 tags first
+    expect(classifyError({ ...base, givenAnswer: 3 })).toBe('off-by-one')
+  })
+
+  it('reversal: added instead of subtracting', () => {
+    expect(classifyError({ ...base, givenAnswer: 8 })).toBe('reversal')
+  })
+
+  it('semantic-narrow beats reversal on verschil problems', () => {
+    expect(classifyError({ ...base, semanticForm: 'verschil', givenAnswer: 8 })).toBe('semantic-narrow')
+  })
+
+  it('near-miss: regurgitated an operand', () => {
+    expect(classifyError({ ...base, operandA: 7, operandB: 3, correctAnswer: 4, givenAnswer: 7 })).toBe('near-miss')
+  })
+
+  it('tienvriend-mismatch', () => {
+    expect(classifyError({
+      skillId: 'tienvrienden', op: 'split',
+      operandA: 7, operandB: 3, correctAnswer: 10, givenAnswer: 5,
+    })).toBe('tienvriend-mismatch')
+  })
+})
+
+describe('InMemoryDiagnosticsSink', () => {
+  const rec = (profileId: string, skillId: string): AnswerRecord => ({
+    timestamp: 1, profileId, skillId, exerciseId: 'x', op: '+',
+    operandA: 1, operandB: 2, correctAnswer: 3, correct: true, errorType: null,
+  })
+
+  it('filters by profile and skill', () => {
+    const sink = new InMemoryDiagnosticsSink()
+    sink.record(rec('p1', 's1'))
+    sink.record(rec('p1', 's2'))
+    sink.record(rec('p2', 's1'))
+
+    expect(sink.getAll()).toHaveLength(3)
+    expect(sink.getAll('p1')).toHaveLength(2)
+    expect(sink.getForSkill('p1', 's1')).toHaveLength(1)
+
+    sink.clear()
+    expect(sink.getAll()).toHaveLength(0)
+  })
+})
