@@ -3,9 +3,11 @@ import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getExercisePlan } from '../curriculum/exercisePlan'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { pickTier } from '../exercises/tiers'
-import { computeAnswer } from '../engine/answer'
+import { computeAnswer, problemOperands } from '../engine/answer'
 import { diagnostics, classifyError } from '../engine/diagnostics'
 import type { AnswerRecord } from '../engine/diagnostics'
+import { exerciseStats, STATS_WINDOW } from '../engine/exerciseStats'
+import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { THEMES } from '../presentation/themes'
 import { SkillBalance } from './SkillBalance'
@@ -13,6 +15,10 @@ import { SkillBalance } from './SkillBalance'
 import '../exercises/index'
 
 const SCORE_BRACKETS = [0, 20, 40, 60, 80, 100] as const
+
+// Debug answers are recorded under a sentinel profile so they never pollute a
+// real child's mastery data.
+export const DEBUG_PROFILE_ID = 'debug'
 
 const INK   = '#3d2f1e'
 const CREAM = 'rgba(244,236,216,0.96)'
@@ -63,9 +69,10 @@ export function DebugMode({ onClose }: Props) {
   const question: ExerciseQuestion | null = useMemo(() => {
     if (!exerciseId) return null
     const def = getExercise(exerciseId)
-    const { a, b, op } = skill.generate()
+    const problem = skill.generate()
+    const { a, b } = problemOperands(problem)
     const meta = def.generateMeta(a, b, score)
-    return { exerciseId, skillId: skill.id, operandA: a, operandB: b, op, answer: computeAnswer(a, b, op), meta }
+    return { exerciseId, skillId: skill.id, problem, operandA: a, operandB: b, op: problem.op, answer: computeAnswer(problem), meta }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillId, score, exerciseId, qKey])
 
@@ -84,6 +91,7 @@ export function DebugMode({ onClose }: Props) {
     const given = detail?.givenAnswer
     const record: AnswerRecord = {
       timestamp: Date.now(),
+      profileId: DEBUG_PROFILE_ID,
       skillId: question.skillId,
       exerciseId: question.exerciseId,
       tierId: (question.meta as { tierId?: string }).tierId,
@@ -111,7 +119,24 @@ export function DebugMode({ onClose }: Props) {
   const def = exerciseId ? getExercise(exerciseId) : null
   const ExerciseComponent = def ? def.Component : null
   const activeTier = def ? pickTier(def.tiers, score) : null
-  const records = useMemo(() => [...diagnostics.getAll()].reverse(), [logTick])
+
+  // Mix monitor for the selected skill, computed over debug-profile answers —
+  // answer exercises wrong here and watch their dynamic factor climb.
+  const skillRecords = useMemo(
+    () => diagnostics.getForSkill(DEBUG_PROFILE_ID, skillId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [skillId, logTick]
+  )
+  const mixStats = useMemo(
+    () => exerciseStats(skillRecords, skillId, availableExercises),
+    [skillRecords, skillId, availableExercises]
+  )
+  const mixFactors = useMemo(
+    () => exerciseFactors(skillRecords, skillId),
+    [skillRecords, skillId]
+  )
+  // Persisted across reloads (all profiles); newest first, capped for rendering.
+  const records = useMemo(() => [...diagnostics.getAll()].reverse().slice(0, 200), [logTick])
 
   return (
     <div style={{ position: 'relative', minHeight: '100dvh' }}>
@@ -228,7 +253,7 @@ export function DebugMode({ onClose }: Props) {
           </div>
         )}
 
-        {/* Diagnostics log — session only, in-memory (not persisted) */}
+        {/* Diagnostics log — persisted answer stream (localStorage, all profiles) */}
         <div style={{
           width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
           borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12, color: INK,
@@ -258,6 +283,39 @@ export function DebugMode({ onClose }: Props) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Mix monitor — per-exercise recent stats + dynamic weight factor */}
+        <div style={{
+          width: '100%', maxWidth: 460, background: CREAM, border: `2px solid ${INK}`,
+          borderRadius: 16, padding: 14, marginTop: 18, fontSize: 12, color: INK,
+        }}>
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>Mix — {skill.id}</div>
+          {mixStats.length === 0 ? (
+            <div style={{ fontStyle: 'italic', color: '#8a795f' }}>
+              Geen geregistreerde oefeningen voor deze skill.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontFamily: 'monospace' }}>
+              {mixStats.map(s => {
+                const factor = mixFactors[s.exerciseId] ?? 1
+                const pinned = factor >= FACTOR_CAP
+                return (
+                  <div key={s.exerciseId} style={{ color: pinned ? '#b3431f' : factor > 1 ? '#8a6210' : '#2e7d32' }}>
+                    {pinned ? '⚠' : factor > 1 ? '↑' : '·'} {s.exerciseId} — ×{factor.toFixed(2)}
+                    {s.attempts > 0
+                      ? ` · ${s.attempts} pogingen, ${Math.round(s.accuracy * 100)}% juist` +
+                        (s.medianCorrectMs !== null ? `, ${(s.medianCorrectMs / 1000).toFixed(1)}s mediaan` : '')
+                      : ' · nog geen pogingen'}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          <div style={{ marginTop: 6, fontSize: 11, color: '#8a795f' }}>
+            factor: fout +0.5, juist −0.25, bereik [1, {FACTOR_CAP}] over de laatste {STATS_WINDOW} pogingen
+            (retries tellen niet mee) · ⚠ = vastgelopen op het plafond — bekijk deze oefening · debug-profiel
+          </div>
         </div>
 
         {/* Didactics + tier info for the current selection — bottom reference */}

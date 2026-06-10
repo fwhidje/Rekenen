@@ -50,15 +50,29 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   },
 
   // ── Splitsen ─────────────────────────────────────────────────────────────────
-  // huisje stays flat at 40 — it's the foundation for the splitshuisje notation skill.
-  // splits-frame grows from 20 to 40 (more abstract, closer to written notation).
-  // dot-pattern stays roughly steady around 30–35.
+  // Initial guesses, to be tuned with playtesting:
+  // huisje dominant early (canonical scaffold), build-it (enactive swipe-to-cut)
+  // strongest at the start and fading; the width probes come in as the score
+  // rises — shuffle (conservation) early-mid, same-or-different (order
+  // independence) mid, splits-match (representational transfer) mid-high.
 
   'splitsen-herken-5': {
-    'dot-pattern-decompose':  [30, 35],
-    'splits-frame':           [20, 20],
-    'splits-herken-huisje':   [40, 50],
+    'dot-pattern-decompose':   [30, 20],
+    'splits-frame':            [20, 20],
+    'splits-herken-huisje':    [40, 25],
+    'splits-build-it':         [25, 5],
+    'splits-shuffle':          [[10, 15], [50, 20], [100, 10]],
+    'same-split-or-different': [[20, 0], [50, 25], [100, 25]],
+    'splits-match':            [[30, 0], [70, 30], [100, 30]],
   },
+}
+
+// Validation hook: the explicit per-skill table ids (null when the skill falls
+// back to the default curve). Lets validate.ts distinguish "deliberately
+// tabled" from "default fallback" without re-deriving it from weights.
+export function getSkillTableIds(skillId: string): string[] | null {
+  const table = SKILL_TABLES[skillId]
+  return table ? Object.keys(table) : null
 }
 
 // ─── Default / fallback curve ─────────────────────────────────────────────────

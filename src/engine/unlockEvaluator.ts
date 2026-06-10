@@ -7,8 +7,11 @@ import type { Profile } from '../state/types'
 // are unlocked AND have a score ≥ UNLOCK_THRESHOLD. Empty `unlockedBy`
 // means the skill is a root and unlocks immediately.
 //
-// Archived skills still count as unlocked for prerequisite purposes — the
-// learning happened, the rotation just dropped the skill.
+// Archived skills satisfy implicitly — archival requires a capped score (100).
+// The dynamic per-exercise weight factor (weightFactors.ts) protects this
+// gate from weak-exercise masking: an exercise that keeps producing errors
+// recruits more airtime until its misses dominate the score drift, so the
+// score cannot cross the threshold while a weakness is live.
 export function evaluateUnlocks(profile: Profile, skills: SkillDefinition[]): string[] {
   const newlyUnlocked: string[] = []
   const byId = new Map(skills.map(s => [s.id, s]))
@@ -19,7 +22,8 @@ export function evaluateUnlocks(profile: Profile, skills: SkillDefinition[]): st
     if (state?.unlocked) continue
 
     const allMet = skill.unlockedBy.length === 0 || skill.unlockedBy.every(prereqId => {
-      if (byId.get(prereqId)?.disabled) return false
+      const prereqDef = byId.get(prereqId)
+      if (!prereqDef || prereqDef.disabled) return false
       const prereq = profile.skills[prereqId]
       return prereq?.unlocked && prereq.score >= UNLOCK_THRESHOLD
     })

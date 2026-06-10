@@ -97,7 +97,7 @@ export const SKILLS: SkillDefinition[] = [
       EX.numberSequenceOrder, EX.showMeOnTenFrame, EX.numberlineRead,
       EX.quantityMatch, EX.subitiseFlash,
     ],
-    generate: () => ({ a: rnd(1, 5), b: 0, op: 'count' }),
+    generate: () => ({ op: 'count', n: rnd(1, 5) }),
   },
 
   {
@@ -123,7 +123,7 @@ export const SKILLS: SkillDefinition[] = [
       EX.numberSequenceOrder, EX.showMeOnTenFrame, EX.numberlineRead,
       EX.quantityMatch, EX.subitiseFlash,
     ],
-    generate: () => ({ a: rnd(1, 10), b: 0, op: 'count' }),
+    generate: () => ({ op: 'count', n: rnd(1, 10) }),
   },
 
   // ── Splitsen ────────────────────────────────────────────────────────────────
@@ -151,8 +151,8 @@ export const SKILLS: SkillDefinition[] = [
     ],
     generate: () => {
       const total = rnd(2, 5)
-      const a = rnd(1, total - 1)
-      return { a, b: total - a, op: 'split' }
+      const partA = rnd(1, total - 1)
+      return { op: 'split', partA, partB: total - partA }
     },
   },
 
@@ -180,8 +180,8 @@ export const SKILLS: SkillDefinition[] = [
     ],
     generate: () => {
       const total = rnd(2, 5)
-      const a = rnd(1, total - 1)
-      return { a, b: total - a, op: 'split' }
+      const partA = rnd(1, total - 1)
+      return { op: 'split', partA, partB: total - partA }
     },
   },
 
@@ -206,8 +206,8 @@ export const SKILLS: SkillDefinition[] = [
     ],
     generate: () => {
       const total = rnd(6, 10)
-      const a = rnd(1, total - 1)
-      return { a, b: total - a, op: 'split' }
+      const partA = rnd(1, total - 1)
+      return { op: 'split', partA, partB: total - partA }
     },
   },
 
@@ -233,8 +233,8 @@ export const SKILLS: SkillDefinition[] = [
       EX.tienveldFill, EX.rekenrekMakeTen,
     ],
     generate: () => {
-      const a = rnd(1, 9)
-      return { a, b: 10 - a, op: 'split' }
+      const partA = rnd(1, 9)
+      return { op: 'split', partA, partB: 10 - partA }
     },
     disabled: true,  // WIP gate
   },
@@ -261,7 +261,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const b = pickFrom([1, 2])
       const a = rnd(1, 5 - b)
-      return { a, b, op: '+' }
+      return { op: '+', terms: [a, b] }
     },
     disabled: true,  // WIP gate
   },
@@ -286,7 +286,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(1, 4)
       const b = rnd(1, 5 - a)
-      return { a, b, op: '+' }
+      return { op: '+', terms: [a, b] }
     },
   },
 
@@ -310,7 +310,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const b = pickFrom([1, 2])
       const a = rnd(1, 10 - b)
-      return { a, b, op: '+' }
+      return { op: '+', terms: [a, b] }
     },
   },
 
@@ -334,7 +334,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const b = pickFrom([3, 4])
       const a = rnd(1, 10 - b)
-      return { a, b, op: '+' }
+      return { op: '+', terms: [a, b] }
     },
   },
 
@@ -358,7 +358,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(1, 9)
       const b = rnd(1, 10 - a)
-      return { a, b, op: '+' }
+      return { op: '+', terms: [a, b] }
     },
     disabled: true,  // WIP gate
   },
@@ -379,7 +379,7 @@ export const SKILLS: SkillDefinition[] = [
     applicableExercises: [EX.fillPlain, EX.choice, EX.tf, EX.dubbelRecognise],
     generate: () => {
       const a = rnd(1, 5)
-      return { a, b: a, op: '+' }
+      return { op: '+', terms: [a, a] }
     },
   },
 
@@ -399,7 +399,7 @@ export const SKILLS: SkillDefinition[] = [
     applicableExercises: [EX.fillPlain, EX.choice, EX.splitsHelft],
     generate: () => {
       const total = pickFrom([2, 4, 6, 8, 10])
-      return { a: total, b: total / 2, op: 'half' }
+      return { op: 'half', total }
     },
   },
 
@@ -426,7 +426,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const b = pickFrom([1, 2])
       const a = rnd(b, 5)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
     disabled: true,  // WIP gate
   },
@@ -456,7 +456,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(2, 5)
       const b = rnd(1, a)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 
@@ -485,7 +485,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(2, 5)
       const b = rnd(1, a)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 
@@ -514,7 +514,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(2, 5)
       const b = rnd(1, a)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 
@@ -539,7 +539,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const b = pickFrom([1, 2])
       const a = rnd(b, 10)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 
@@ -564,7 +564,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const b = pickFrom([3, 4])
       const a = rnd(b, 10)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 
@@ -589,7 +589,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(2, 10)
       const b = rnd(1, a)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
     disabled: true,  // WIP gate
   },
@@ -615,7 +615,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(2, 10)
       const b = rnd(1, a)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 
@@ -640,7 +640,7 @@ export const SKILLS: SkillDefinition[] = [
     generate: () => {
       const a = rnd(2, 10)
       const b = rnd(1, a)
-      return { a, b, op: '-' }
+      return { op: '-', whole: a, part: b }
     },
   },
 ]

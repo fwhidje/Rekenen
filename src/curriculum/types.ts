@@ -4,18 +4,34 @@
 // 'count' is for getalbegrip (just identify a quantity); 'half' is helften.
 export type Operation = '+' | '-' | 'split' | 'count' | 'half'
 
-export interface GeneratedProblem {
-  a: number
-  b: number  // 0 for 'count' (only `a` is meaningful)
-  op: Operation
+// ─── Problem ──────────────────────────────────────────────────────────────────
+// A generated problem with named roles per operation, so exercises can read
+// what a number *means* instead of decoding positional a/b conventions.
+// Subtraction names whole/part deliberately: wegnemen, verschil and aanvullen
+// presentations all read their roles from the same shape. The engine derives
+// the legacy operandA/operandB pair for existing components (see
+// engine/answer.ts); new exercises should consume `question.problem`.
+export type Problem =
+  | { op: '+';     terms: [number, number] }
+  | { op: '-';     whole: number; part: number }
+  | { op: 'split'; partA: number; partB: number }
+  | { op: 'count'; n: number }
+  | { op: 'half';  total: number }
+
+// Optional context handed to a skill's generator. The seam for per-fact
+// sampling: drill skills (tienvrienden, dubbels) can oversample the facts the
+// recent record stream shows to be weak. No generator uses it yet.
+export interface GenerateContext {
+  recentRecords?: ReadonlyArray<import('../engine/diagnostics').AnswerRecord>
 }
 
 // ─── Skill ────────────────────────────────────────────────────────────────────
 // A skill is narrow and atomic. The math it covers never changes —
 // only the presentation (exercise type) shifts as the score moves.
 //
-// `unlockedBy`: ALL listed prerequisites must be ≥ UNLOCK_THRESHOLD before
-//   this skill becomes available. An empty list means the skill is a root.
+// `unlockedBy`: ALL listed prerequisites must be unlocked AND at score
+//   ≥ UNLOCK_THRESHOLD before this skill becomes available. An empty list
+//   means the skill is a root.
 // `unlocks`: inverse of `unlockedBy` from the other side, kept for readability;
 //   the engine derives behaviour from `unlockedBy` only.
 // `subsumedBy`: the single skill that — once unlocked AND this skill is at score
@@ -49,7 +65,7 @@ export interface SkillDefinition {
   unlocks: string[]
   subsumedBy: string | null
   applicableExercises: string[]  // exercise type ids this skill may use
-  generate(): GeneratedProblem
+  generate(ctx?: GenerateContext): Problem
   disabled?: boolean       // WIP gate: skill is hidden from rotation AND
                            // never satisfies downstream prerequisites.
                            // Lift by removing the flag once the skill is
@@ -57,7 +73,7 @@ export interface SkillDefinition {
 }
 
 // ─── Weight matrix ────────────────────────────────────────────────────────────
-// For a given score (0–50), returns a map of exerciseId → weight.
+// For a given score (0–100), returns a map of exerciseId → weight.
 // Higher weight = more likely to be chosen by the selector.
 // Weights don't need to sum to 100; they're relative.
 

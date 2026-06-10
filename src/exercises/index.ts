@@ -26,5 +26,9 @@ import './SplitsMatch'
 import './SplitsShuffle'
 import './SplitsBuildIt'
 
+// Runs after every registerExercise() above (module execution order follows
+// import order): warns in dev when the curriculum lists disagree.
+import '../curriculum/validate'
+
 export { getExercise, getAllExerciseIds } from './registry'
 export type { ExerciseDefinition, ExerciseQuestion, ExerciseComponentProps } from './types'

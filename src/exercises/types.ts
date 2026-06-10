@@ -1,19 +1,25 @@
 import type { ComponentType } from 'react'
-import type { Operation } from '../curriculum/types'
+import type { Operation, Problem } from '../curriculum/types'
 import type { ExerciseScene } from '../presentation/themes'
 
 export type { ExerciseScene }
 
 // ─── Question ────────────────────────────────────────────────────────────────
+// `problem` carries the named-role shape (whole/part, terms, …) — new
+// exercises should read that. operandA/operandB/op are the legacy positional
+// view derived from it (engine/answer.ts problemOperands), kept so existing
+// components work unchanged.
 
 export interface ExerciseQuestion<Meta = Record<string, unknown>> {
   exerciseId: string
   skillId: string
+  problem: Problem
   operandA: number
   operandB: number
   op: Operation
   answer: number
   meta: Meta
+  isRetry?: boolean   // re-scaffolded re-presentation of a just-failed problem
 }
 
 // ─── Answer detail ─────────────────────────────────────────────────────────

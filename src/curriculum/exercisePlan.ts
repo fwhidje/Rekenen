@@ -25,10 +25,14 @@ export const EXERCISE_PLAN: Record<string, string> = {
     '(ten-frame, rekenrek) as the score rises so 6–10 are perceived via the 5-anchor instead of ' +
     'counted by ones.',
   'splitsen-herken-5':
-    'Three recognition exercises share the rotation (currently ~34/33/33): dot-pattern-decompose, ' +
-    'splits-frame, and splits-herken-huisje. Each ramps its own internal tiers with score (die-based ' +
-    'tap → numbered choice → abstract), so the cross-exercise weights stay roughly even while the ' +
-    'within-exercise scaffolding fades. rekenrek-decompose is listed but not yet weighted/built.',
+    'Seven recognition exercises share the rotation. Early: splits-herken-huisje dominates (40, the ' +
+    'canonical scaffold) with dot-pattern-decompose (30), splits-build-it (25, enactive swipe-to-cut) ' +
+    'and splits-frame (20). As the score rises the width probes phase in and the early scaffolds ' +
+    'fade: splits-shuffle (conservation, from 10), same-split-or-different (order-independence, from ' +
+    '20), splits-match (representational transfer, from 30, up to 30 by 70). Each exercise also ramps ' +
+    'its own internal tiers, so cross-exercise weights shift the *kind* of thinking while ' +
+    'within-exercise tiers fade the scaffolding. rekenrek-decompose is listed but not yet built. ' +
+    'Weights are initial guesses pending playtesting.',
 
   // Notation + later branches — fill as exercises are built.
   'splitsen-noteren-5': TODO,
@@ -57,13 +61,7 @@ export function getExercisePlan(skillId: string): string {
 }
 
 // Skill ids that have no entry at all (a stricter check than "is it still TODO").
+// Reported through validate.ts alongside the other curriculum checks.
 export function missingExercisePlanIds(): string[] {
   return SKILLS.filter(s => !(s.id in EXERCISE_PLAN)).map(s => s.id)
-}
-
-if (import.meta.env?.DEV) {
-  const missing = missingExercisePlanIds()
-  if (missing.length > 0) {
-    console.warn('[exercisePlan] skills with no EXERCISE_PLAN entry:', missing)
-  }
 }
