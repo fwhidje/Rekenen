@@ -6,8 +6,9 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
   { id: 'with-start', minScore: 0,  label: 'met startgetal', description: 'Strip with the starting numeral already placed; kid drags the other three numerals into ascending positions next to it.' },
-  { id: 'shuffle',    minScore: 30, label: 'door elkaar',    description: 'Several numerals shuffled — kid drags each into its position on a strip from low to high.' },
-  { id: 'gap-fill',   minScore: 60, label: 'gaten',          description: 'Sequence shown with one or two gaps; kid drags only the missing numerals into their slots — forces predecessor / successor reasoning rather than visual sorting.' },
+  { id: 'gap-fill',   minScore: 30, label: 'gaten',          description: 'Consecutive run shown with one or two gaps; kid drags only the missing numerals into their slots — successor / predecessor with neighbours as anchors.' },
+  { id: 'shuffle',    minScore: 55, label: 'door elkaar',    description: 'Full consecutive run shuffled — kid orders all four numerals from scratch, no anchors given.' },
+  { id: 'sparse',     minScore: 75, label: 'losse getallen', description: 'Four non-consecutive numerals (e.g. 8, 3, 6, 5) ordered low→high — no successor chain to lean on; magnitude ordering proper. Comes alive in the 1–10 range.' },
 ]
 
 const SLOT = 58
@@ -28,7 +29,7 @@ function shuffle<T>(a: T[]): T[] { return [...a].sort(() => Math.random() - 0.5)
 function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberSequenceOrderMeta>) {
   const { operandA, meta } = question
   const { tierId, sequence, givenMask, options } = meta
-  const { ink, paper, cream, accent, accentText } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, cream, accent, accentText, confirm: confirm0 } = scene?.tokens ?? NATURE_TOKENS
 
   const [drag, setDrag] = useState<{ idx: number; value: number; x: number; y: number } | null>(null)
   const [placed, setPlaced] = useState<Record<number, number>>({})  // slotIndex → optionIdx
@@ -39,14 +40,27 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
   const placedIndices = new Set(Object.values(placed))
   const emptyPositions = sequence.map((_, i) => i).filter(i => !givenMask[i])
 
+  const allFilled = emptyPositions.every(i => placed[i] !== undefined)
+
   function attemptDrop(slot: number, optIdx: number) {
     if (givenMask[slot] || placed[slot] !== undefined) return
-    const next = { ...placed, [slot]: optIdx }
-    setPlaced(next)
-    if (emptyPositions.every(i => next[i] !== undefined)) {
-      const correct = emptyPositions.every(i => options[next[i]] === sequence[i])
-      setTimeout(() => onResolve(correct), 300)
-    }
+    setPlaced(prev => ({ ...prev, [slot]: optIdx }))
+  }
+
+  // Mistake recovery: tap a placed tile to send it back to the tray.
+  function unplace(slot: number) {
+    if (disabled || placed[slot] === undefined) return
+    setPlaced(prev => {
+      const next = { ...prev }
+      delete next[slot]
+      return next
+    })
+  }
+
+  function confirm() {
+    if (disabled || !allFilled) return
+    const correct = emptyPositions.every(i => options[placed[i]] === sequence[i])
+    onResolve(correct)
   }
 
   function handlePointerDown(e: React.PointerEvent, idx: number, value: number) {
@@ -80,6 +94,12 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>{tierId === 'gap-fill' ? 'Welk getal ontbreekt?' : 'Zet op volgorde'}</div>
 
+      {/* Puzzle card — strip + tray on a clear panel */}
+      <div style={{
+        background: paper, border: `2px solid ${ink}`, borderRadius: 18,
+        padding: '18px 20px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18,
+      }}>
       {/* Sequence strip */}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         {sequence.map((val, i) => {
@@ -89,13 +109,15 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
           return (
             <div key={i}
               ref={el => { slotRefs.current[i] = el }}
+              onClick={() => { if (!given && hasPlaced) unplace(i) }}
               style={{
                 width: SLOT, height: SLOT, borderRadius: 12,
                 border: given ? `2px solid ${ink}` : `2px dashed ${ink}88`,
-                background: given ? paper : (hasPlaced ? `${accent}33` : 'transparent'),
+                background: given ? cream : (hasPlaced ? `${accent}33` : 'transparent'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 30,
                 color: given ? ink : accentText,
+                cursor: !given && hasPlaced && !disabled ? 'pointer' : 'default',
               }}>
               {given ? val : hasPlaced ? options[placedIdx] : ''}
             </div>
@@ -123,6 +145,19 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
           )
         })}
       </div>
+      </div>
+
+      {/* Confirm — appears once every slot is filled; placed tiles can still
+          be tapped back to the tray until then. */}
+      <button onClick={confirm} disabled={disabled || !allFilled}
+        style={{
+          padding: '10px 32px', fontFamily: 'Fredoka One, cursive', fontSize: 22,
+          background: allFilled ? confirm0 : `${ink}22`, color: 'white',
+          border: `2px solid ${ink}`, borderRadius: 16,
+          cursor: disabled || !allFilled ? 'default' : 'pointer',
+          boxShadow: allFilled ? `0 2px 0 rgba(61,47,30,.18)` : 'none',
+          opacity: disabled ? 0.45 : 1, userSelect: 'none', transition: 'background .2s',
+        }}>✓ Klaar</button>
 
       {/* Floating drag ghost */}
       {drag && (
@@ -151,12 +186,23 @@ const NumberSequenceOrder: ExerciseDefinition<NumberSequenceOrderMeta> = {
       'At gap-fill tier with no neighbouring labels, lacks an anchor and falls back to guessing.',
       'Reads the strip but can\'t decide whether 4 or 6 goes between 5 and 7 — written numerals not linked to quantities.',
     ],
-    progression: 'with-start (start anchored, sort 3) → shuffle (full sequence, sort 4) → gap-fill (sparse, neighbours-only anchors). Visual sorting at low score grows into successor / predecessor reasoning at higher score.',
+    progression: 'with-start (start anchored, sort 3) → gap-fill (neighbours as anchors, fill 1–2 holes) → shuffle (order the full run from scratch) → sparse (non-consecutive numerals, pure magnitude ordering). The successor chain carries less and less of the work.',
   },
   generateMeta(operandA, _b, score) {
     const tierId = pickTier(TIERS, score).id
     const max = operandA <= 5 ? 5 : 10
     const len = Math.min(4, max)
+
+    if (tierId === 'sparse') {
+      // Four distinct, deliberately non-consecutive numerals; magnitude
+      // ordering without a successor chain. Re-draw fully-consecutive sets.
+      let values: number[]
+      do {
+        values = shuffle(Array.from({ length: max }, (_, i) => i + 1)).slice(0, len).sort((a, b) => a - b)
+      } while (values.every((v, i) => i === 0 || v - values[i - 1] === 1))
+      return { tierId, sequence: values, givenMask: values.map(() => false), options: shuffle(values) }
+    }
+
     const start = rnd(1, max - len + 1)
     const sequence = Array.from({ length: len }, (_, i) => start + i)
 

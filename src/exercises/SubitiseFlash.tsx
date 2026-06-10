@@ -5,6 +5,8 @@ import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
+import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choice', minScore: 0,  label: 'kiezen',   description: 'Kid taps "Klaar?" to start. Pattern flashes for ~1 second then hides. Kid picks the numeral from 4 options. One retry button available — replays the same pattern, never a fresh one; retry-used is logged.' },
@@ -18,24 +20,7 @@ interface SubitiseFlashMeta {
   tierId: string
 }
 
-// Canonical subitising positions for 1–5 as [x%, y%].
-const DOT_POS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
-function makeOptions(correct: number): number[] {
-  const pool = new Set([correct])
-  for (const delta of [-1, 1, -2, 2, 3, -3]) {
-    const v = correct + delta
-    if (v >= 1) pool.add(v)
-    if (pool.size === 4) break
-  }
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
-}
 
 function DieSquare({ n, color, size }: { n: number; color: string; size: number }) {
   const positions = DOT_POS[n] ?? []
@@ -101,7 +86,7 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
 
   const resolve = (given: number) => {
     if (disabled) return
-    onResolve(given === operandA, { givenAnswer: given, tapCount: retries })
+    onResolve(given === operandA, { givenAnswer: given, replayCount: retries })
   }
 
   const handleKey = (key: string) => {
@@ -186,7 +171,7 @@ const SubitiseFlash: ExerciseDefinition<SubitiseFlashMeta> = {
   },
   // Retries are reported via tapCount (AnswerDetail has no dedicated retry field).
   generateMeta(operandA, _b, score) {
-    return { options: makeOptions(operandA), tierId: pickTier(TIERS, score).id }
+    return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: pickTier(TIERS, score).id }
   },
   Component: SubitiseFlashComponent,
 }

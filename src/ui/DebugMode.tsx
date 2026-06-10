@@ -95,6 +95,7 @@ export function DebugMode({ onClose }: Props) {
       skillId: question.skillId,
       exerciseId: question.exerciseId,
       tierId: (question.meta as { tierId?: string }).tierId,
+      variant: (question.meta as { variant?: string }).variant,
       op: question.op,
       semanticForm: skill?.semanticForm,
       operandA: question.operandA,
@@ -109,6 +110,7 @@ export function DebugMode({ onClose }: Props) {
       }),
       responseTimeMs: Date.now() - questionStartRef.current,
       tapCount: detail?.tapCount,
+      replayCount: detail?.replayCount,
     }
     diagnostics.record(record)
     setLogTick(t => t + 1)
@@ -278,6 +280,8 @@ export function DebugMode({ onClose }: Props) {
                   {' '}[{r.tierId ?? '–'}]
                   {r.errorType ? ` ${r.errorType}` : ''}
                   {r.tapCount !== undefined ? ` taps:${r.tapCount}` : ''}
+                  {r.replayCount ? ` replays:${r.replayCount}` : ''}
+                  {r.variant ? ` [${r.variant}]` : ''}
                   {r.responseTimeMs !== undefined ? ` ${Math.round(r.responseTimeMs / 100) / 10}s` : ''}
                 </div>
               ))}

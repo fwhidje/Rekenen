@@ -43,6 +43,13 @@ describe('classifyError', () => {
       operandA: 7, operandB: 3, correctAnswer: 10, givenAnswer: 5,
     })).toBe('tienvriend-mismatch')
   })
+
+  it('count answers never tag near-miss on the operandB = 0 artifact', () => {
+    expect(classifyError({
+      skillId: 'getalbegrip-5', op: 'count',
+      operandA: 4, operandB: 0, correctAnswer: 4, givenAnswer: 0,
+    })).toBe('unclassified')
+  })
 })
 
 describe('InMemoryDiagnosticsSink', () => {

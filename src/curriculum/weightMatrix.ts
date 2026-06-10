@@ -20,6 +20,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // Early: dominated by count-and-tap (concrete, one-at-a-time).
   // Late:  subitising & structure exercises take over; count-and-tap fades.
   // numberline-place and compare-more-less are steady throughout (ordinal/relational).
+  // compare-pick (relation-to-anchor incl. evenveel) phases in once numerals read.
 
   'getalbegrip-5': {
     'count-and-tap':             [40,  5],
@@ -28,6 +29,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'finger-pattern-recognise':  [ 5, 25],
     'numberline-place':          [15, 20],
     'compare-more-less':         15,
+    'compare-pick':              [[25, 0], [60, 22], [100, 22]],
     'number-sequence-order':     25,
     'show-me-on-ten-frame':      15,
     'numberline-read':           [15, 20],
@@ -35,15 +37,20 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'subitise-flash':            [[50,  0], [100, 50]],   // 0 below 50, then ramp 0→50
   },
 
+  // -10 diverges from -5: a flat lean on the 5-structure presentations
+  // (ten-frame, vingerbeelden) — the skill's identity is 6–10 via the 5-anchor —
+  // and number-sequence-order earns more (its sparse tier shines in this range).
+
   'getalbegrip-10': {
     'count-and-tap':             [40,  5],
     'dot-pattern-recognise':     [ 5, 30],
-    'ten-frame-show':            [10, 25],
-    'finger-pattern-recognise':  [ 5, 25],
+    'ten-frame-show':            [18, 28],
+    'finger-pattern-recognise':  [12, 28],
     'numberline-place':          [15, 20],
     'compare-more-less':         15,
-    'number-sequence-order':     25,
-    'show-me-on-ten-frame':      15,
+    'compare-pick':              [[25, 0], [60, 22], [100, 22]],
+    'number-sequence-order':     30,
+    'show-me-on-ten-frame':      20,
     'numberline-read':           [15, 20],
     'quantity-match':            [[25, 30], [100, 30]],   // 0 below 25, then flat 30
     'subitise-flash':            [[50,  0], [100, 50]],   // 0 below 50, then ramp 0→50

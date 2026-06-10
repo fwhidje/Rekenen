@@ -2,6 +2,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
   { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a quantity from a ten-frame and pick its numeral. Single tier; the frame structures around 5 and 10.' },
@@ -12,15 +13,6 @@ interface TenFrameShowMeta {
   tierId: string
 }
 
-function makeOptions(correct: number): number[] {
-  const pool = new Set([correct])
-  for (const delta of [-1, 1, -2, 2, 3, -3]) {
-    const v = correct + delta
-    if (v >= 1 && v <= 10) pool.add(v)
-    if (pool.size === 4) break
-  }
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
-}
 
 // ─── Ten-frame visual ─────────────────────────────────────────────────────────
 
@@ -89,7 +81,7 @@ const TenFrameShow: ExerciseDefinition<TenFrameShowMeta> = {
     ],
     progression: 'Single tier; the ten-frame itself is the structural scaffold.',
   },
-  generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },
+  generateMeta(operandA) { return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' } },
   Component: TenFrameShowComponent,
 }
 

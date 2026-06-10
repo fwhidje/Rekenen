@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { makeNumeralOptions } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choice', minScore: 0,  label: 'kiezen',   description: 'Number line with one cell highlighted; kid picks the numeral from a strip of 4 options.' },
@@ -17,15 +18,6 @@ interface NumberlineReadMeta {
   tierId: string
 }
 
-function makeOptions(correct: number, max: number): number[] {
-  const pool = new Set([correct])
-  for (const delta of [-1, 1, -2, 2, 3, -3]) {
-    const v = correct + delta
-    if (v >= 0 && v <= max) pool.add(v)
-    if (pool.size === 4) break
-  }
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
-}
 
 // ─── Read-only number line with a highlighted cell ──────────────────────────
 
@@ -44,14 +36,23 @@ function NumberLineStrip({ target, max, ink, paper, accent }: {
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+      {/* The marked cell must be unmissable: bouncing arrow + pulsing ring. */}
+      <style>{`
+        @keyframes nlr-bounce { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-7px) } }
+        @keyframes nlr-pulse  { 0%, 100% { box-shadow: 0 0 0 0 ${accent}88 } 50% { box-shadow: 0 0 0 7px ${accent}00 } }
+      `}</style>
       {numbers.map((n, idx) => {
         const isFirst = idx === 0
         const isLast  = idx === numbers.length - 1
         const isTarget = n === target
         return (
           <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ height: 18, color: ink, fontSize: 18 }}>{isTarget ? '▼' : ''}</div>
             <div style={{
+              height: 26, fontSize: 22, color: accent, lineHeight: 1,
+              animation: isTarget ? 'nlr-bounce 0.9s ease-in-out infinite' : undefined,
+            }}>{isTarget ? '▼' : ''}</div>
+            <div style={{
+              animation: isTarget ? 'nlr-pulse 1.4s ease-in-out infinite' : undefined,
               width: cellW, height: cellW,
               background: isTarget ? accent : paper,
               borderTop:    `2px solid ${ink}`, borderBottom: `2px solid ${ink}`,
@@ -130,7 +131,7 @@ const NumberlineRead: ExerciseDefinition<NumberlineReadMeta> = {
   },
   generateMeta(operandA, _b, score) {
     const max = operandA <= 5 ? 5 : 10
-    return { max, options: makeOptions(operandA, max), tierId: pickTier(TIERS, score).id }
+    return { max, options: makeNumeralOptions(operandA, max, 0), tierId: pickTier(TIERS, score).id }
   },
   Component: NumberlineReadComponent,
 }

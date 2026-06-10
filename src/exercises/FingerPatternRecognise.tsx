@@ -3,6 +3,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
   { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a finger pattern and pick its numeral — one open hand carries the 5-anchor.' },
@@ -13,15 +14,6 @@ interface FingerPatternRecogniseMeta {
   tierId: string
 }
 
-function makeOptions(correct: number): number[] {
-  const pool = new Set([correct])
-  for (const delta of [-1, 1, -2, 2, 3, -3]) {
-    const v = correct + delta
-    if (v >= 1) pool.add(v)
-    if (pool.size === 4) break
-  }
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
-}
 
 function FingerPattern({ n, ink, paper }: { n: number; ink: string; paper: string }) {
   const inner = n <= 5
@@ -77,7 +69,7 @@ const FingerPatternRecognise: ExerciseDefinition<FingerPatternRecogniseMeta> = {
     ],
     progression: 'Single tier; the hand image supplies the 5-structure scaffold for 6–10.',
   },
-  generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },
+  generateMeta(operandA) { return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' } },
   Component: FingerPatternRecogniseComponent,
 }
 

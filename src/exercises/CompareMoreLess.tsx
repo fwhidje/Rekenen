@@ -6,31 +6,38 @@ import type { ComponentType } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'counters', minScore: 0,  label: 'enkel beeld',   description: 'Compare two counter groups by quantity alone — no numerals shown.' },
-  { id: 'both',     minScore: 30, label: 'beeld + getal', description: 'Counter groups labelled with their numerals — links quantity to symbol.' },
-  { id: 'numbers',  minScore: 70, label: 'enkel getal',   description: 'Compare two bare numerals — purely symbolic magnitude judgement.' },
+  { id: 'twee',     minScore: 0,  label: 'twee groepen',  description: 'Two counter groups, "Welke is meer/minder?" — the comparative between two quantities, no numerals. Counter size and spacing vary per group so row length is not a valid cue.' },
+  { id: 'drie',     minScore: 30, label: 'drie groepen',  description: 'Three counter groups labelled with numerals, "Welke is meest/minst?" — the superlative across three, quantity linked to symbol.' },
+  { id: 'getallen', minScore: 70, label: 'enkel getal',   description: 'Three bare numerals, meest/minst — purely symbolic magnitude judgement.' },
 ]
 
+type Style = 'twee' | 'drie' | 'getallen'
+
 interface CompareMoreLessMeta {
-  other: number
-  askMore: boolean
-  leftIsA: boolean
-  style: 'counters' | 'both' | 'numbers'
+  values: number[]      // 2 (twee) or 3 (drie/getallen) distinct counts
+  askMost: boolean      // meer/meest vs minder/minst
+  sizes: number[]       // per-group counter size — de-confounds row length
+  gaps: number[]        // per-group counter gap
+  style: Style
+  variant: string       // 'meer' | 'minder' | 'meest' | 'minst'
   tierId: string
 }
 
+const rnd = (lo: number, hi: number) => Math.floor(Math.random() * (hi - lo + 1)) + lo
+const shuffle = <T,>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
+
 // ─── Counter group ────────────────────────────────────────────────────────────
 
-function CounterGroup({ n, Counter, size }: { n: number; Counter: ComponentType<CounterProps>; size: number }) {
+function CounterGroup({ n, Counter, size, gap }: { n: number; Counter: ComponentType<CounterProps>; size: number; gap: number }) {
   const row1 = Math.min(n, 5)
   const row2 = n - row1
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap: 4 }}>
+      <div style={{ display: 'flex', gap }}>
         {Array.from({ length: row1 }, (_, i) => <Counter key={i} size={size} />)}
       </div>
       {row2 > 0 && (
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', gap }}>
           {Array.from({ length: row2 }, (_, i) => <Counter key={5 + i} size={size} />)}
         </div>
       )}
@@ -41,56 +48,42 @@ function CounterGroup({ n, Counter, size }: { n: number; Counter: ComponentType<
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function CompareMoreLessComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<CompareMoreLessMeta>) {
-  const { operandA, meta } = question
-  const { other, askMore, leftIsA, style } = meta
+  const { meta } = question
+  const { values, askMost, sizes, gaps, style } = meta
   const { ink, cream } = scene?.tokens ?? NATURE_TOKENS
   const Counter = scene?.Counter
 
-  const leftVal  = leftIsA ? operandA : other
-  const rightVal = leftIsA ? other    : operandA
+  const winnerVal = askMost ? Math.max(...values) : Math.min(...values)
 
-  const winnerVal = askMore ? Math.max(operandA, other) : Math.min(operandA, other)
-  const leftWins  = leftVal === winnerVal
+  const prompt = values.length === 2
+    ? (askMost ? 'Welke is meer?' : 'Welke is minder?')
+    : (askMost ? 'Welke is meest?' : 'Welke is minst?')
 
-  const handlePick = (pickedLeft: boolean) => {
-    if (disabled) return
-    onResolve(pickedLeft === leftWins)
-  }
-
-  const maxN = Math.max(leftVal, rightVal)
-  const size = maxN <= 5 ? 44 : 32
-  const rows = Math.ceil(maxN / 5)
-  const counterAreaH = rows * size + (rows - 1) * 4
-  const panelH = style === 'numbers'
-    ? 64 + 28
-    : style === 'both' ? counterAreaH + 26 + 8 + 28 : counterAreaH + 28
-
-  const GroupPanel = ({ val, onPick }: { val: number; onPick: () => void }) => (
-    <div onClick={onPick} style={{
-      height: panelH,
+  const GroupPanel = ({ val, size, gap }: { val: number; size: number; gap: number }) => (
+    <div onClick={() => { if (!disabled) onResolve(val === winnerVal) }} style={{
+      minHeight: style === 'getallen' ? 80 : values.length === 2 ? 104 : 88,
       background: cream, border: `2px solid ${ink}`, borderRadius: 18,
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 8, padding: '0 10px',
+      justifyContent: 'center', gap: 6, padding: '8px 10px',
       cursor: disabled ? 'default' : 'pointer',
       boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       userSelect: 'none',
     }}>
-      {style === 'numbers' && (
-        <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 64, color: ink, lineHeight: 1 }}>
+      {style === 'getallen' ? (
+        <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 56, color: ink, lineHeight: 1 }}>
           {val}
         </div>
-      )}
-      {style !== 'numbers' && (
+      ) : (
         <>
-          {style === 'both' && (
-            <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink, lineHeight: 1 }}>
+          {style === 'drie' && (
+            <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink, lineHeight: 1 }}>
               {val}
             </div>
           )}
           {Counter ? (
-            <CounterGroup n={val} Counter={Counter} size={size} />
+            <CounterGroup n={val} Counter={Counter} size={size} gap={gap} />
           ) : (
-            <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 52, color: ink }}>{val}</div>
+            <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 48, color: ink }}>{val}</div>
           )}
         </>
       )}
@@ -98,17 +91,18 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
       <div style={{
         background: cream, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>
-        {askMore ? 'Welke is meer?' : 'Welke is minder?'}
+        {prompt}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 }}>
-        <GroupPanel val={leftVal}  onPick={() => handlePick(true)}  />
-        <GroupPanel val={rightVal} onPick={() => handlePick(false)} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 380 }}>
+        {values.map((val, i) => (
+          <GroupPanel key={i} val={val} size={sizes[i]} gap={gaps[i]} />
+        ))}
       </div>
     </div>
   )
@@ -122,26 +116,31 @@ const CompareMoreLess: ExerciseDefinition<CompareMoreLessMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Compares two quantities and names the relation — meer, minder, or evenveel. Comparison vocabulary as a core component of number sense.',
+    goal: 'Compares quantities and names the relation: meer/minder between two groups, meest/minst across three. Comparison vocabulary as a core component of number sense; evenveel lives in compare-pick.',
     pitfalls: [
-      'Picks the longer row or bigger-looking pattern regardless of count.',
-      'Confuses "meer" and "minder".',
-      'Doesn\'t yet have evenveel as a stable third answer — wants every comparison to have a winner.',
+      'Picks the longer or bigger-looking row regardless of count — detectable here because counter size and spacing vary per group, so length and number can disagree.',
+      'Confuses meer/minder (or meest/minst) — answers the opposite question.',
+      'At drie, compares only two of the three groups and stops at a local winner.',
     ],
-    progression: 'counters (quantity only) → both (quantity + numeral) → numbers (numeral only). Symbol replaces image as score rises.',
+    progression: 'twee (two groups, comparative, image only) → drie (three groups, superlative, image + numeral) → getallen (three bare numerals). Two ladders at once: comparative → superlative, and image → symbol.',
   },
   generateMeta(operandA, _b, score) {
-    const max  = operandA <= 5 ? 5 : 10
-    const pool = Array.from({ length: max }, (_, i) => i + 1).filter(n => n !== operandA)
-    const other = pool[Math.floor(Math.random() * pool.length)]
     const tier = pickTier(TIERS, score)
-    return {
-      other,
-      askMore:  Math.random() < 0.6,
-      leftIsA:  Math.random() < 0.5,
-      style:    tier.id as CompareMoreLessMeta['style'],
-      tierId:   tier.id,
-    }
+    const style = tier.id as Style
+    const max = operandA <= 5 ? 5 : 10
+    const groupCount = style === 'twee' ? 2 : 3
+
+    const pool = shuffle(Array.from({ length: max }, (_, i) => i + 1).filter(n => n !== operandA))
+    const values = shuffle([operandA, ...pool.slice(0, groupCount - 1)])
+
+    // Per-group random size/gap so visual length is decoupled from count.
+    const big = groupCount === 2
+    const sizes = values.map(() => big ? rnd(32, 48) : rnd(26, 40))
+    const gaps  = values.map(() => rnd(2, 12))
+
+    const askMost = Math.random() < 0.6
+    const variant = groupCount === 2 ? (askMost ? 'meer' : 'minder') : (askMost ? 'meest' : 'minst')
+    return { values, askMost, sizes, gaps, style, variant, tierId: tier.id }
   },
   Component: CompareMoreLessComponent,
 }

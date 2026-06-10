@@ -87,6 +87,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       skillId: question.skillId,
       exerciseId: question.exerciseId,
       tierId: (question.meta as { tierId?: string }).tierId,
+      variant: (question.meta as { variant?: string }).variant,
       op: question.op,
       semanticForm: skill?.semanticForm,
       operandA: question.operandA,
@@ -102,6 +103,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       }),
       responseTimeMs: Date.now() - questionStartRef.current,
       tapCount: detail?.tapCount,
+      replayCount: detail?.replayCount,
     }
     diagnostics.record(record)
 
