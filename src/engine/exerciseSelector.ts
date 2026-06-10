@@ -1,4 +1,4 @@
-import type { SkillDefinition, WeightFunction } from '../curriculum/types'
+import type { Problem, SkillDefinition, WeightFunction } from '../curriculum/types'
 import type { Profile } from '../state/types'
 import type { ExerciseQuestion } from '../exercises/types'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
@@ -41,8 +41,71 @@ function buildRetry(original: ExerciseQuestion): ExerciseQuestion {
   return { ...original, meta, isRetry: true }
 }
 
+// How many problems to draw for one skill before giving up on it this round,
+// and how many of those draws also dodge an immediate repeat of the previous
+// question (after that, a repeat beats not playing).
+const MAX_PROBLEM_DRAWS = 6
+const REPEAT_AVOID_DRAWS = 3
+
+function sameProblem(p1: Problem, p2: Problem): boolean {
+  return JSON.stringify(p1) === JSON.stringify(p2)
+}
+
+// Try to build a playable question for one skill. Null when the skill has no
+// weighted candidates at this score, or every drawn problem was rejected by
+// isCompatible — the caller then re-draws another skill instead of surfacing
+// an empty state.
+function buildQuestion(
+  skill: SkillDefinition,
+  score: number,
+  getWeights: WeightFunction,
+  registered: Set<string>,
+  lastQuestion: ExerciseQuestion | null,
+): ExerciseQuestion | null {
+  // Intersect: skill's applicable list × registered × non-zero weight for this skill
+  const weights = getWeights(skill.id, score)
+  const candidates: [string, number][] = []
+  for (const exId of skill.applicableExercises) {
+    if (!registered.has(exId)) continue
+    const w = weights[exId] ?? 0
+    if (w > 0) candidates.push([exId, w])
+  }
+  if (candidates.length === 0) return null
+
+  for (let draw = 0; draw < MAX_PROBLEM_DRAWS; draw++) {
+    const problem = skill.generate()
+    if (
+      draw < REPEAT_AVOID_DRAWS &&
+      lastQuestion?.skillId === skill.id &&
+      sameProblem(lastQuestion.problem, problem)
+    ) continue
+
+    const { a, b } = problemOperands(problem)
+    const filtered = candidates.filter(([exId]) => {
+      const def = getExercise(exId)
+      return !def.isCompatible || def.isCompatible(a, b)
+    })
+    if (filtered.length === 0) continue
+
+    const exerciseId = weightedPick(filtered)
+    const def = getExercise(exerciseId)
+    return {
+      exerciseId,
+      skillId: skill.id,
+      problem,
+      operandA: a,
+      operandB: b,
+      op: problem.op,
+      answer: computeAnswer(problem),
+      meta: def.generateMeta(a, b, score),
+    }
+  }
+  return null
+}
+
 // Selects a skill, an exercise type for that skill at the current score,
-// and generates the question. Returns null when nothing is playable.
+// and generates the question. Returns null only when no skill in the pool
+// can produce a playable question.
 export function selectExercise(
   profile: Profile,
   skills: SkillDefinition[],
@@ -54,49 +117,27 @@ export function selectExercise(
   const registered = new Set(getAllExerciseIds())
 
   // Available skills: not disabled, unlocked, not archived, with at least one applicable exercise registered.
-  const available = skills.filter(skill => {
+  const pool = skills.filter(skill => {
     if (skill.disabled) return false
     const state = profile.skills[skill.id]
     if (!state?.unlocked || state.archived) return false
     return skill.applicableExercises.some(id => registered.has(id))
   })
-  if (available.length === 0) return null
 
-  // Uniform skill pick for now. Scheduler refinements go here later.
-  const skill = available[Math.floor(Math.random() * available.length)]
-  const score = profile.skills[skill.id]?.score ?? 0
-
-  // Intersect: skill's applicable list × registered × non-zero weight for this skill
-  const weights = getWeights(skill.id, score)
-  const candidates: [string, number][] = []
-  for (const exId of skill.applicableExercises) {
-    if (!registered.has(exId)) continue
-    const w = weights[exId] ?? 0
-    if (w > 0) candidates.push([exId, w])
+  // Uniform skill pick for now (scheduler refinements go here later), but a
+  // skill that can't produce a question drops out and the rest get a chance.
+  while (pool.length > 0) {
+    const idx = Math.floor(Math.random() * pool.length)
+    const skill = pool[idx]
+    const question = buildQuestion(
+      skill,
+      profile.skills[skill.id]?.score ?? 0,
+      getWeights,
+      registered,
+      ctx?.lastQuestion ?? null,
+    )
+    if (question) return question
+    pool.splice(idx, 1)
   }
-  if (candidates.length === 0) return null
-
-  // Generate the problem first so isCompatible can filter exercises.
-  const problem = skill.generate()
-  const { a, b } = problemOperands(problem)
-  const filteredCandidates = candidates.filter(([exId]) => {
-    const def = getExercise(exId)
-    return !def.isCompatible || def.isCompatible(a, b)
-  })
-  if (filteredCandidates.length === 0) return null
-
-  const exerciseId = weightedPick(filteredCandidates)
-  const def = getExercise(exerciseId)
-  const meta = def.generateMeta(a, b, score)
-
-  return {
-    exerciseId,
-    skillId: skill.id,
-    problem,
-    operandA: a,
-    operandB: b,
-    op: problem.op,
-    answer: computeAnswer(problem),
-    meta,
-  }
+  return null
 }
