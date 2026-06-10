@@ -33,7 +33,7 @@ interface Feedback {
 
 export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const [question, setQuestion] = useState<ExerciseQuestion | null>(() =>
-    selectExercise(profile, SKILLS, getWeights)
+    selectExercise(profile, SKILLS, getWeights, { records: diagnostics.getAll(profile.id) })
   )
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [history, setHistory] = useState<boolean[]>([])
@@ -110,9 +110,11 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     const completed = roundsDone + 1
     // Failure response (didactics: re-scaffold, don't move on): a wrong answer
     // brings the same problem back one tier down — once. A wrong retry moves on.
+    // The fresh record stream rides along so weak exercises get upweighted.
+    const records = diagnostics.getAll(profile.id)
     const ctx: SelectionContext = correct || question.isRetry
-      ? { lastQuestion: question }
-      : { retry: question, lastQuestion: question }
+      ? { lastQuestion: question, records }
+      : { retry: question, lastQuestion: question, records }
     setTimeout(() => nextQuestion(updatedProfile, completed, ctx), correct ? FEEDBACK.correctMs : FEEDBACK.wrongMs)
   }, [feedback, question, profile, onProfileUpdate, nextQuestion, roundsDone])
 

@@ -1,8 +1,10 @@
 import type { Problem, SkillDefinition, WeightFunction } from '../curriculum/types'
 import type { Profile } from '../state/types'
 import type { ExerciseQuestion } from '../exercises/types'
+import type { AnswerRecord } from './diagnostics'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { computeAnswer, problemOperands } from './answer'
+import { exerciseFactors } from './weightFactors'
 
 function weightedPick<T>(items: [T, number][]): T {
   const total = items.reduce((s, [, w]) => s + w, 0)
@@ -17,13 +19,17 @@ function weightedPick<T>(items: [T, number][]): T {
 // ─── Selection context ────────────────────────────────────────────────────────
 // The seam through which the answer loop steers selection. Today it carries
 // the retry request (didactics: respond to failure by re-scaffolding, not by
-// moving on); the future scheduler and error-driven remediation plug in here.
+// moving on) and the profile's answer stream (drives the dynamic weight
+// factors); the future scheduler plugs in here.
 export interface SelectionContext {
   // Re-present this exact problem one scaffolding tier lower. Same skill,
   // same exercise, same operands — only the tier drops.
   retry?: ExerciseQuestion
   // The question just answered; used to avoid an immediate repeat.
   lastQuestion?: ExerciseQuestion | null
+  // The profile's persisted answer records; weak exercises get their weight
+  // inflated via exerciseFactors. Omitted (e.g. in tests) → all factors 1.
+  records?: AnswerRecord[]
 }
 
 // Rebuild a just-failed question one tier down. Tier thresholds live in the
@@ -60,15 +66,20 @@ function buildQuestion(
   score: number,
   getWeights: WeightFunction,
   registered: Set<string>,
-  lastQuestion: ExerciseQuestion | null,
+  ctx: SelectionContext | undefined,
 ): ExerciseQuestion | null {
-  // Intersect: skill's applicable list × registered × non-zero weight for this skill
+  const lastQuestion = ctx?.lastQuestion ?? null
+
+  // Intersect: skill's applicable list × registered × non-zero weight for this
+  // skill. Base weight is multiplied by the dynamic error-chasing factor —
+  // a zero base weight stays zero (the factor never resurrects an exercise).
   const weights = getWeights(skill.id, score)
+  const factors = ctx?.records ? exerciseFactors(ctx.records, skill.id) : {}
   const candidates: [string, number][] = []
   for (const exId of skill.applicableExercises) {
     if (!registered.has(exId)) continue
     const w = weights[exId] ?? 0
-    if (w > 0) candidates.push([exId, w])
+    if (w > 0) candidates.push([exId, w * (factors[exId] ?? 1)])
   }
   if (candidates.length === 0) return null
 
@@ -134,7 +145,7 @@ export function selectExercise(
       profile.skills[skill.id]?.score ?? 0,
       getWeights,
       registered,
-      ctx?.lastQuestion ?? null,
+      ctx,
     )
     if (question) return question
     pool.splice(idx, 1)

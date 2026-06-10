@@ -29,9 +29,9 @@ export interface GenerateContext {
 // A skill is narrow and atomic. The math it covers never changes —
 // only the presentation (exercise type) shifts as the score moves.
 //
-// `unlockedBy`: ALL listed prerequisites must be unlocked AND at the 'par'
-//   mastery milestone (see engine/mastery.ts) before this skill becomes
-//   available. An empty list means the skill is a root.
+// `unlockedBy`: ALL listed prerequisites must be unlocked AND at score
+//   ≥ UNLOCK_THRESHOLD before this skill becomes available. An empty list
+//   means the skill is a root.
 // `unlocks`: inverse of `unlockedBy` from the other side, kept for readability;
 //   the engine derives behaviour from `unlockedBy` only.
 // `subsumedBy`: the single skill that — once unlocked AND this skill is at score

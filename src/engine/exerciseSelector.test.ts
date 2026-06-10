@@ -5,6 +5,7 @@ import { pickTier } from '../exercises/tiers'
 import type { ExerciseTier } from '../exercises/types'
 import type { Problem, SkillDefinition, WeightFunction } from '../curriculum/types'
 import type { Profile } from '../state/types'
+import type { AnswerRecord } from './diagnostics'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -13,17 +14,19 @@ const TIERS: ExerciseTier[] = [
   { id: 'hi', label: 'hi', minScore: 50, description: '' },
 ]
 
-registerExercise({
-  id: 'sel-ex',
-  label: 'sel',
-  supportsReveal: false,
-  tiers: TIERS,
-  didactics: { goal: '', pitfalls: [], progression: '' },
-  generateMeta: (_a: number, _b: number, score: number) => ({ tierId: pickTier(TIERS, score).id }),
-  Component: () => null,
-})
+for (const id of ['sel-ex', 'sel-ex-2']) {
+  registerExercise({
+    id,
+    label: 'sel',
+    supportsReveal: false,
+    tiers: TIERS,
+    didactics: { goal: '', pitfalls: [], progression: '' },
+    generateMeta: (_a: number, _b: number, score: number) => ({ tierId: pickTier(TIERS, score).id }),
+    Component: () => null,
+  })
+}
 
-function mkSkill(id: string, generate: () => Problem): SkillDefinition {
+function mkSkill(id: string, generate: () => Problem, exercises: string[] = ['sel-ex']): SkillDefinition {
   return {
     id,
     name: id,
@@ -33,7 +36,7 @@ function mkSkill(id: string, generate: () => Problem): SkillDefinition {
     unlockedBy: [],
     unlocks: [],
     subsumedBy: null,
-    applicableExercises: ['sel-ex'],
+    applicableExercises: exercises,
     generate,
   }
 }
@@ -121,5 +124,45 @@ describe('repeat avoidance', () => {
     const next = selectExercise(profile, [skill], weighted, { lastQuestion: last })
     expect(next).not.toBeNull()
     expect(next!.problem).toEqual(p1)
+  })
+})
+
+// ─── Dynamic weight factor ────────────────────────────────────────────────────
+
+describe('dynamic weight factor', () => {
+  let t = 0
+  const wrongRec = (exerciseId: string): AnswerRecord => ({
+    timestamp: ++t, profileId: 'p', skillId: 's-fac', exerciseId,
+    op: '+', operandA: 1, operandB: 2, correctAnswer: 3,
+    correct: false, errorType: 'unclassified',
+  })
+
+  it('a failing exercise gets served more often', () => {
+    const skill = mkSkill('s-fac', () => ({ op: '+', terms: [1, 2] }), ['sel-ex', 'sel-ex-2'])
+    const profile = mkProfile({ 's-fac': 0 })
+    const equal: WeightFunction = () => ({ 'sel-ex': 10, 'sel-ex-2': 10 })
+    // Enough wrongs to pin sel-ex-2 at the cap (factor 3) → expected share 75%.
+    const records = Array.from({ length: 6 }, () => wrongRec('sel-ex-2'))
+
+    let hits = 0
+    const draws = 400
+    for (let i = 0; i < draws; i++) {
+      const q = selectExercise(profile, [skill], equal, { records })
+      if (q?.exerciseId === 'sel-ex-2') hits++
+    }
+    // Generous bound: without the factor the share would hover around 50%.
+    expect(hits / draws).toBeGreaterThan(0.6)
+  })
+
+  it('never resurrects a zero-weight exercise', () => {
+    const skill = mkSkill('s-fac', () => ({ op: '+', terms: [1, 2] }), ['sel-ex', 'sel-ex-2'])
+    const profile = mkProfile({ 's-fac': 0 })
+    const oneDead: WeightFunction = () => ({ 'sel-ex': 10, 'sel-ex-2': 0 })
+    const records = Array.from({ length: 6 }, () => wrongRec('sel-ex-2'))
+
+    for (let i = 0; i < 50; i++) {
+      const q = selectExercise(profile, [skill], oneDead, { records })
+      expect(q?.exerciseId).toBe('sel-ex')
+    }
   })
 })
