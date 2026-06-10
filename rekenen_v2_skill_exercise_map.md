@@ -115,7 +115,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `splitsen-herken-5`, `getalbegrip-10`
 - **`subsumed_by`**: `getalbegrip-10`
 - **Generator**: pick n ∈ [1, 5]
-- **Applicable exercise types**: `count-and-tap`, `dot-pattern-recognise`, `finger-pattern-recognise`, `numberline-place`, `compare-more-less`, `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
+- **Applicable exercise types**: `count-and-tap`, `dot-pattern-recognise`, `finger-pattern-recognise`, `numberline-place`, `compare-more-less`, `compare-pick`, `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
 
 #### `getalbegrip-10`
 - **Name**: Getalbegrip tot 10
@@ -123,7 +123,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocked_by`**: `getalbegrip-5`
 - **`unlocks`**: `splitsen-tot-10`, `+1-2-tot-10`, `-1-2-tot-10`
 - **`subsumed_by`**: `null` (would be `getalbegrip-20`, out of scope)
-- **Generator**: n ∈ [1, 10]
+- **Generator**: n ∈ [1, 10], biased 70% to [6, 10] — the skill's identity is the 5-anchor extension; 1–5 keeps a refresh share
 - **Applicable exercise types**: as `getalbegrip-5` plus `rekenrek-show`, `ten-frame-show`, `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
 
 ### Splitsen
@@ -375,7 +375,8 @@ These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flem
 | `dot-pattern-recognise` | "hoeveel?" with a dice/structured dot pattern | structured dots | choice / numpad | low–mid |
 | `finger-pattern-recognise` | hand picture, kid identifies how many | hands | choice | low |
 | `numberline-place` | "waar staat 7?" | empty number line | tap on line | mid |
-| `compare-more-less` | which group has more / fewer | two groups | choice | low–mid |
+| `compare-more-less` | which group has more/fewer (two groups), growing into meest/minst across three; counter size and spacing vary per group so row length is no cue | 2–3 counter groups | tap group | low–mid |
+| `compare-pick` | given anchor A and a relation — meer dan / minder dan / evenveel als — pick the B that satisfies it; the home of evenveel and of per-relation diagnostics (relation recorded per answer) | anchor + 4 options | tap option | mid |
 | `rekenrek-show` | shows N beads in 5-structure, kid names the number | 20-bead rack | numpad / choice | mid — *parked: open design question (see CLAUDE.md → Parked)* |
 | `ten-frame-show` | partly filled ten-frame | ten-frame | numpad / choice | mid |
 | `number-sequence-order` | drag numerals into low→high order on a strip; gap-fill at higher score | shuffled numeral tiles + strip | drag | low–mid |

@@ -85,8 +85,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 
 | Skill | Exercises | Matrix |
 |---|---|---|
-| `getalbegrip-5` | ✅ all 11 live (incl. `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`); `rekenrek-show` parked | ✅ tuned |
-| `getalbegrip-10` | ✅ all tested (same exercises as -5, handles 1–10) | ✅ tuned |
+| `getalbegrip-5` | ✅ all 12 live (incl. `compare-pick`); `rekenrek-show` parked | ✅ tuned |
+| `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ 7 live: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje` + width probes `splits-build-it`, `splits-shuffle`, `same-split-or-different`, `splits-match`; `rekenrek-decompose` listed but not built | 🟡 initial guesses for the 4 width probes — playtest before trusting |
 | `splitsen-noteren-5` *(disabled — no exercises built)* | 🔲 notation family not built (splitshuisje, splitsbenen, splits-vrij, splits-ontbreken-rechts/links, splits-alle) | 🔲 |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
@@ -99,20 +99,21 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 
 | ID | File | Status |
 |---|---|---|
-| `count-and-tap` | `CountAndTap.tsx` | ✅ done |
+| `count-and-tap` | `CountAndTap.tsx` | ✅ done (2 phases: tap-count with running chip, then "hoeveel waren er?" choice — the cardinality probe; total never shown) |
 | `dot-pattern-recognise` | `DotPatternRecognise.tsx` | ✅ done |
 | `finger-pattern-recognise` | `FingerPatternRecognise.tsx` | ✅ done |
 | `numberline-place` | `NumberlinePlace.tsx` | ✅ done |
-| `compare-more-less` | `CompareMoreLess.tsx` | ✅ done |
+| `compare-more-less` | `CompareMoreLess.tsx` | ✅ done (3 tiers: twee meer/minder → drie meest/minst → getallen; per-group counter size/gap de-confounds row length) |
+| `compare-pick` | `ComparePick.tsx` | ✅ done (relation-to-anchor incl. evenveel; tiers beeld/getal at 0/60; relation recorded as `variant`) |
 | `ten-frame-show` | `TenFrameShow.tsx` | ✅ done |
 | `dot-pattern-decompose` | `DotPatternDecompose.tsx` | ✅ done (4 reveal stages: die-die / die-numchoice / num-num / all-num at score 0/24/50/74) |
 | `splits-frame` | `SplitsFrame.tsx` | ✅ done (3 tiers: die-tap / num-tap / num-pad at score 0/30/70; `isCompatible` rejects a=0 or b=0) |
 | `splits-herken-huisje` | `SplitsHerkenHuisje.tsx` | ✅ done (4 tiers: die-both drag / die-one choose / die-numaid choose / num-two choose at score 0/24/50/74; drag-and-drop via pointer events) |
-| `number-sequence-order` | `NumberSequenceOrder.tsx` | ✅ done |
+| `number-sequence-order` | `NumberSequenceOrder.tsx` | ✅ done (4 tiers: with-start / gap-fill / shuffle / sparse at 0/30/55/75; tap-back un-place + ✓ confirm) |
 | `show-me-on-ten-frame` | `ShowMeOnTenFrame.tsx` | ✅ done |
-| `numberline-read` | `NumberlineRead.tsx` | ✅ done |
+| `numberline-read` | `NumberlineRead.tsx` | ✅ done (target cell: bouncing arrow + pulse) |
 | `quantity-match` | `QuantityMatch.tsx` | ✅ done |
-| `subitise-flash` | `SubitiseFlash.tsx` | ✅ done |
+| `subitise-flash` | `SubitiseFlash.tsx` | ✅ done (in-exercise replays recorded as `replayCount`) |
 | `same-split-or-different` | `SameSplitOrDifferent.tsx` | ✅ done (weights are initial guesses) |
 | `splits-match` | `SplitsMatch.tsx` | ✅ done (weights are initial guesses) |
 | `splits-shuffle` | `SplitsShuffle.tsx` | ✅ done (weights are initial guesses) |
@@ -206,10 +207,13 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Carries `tiers` (declared scaffolding levels) and `didactics`; optional `isCompatible(a, b)` guard. Also `ExerciseTier`, `ExerciseDidactics`, `AnswerDetail` (the optional `onResolve` payload). |
 | `src/exercises/tiers.ts` | Shared `pickTier(tiers, score)` — picks the active scaffolding tier (highest `minScore <= score`) |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
+| `src/exercises/choiceOptions.ts` | Shared range-clamped numeral-distractor builder (`makeNumeralOptions`) — tot-5 never shows a numeral above 5 |
+| `src/presentation/diePatterns.ts` | Canonical die/subitising `DOT_POS` map — single source (splitsen files still migrate) |
 | `src/exercises/index.ts` | Imports all exercise files to trigger registration |
 | `src/exercises/DotPatternDecompose.tsx` | `dot-pattern-decompose` — perceptual splits exercise (4 stages, choice buttons, reveal animation) |
 | `src/exercises/SplitsFrame.tsx` | `splits-frame` — joined-square frame, 3 tiers (die-tap / num-tap / num-pad) |
 | `src/exercises/SplitsHerkenHuisje.tsx` | `splits-herken-huisje` — splitshuisje intro, house shape, drag-and-drop, 4 tiers |
+| `src/exercises/ComparePick.tsx` | `compare-pick` — relation-to-anchor choice (meer/minder/evenveel), 2 tiers |
 | `src/exercises/FillVisual.tsx` | `fill-vis` — visual fill (dots / scene groups) |
 | `src/exercises/FillPlain.tsx` | `fill-plain` — plain numpad |
 | `src/exercises/Choice.tsx` | `choice` — 4-option multiple choice |
