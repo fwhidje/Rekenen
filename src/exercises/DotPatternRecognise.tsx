@@ -2,6 +2,8 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
+import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
   { id: 'recognise', minScore: 0, label: 'herkennen', description: 'Read a die / dot pattern and pick its numeral — the 5-structure carries 6–10.' },
@@ -12,24 +14,7 @@ interface DotPatternRecogniseMeta {
   tierId: string
 }
 
-// Canonical subitising positions for 1–5 as [x%, y%] in a square container
-const DOT_POS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
-function makeOptions(correct: number): number[] {
-  const pool = new Set([correct])
-  for (const delta of [-1, 1, -2, 2, 3, -3]) {
-    const v = correct + delta
-    if (v >= 1) pool.add(v)
-    if (pool.size === 4) break
-  }
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
-}
 
 // ─── Dot pattern visual ───────────────────────────────────────────────────────
 
@@ -108,7 +93,7 @@ const DotPatternRecognise: ExerciseDefinition<DotPatternRecogniseMeta> = {
     ],
     progression: 'Single tier; difficulty scales with the quantity, leaning on the 5-structure for 6–10.',
   },
-  generateMeta(operandA) { return { options: makeOptions(operandA), tierId: 'recognise' } },
+  generateMeta(operandA) { return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' } },
   Component: DotPatternRecogniseComponent,
 }
 

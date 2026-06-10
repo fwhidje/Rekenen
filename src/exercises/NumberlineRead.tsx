@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { makeNumeralOptions } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choice', minScore: 0,  label: 'kiezen',   description: 'Number line with one cell highlighted; kid picks the numeral from a strip of 4 options.' },
@@ -17,15 +18,6 @@ interface NumberlineReadMeta {
   tierId: string
 }
 
-function makeOptions(correct: number, max: number): number[] {
-  const pool = new Set([correct])
-  for (const delta of [-1, 1, -2, 2, 3, -3]) {
-    const v = correct + delta
-    if (v >= 0 && v <= max) pool.add(v)
-    if (pool.size === 4) break
-  }
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 4)
-}
 
 // ─── Read-only number line with a highlighted cell ──────────────────────────
 
@@ -130,7 +122,7 @@ const NumberlineRead: ExerciseDefinition<NumberlineReadMeta> = {
   },
   generateMeta(operandA, _b, score) {
     const max = operandA <= 5 ? 5 : 10
-    return { max, options: makeOptions(operandA, max), tierId: pickTier(TIERS, score).id }
+    return { max, options: makeNumeralOptions(operandA, max, 0), tierId: pickTier(TIERS, score).id }
   },
   Component: NumberlineReadComponent,
 }

@@ -4,6 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
 import type { SceneTokens } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
@@ -24,13 +25,6 @@ interface QuantityMatchMeta {
   tiles: RepSpec[]      // match & pairs tiers (6, shuffled)
 }
 
-const DOT_POS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
 function shuffle<T>(a: T[]): T[] { return [...a].sort(() => Math.random() - 0.5) }
 

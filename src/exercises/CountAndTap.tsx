@@ -4,6 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
 
 const TIERS: ExerciseTier[] = [
   { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters one by one — recognisable items to count, the most concrete presentation.' },
@@ -16,14 +17,6 @@ interface CountAndTapMeta {
   tierId: string
 }
 
-// Canonical subitising positions for 1–5 as [x%, y%] in a square container
-const DOT_POS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
 // ─── Counter chip ─────────────────────────────────────────────────────────────
 

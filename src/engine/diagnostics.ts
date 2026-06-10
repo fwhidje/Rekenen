@@ -35,6 +35,7 @@ export interface AnswerRecord {
   errorType: ErrorType | null   // null when correct
   responseTimeMs?: number
   tapCount?: number             // multi-step exercises (counter / collect)
+  replayCount?: number          // in-exercise replays (e.g. subitise-flash re-shows)
 }
 
 // Everything the classifier needs to tag a wrong answer.
@@ -70,8 +71,9 @@ export function classifyError(input: ClassifierInput): ErrorType {
   // Tienvrienden: the pair doesn't make ten.
   if (skillId === 'tienvrienden' && givenAnswer + operandA !== 10) return 'tienvriend-mismatch'
 
-  // Regurgitated one of the operands.
-  if (givenAnswer === operandA || givenAnswer === operandB) return 'near-miss'
+  // Regurgitated one of the operands. Count problems carry operandB = 0 as an
+  // encoding artifact, not an operand — never tag those as near-miss.
+  if (op !== 'count' && (givenAnswer === operandA || givenAnswer === operandB)) return 'near-miss'
 
   return 'unclassified'
 }

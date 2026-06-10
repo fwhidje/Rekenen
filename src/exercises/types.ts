@@ -29,6 +29,7 @@ export interface ExerciseQuestion<Meta = Record<string, unknown>> {
 export interface AnswerDetail {
   givenAnswer?: number   // the value the child chose / typed
   tapCount?: number      // multi-step exercises (counter / collect)
+  replayCount?: number   // in-exercise replays (e.g. subitise-flash re-shows)
 }
 
 // ─── Component contract ───────────────────────────────────────────────────────
