@@ -1,5 +1,13 @@
 # REKENEN v2 — Skill & Exercise Map
 
+> **Ownership note** — this document is authoritative for *curriculum design
+> rationale*: the skill graph, the exercise-type catalog, the error taxonomy
+> and the didactic decisions behind them. **Implementation status lives in
+> `CLAUDE.md` only** — do not record build/weight status here; it rots. When
+> code and this document disagree on *status*, trust `CLAUDE.md` and the code
+> (`npm test` runs a curriculum-consistency check); when they disagree on
+> *design intent*, flag it.
+
 Working draft for the v2 curriculum data. Covers everything up to and including **splitsen tot 10** and **+/- tot 10** (end of L1 Period 2 in the Flemish progression). Out of scope here: getalbegrip tot 20, +/- tot 20 zonder brug, brug van 10. They extend the same shape and will be added later.
 
 This is meant as input for Claude Code. All open questions from earlier drafts have been resolved (see *Resolved decisions* at the bottom).
@@ -10,7 +18,7 @@ This is meant as input for Claude Code. All open questions from earlier drafts h
 
 - **Skill IDs**: kebab-case, lowercase, scope-suffixed (e.g. `splitsen-tot-10`, `aftrekken-wegnemen-5`).
 - **Vocabulary**: Flemish (splitsen, tienvrienden, dubbel, helft, buurgetal, wegnemen, verschil, aanvullen) — not NL variants.
-- **Score model**: each skill has its own 0–100 score; unlock threshold 60 (one-way); presentation difficulty lives in the score → exercise-type weight, not in the skill itself.
+- **Score model**: each skill has its own 0–100 score — the *scaffolding dial*; presentation difficulty lives in the score → exercise-type weight, not in the skill itself. Unlocking is **not** score-based: a skill becomes available when all its prerequisites reach the `par` mastery milestone (enough recent attempts at high accuracy in *every* weighted exercise family — see `CLAUDE.md` → core model and `src/engine/mastery.ts`). Unlocks stay one-way.
 - **Generator pattern**: a small predicate over (a, b, op) describing what the engine may sample for that skill.
 
 ### Three independent skill relationships
@@ -107,7 +115,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `splitsen-herken-5`, `getalbegrip-10`
 - **`subsumed_by`**: `getalbegrip-10`
 - **Generator**: pick n ∈ [1, 5]
-- **Applicable exercise types**: `count-and-tap`, `dot-pattern-recognise`, `finger-pattern-recognise`, `numberline-place`, `compare-more-less` · *(skeletons — see catalog)* `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
+- **Applicable exercise types**: `count-and-tap`, `dot-pattern-recognise`, `finger-pattern-recognise`, `numberline-place`, `compare-more-less`, `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
 
 #### `getalbegrip-10`
 - **Name**: Getalbegrip tot 10
@@ -116,7 +124,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `splitsen-tot-10`, `+1-2-tot-10`, `-1-2-tot-10`
 - **`subsumed_by`**: `null` (would be `getalbegrip-20`, out of scope)
 - **Generator**: n ∈ [1, 10]
-- **Applicable exercise types**: as `getalbegrip-5` plus `rekenrek-show`, `ten-frame-show` · *(skeletons — see catalog)* `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
+- **Applicable exercise types**: as `getalbegrip-5` plus `rekenrek-show`, `ten-frame-show`, `number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`
 
 ### Splitsen
 
@@ -127,7 +135,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `splitsen-noteren-5`, `+1-2-tot-5`, `-1-2-tot-5`, `splitsen-tot-10` *(see open question above)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD if tot-10 also splits)*
 - **Generator**: total ∈ [2, 5]; (a, b) with a+b = total, a ≥ 1, b ≥ 1 (no trivial 0-splits)
-- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)* · *(skeletons — see catalog)* `same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`
+- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)*, `same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`
 
 #### `splitsen-noteren-5`
 - **Name**: Splitsen noteren tot 5
@@ -336,15 +344,15 @@ These types live under `splitsen-herken-5` / `-10`. They show a total and ask "w
 | `dot-pattern-decompose` | total shown as die-pattern dots, child picks the missing part | structured dots (1 or 2 dies) | 4-choice buttons | low–mid |
 | `splits-frame` | total above a row of cells; known cells filled, ghost cells to tap/count/type | joined-square frame | tap / numpad (per tier) | low–high |
 | `splits-herken-huisje` | splitshuisje-shaped scaffold for recognition: total on the roof, two part-rooms below, child fills/picks the parts | splitshuisje silhouette + dots/numerals per tier | drag / choice (per tier) | low–mid |
-| `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) — *not yet implemented* |
-| `same-split-or-different` | two splits shown; "is it the same split or different?" (order-independence; cross-representation at higher score) | two split visuals | ja / nee | low–mid — *skeleton — design artifact, not implemented* |
-| `splits-match` | match a split across representations (dots ↔ splitshuisje ↔ ten-frame); memory-pairs at higher score | mixed split representations | choice / tap | mid — *skeleton — design artifact, not implemented* |
-| `splits-shuffle` | dots regroup into a new split via animation; conservation check ("still 5?") then identify the new split | animated dot regroup | ja-nee / choice | low–mid — *skeleton — design artifact, not implemented* |
-| `splits-build-it` | swipe to cut the total into two groups; targeted cut ("left = 2") at higher score | dot row / die-pattern | swipe-to-cut | low–mid — *skeleton — design artifact, not implemented* |
+| `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) |
+| `same-split-or-different` | two splits shown; "is it the same split or different?" (order-independence; cross-representation at higher score) | two split visuals | ja / nee | low–mid |
+| `splits-match` | match a split across representations (dots ↔ splitshuisje ↔ ten-frame); memory-pairs at higher score | mixed split representations | choice / tap | mid |
+| `splits-shuffle` | dots regroup into a new split via animation; conservation check ("still 5?") then identify the new split | animated dot regroup | ja-nee / choice | low–mid |
+| `splits-build-it` | swipe to cut the total into two groups; targeted cut ("left = 2") at higher score | dot row / die-pattern | swipe-to-cut | low–mid |
 
 > **Parked**: `dot-pattern-decompose-pad` — same visual as `dot-pattern-decompose` but numpad input instead of choice buttons; would only be weighted from score ≥ 12 (i.e. where the child already reads numbers). Uncertain whether this adds enough over `splits-frame` tier 3 to be worth building as a separate exercise type.
 
-> **Skeletons** (`same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`): captured in code under `src/exercises/` with full didactics + tiers, but **no program reference** — not in `EX`, not in any `applicableExercises`, not imported in `index.ts`. Pure design artifacts. See CLAUDE.md → Parked.
+> Implementation status of every exercise type lives in **CLAUDE.md → Exercise file status** (ownership note at the top of this file).
 
 ### Splitsen notation (production)
 
@@ -368,15 +376,15 @@ These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flem
 | `finger-pattern-recognise` | hand picture, kid identifies how many | hands | choice | low |
 | `numberline-place` | "waar staat 7?" | empty number line | tap on line | mid |
 | `compare-more-less` | which group has more / fewer | two groups | choice | low–mid |
-| `rekenrek-show` | shows N beads in 5-structure, kid names the number | 20-bead rack | numpad / choice | mid — *parked, not yet implemented (see CLAUDE.md)* |
+| `rekenrek-show` | shows N beads in 5-structure, kid names the number | 20-bead rack | numpad / choice | mid — *parked: open design question (see CLAUDE.md → Parked)* |
 | `ten-frame-show` | partly filled ten-frame | ten-frame | numpad / choice | mid |
-| `number-sequence-order` | drag numerals into low→high order on a strip; gap-fill at higher score | shuffled numeral tiles + strip | drag | low–mid — *skeleton — design artifact, not implemented* |
-| `show-me-on-ten-frame` | reverse of `ten-frame-show`: tap cells to fill exactly N | empty ten-frame | tap | low–mid — *skeleton — design artifact, not implemented* |
-| `numberline-read` | reverse of `numberline-place`: name the numeral at a marked position | number line, one cell marked | choice / numpad | mid — *skeleton — design artifact, not implemented* |
-| `quantity-match` | match the same quantity across representations (dots/fingers/ten-frame/numeral); memory-pairs at higher score | mixed representations | choice / tap | mid — *skeleton — design artifact, not implemented* |
-| `subitise-flash` | pattern flashes ~1s then hides; name the quantity (retry replays the same pattern) | timed structured pattern | choice / numpad | mid — *skeleton — design artifact, not implemented* |
+| `number-sequence-order` | drag numerals into low→high order on a strip; gap-fill at higher score | shuffled numeral tiles + strip | drag | low–mid |
+| `show-me-on-ten-frame` | reverse of `ten-frame-show`: tap cells to fill exactly N | empty ten-frame | tap | low–mid |
+| `numberline-read` | reverse of `numberline-place`: name the numeral at a marked position | number line, one cell marked | choice / numpad | mid |
+| `quantity-match` | match the same quantity across representations (dots/fingers/ten-frame/numeral); memory-pairs at higher score | mixed representations | choice / tap | mid |
+| `subitise-flash` | pattern flashes ~1s then hides; name the quantity (retry replays the same pattern) | timed structured pattern | choice / numpad | mid |
 
-> **Skeletons** (`number-sequence-order`, `show-me-on-ten-frame`, `numberline-read`, `quantity-match`, `subitise-flash`): captured in code under `src/exercises/` with full didactics + tiers, but **no program reference** — not in `EX`, not in any `applicableExercises`, not imported in `index.ts`. Pure design artifacts. See CLAUDE.md → Parked.
+> Implementation status of every exercise type lives in **CLAUDE.md → Exercise file status** (ownership note at the top of this file).
 
 ### Optellen presentations
 
@@ -432,22 +440,31 @@ Notes:
 
 ## Per-question record + error-type taxonomy
 
-Per-question records capture both correctness and *type of error*. The diagnostic value: an off-by-one error in `aftrekken-wegnemen-5` says something different (still terugtelling) than a reversal (non-commutativity not grasped) or a semantic-narrow error (treated as addition). The engine doesn't have to act on these signals in v2 — recording them reliably is enough; biasing scaffolding off them becomes a v2.x feature once there's data to look at.
+Per-question records capture both correctness and *type of error*. The diagnostic value: an off-by-one error in `aftrekken-wegnemen-5` says something different (still terugtelling) than a reversal (non-commutativity not grasped) or a semantic-narrow error (treated as addition). The stream is captured and persisted per profile (`src/engine/diagnostics.ts` + `src/state/diagnosticsStorage.ts`) and already drives the `par`/`vlot` mastery milestones via accuracy and response time; biasing scaffolding off the *error types* becomes a v2.x feature once there's data to look at.
 
 ### Record shape
 
+As implemented (`AnswerRecord` in `src/engine/diagnostics.ts` is the source of truth):
+
 ```
 {
-  timestamp:      ISO string,
+  timestamp:      epoch ms,
+  profileId:      string,
   skillId:        string,
-  exerciseType:   string,                       // e.g. "fill-vis", "splitshuisje"
-  problem:        { a, b, op: '+'|'-'|'split' },
-  presentation:   object | null,                // optional render details (scene, sub-pattern, etc.)
-  givenAnswer:    any,
-  correctAnswer:  any,
+  exerciseId:     string,                  // e.g. "fill-vis", "splitshuisje"
+  tierId?:        string,                  // active scaffolding tier
+  variant?:       string,                  // presentation / semantic framing (future use)
+  isRetry?:       boolean,                 // re-scaffolded retry of a just-failed problem
+  op:             '+'|'-'|'split'|'count'|'half',
+  semanticForm?:  'wegnemen'|'verschil'|'aanvullen',
+  operandA:       number,
+  operandB:       number,
+  correctAnswer:  number,
+  givenAnswer?:   number,                  // when the exercise reports it
   correct:        boolean,
-  errorType:      enum | null,                  // null when correct == true
-  responseTimeMs: number | null
+  errorType:      enum | null,             // null when correct == true
+  responseTimeMs?: number,
+  tapCount?:      number                   // multi-step exercises
 }
 ```
 

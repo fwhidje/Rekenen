@@ -1,5 +1,19 @@
 # Rekenen v2 — Core Logic Model
 
+> **⚠ FROZEN — historical decision record.** This note captures the core-logic
+> model as originally designed and is no longer maintained. Current truth lives
+> in `CLAUDE.md` (engine model + implementation status) and
+> `rekenen_v2_skill_exercise_map.md` (curriculum design). Known deltas since
+> the engine-foundations rework (June 2026):
+>
+> 1. Unlocking is **no longer score-threshold-based** — a skill unlocks when all
+>    prerequisites reach the `par` mastery milestone (per-exercise-family
+>    accuracy over the persisted answer stream, `src/engine/mastery.ts`). The
+>    0–100 score remains as the scaffolding dial only.
+> 2. Per-question answer records are persisted per profile (localStorage).
+> 3. A wrong answer triggers a re-scaffolded retry of the same problem.
+> 4. Generators return a typed `Problem` (named roles per operation), not `{a, b, op}`.
+
 Reference for all subsequent discussion of curriculum / skill / scoring logic.
 The previous 4-level model is **abandoned** and should not be used as a framework.
 

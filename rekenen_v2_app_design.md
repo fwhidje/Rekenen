@@ -1,5 +1,10 @@
 # Rekenen v2 — App Design Reference
 
+> **⚠ FROZEN — historical decision record.** This was the working document for
+> the original app-design conversation (deployment, persistence, module shape)
+> and is no longer maintained. The decisions it records were taken; how things
+> actually are now lives in `CLAUDE.md`. Do not update this file.
+
 Working document for the app-design conversation. The **core logic** (skills, scoring, unlocks, score → exercise-type weighting) is settled and lives in a separate note (`core_logic.md` summary). This document covers everything *around* that core: how the app is built, runs, persists, looks, and gets iterated on.
 
 ---
