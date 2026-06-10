@@ -14,16 +14,20 @@ const TODO = 'TODO — beschrijf welke oefening waar in de score-curve komt en w
 
 export const EXERCISE_PLAN: Record<string, string> = {
   'getalbegrip-5':
-    'Leads with count-and-tap (weight 40→5): at low score the child still counts concretely, ' +
-    'so tapping items one by one is the right support. As the score climbs the weight shifts to ' +
-    'dot-pattern-recognise (5→30) and ten-frame-show (10→25): structured, subitisable arrangements ' +
-    'that reward seeing a quantity at a glance rather than counting it. compare-more-less stays a ' +
-    'constant 15 throughout as an orthogonal check on quantity comparison. The arc is ' +
+    'Leads with count-and-tap (weight 40→5): at low score the child still counts concretely, so ' +
+    'tapping items one by one — then naming the total (the cardinality probe) — is the right ' +
+    'support. As the score climbs the weight shifts to dot-pattern-recognise (5→30) and ' +
+    'ten-frame-show (10→25): structured, subitisable arrangements that reward seeing a quantity ' +
+    'at a glance rather than counting it. compare-more-less stays a constant 15 as the ' +
+    'perceptual comparison check (meer/minder of two → meest/minst of three via its tiers); ' +
+    'compare-pick phases in from 25 (relation-to-anchor, the home of evenveel). The arc is ' +
     'concrete counting → structured perception.',
   'getalbegrip-10':
-    'Same shape as getalbegrip-5 but across 1–10, leaning harder on the 5-structure presentations ' +
-    '(ten-frame, rekenrek) as the score rises so 6–10 are perceived via the 5-anchor instead of ' +
-    'counted by ones.',
+    'Same arc as getalbegrip-5 across 1–10 (the generator serves the 6–10 band 70% of the time), ' +
+    'but leaning more on the 5-structure presentations, full stop: ten-frame-show 18→28, ' +
+    'finger-pattern-recognise 12→28 and show-me-on-ten-frame 20 carry the 5-anchor so 6–10 are ' +
+    'perceived as 5+n instead of counted by ones. number-sequence-order earns 30 here — its ' +
+    'sparse tier (ordering non-consecutive numerals) only gets interesting in this range.',
   'splitsen-herken-5':
     'Seven recognition exercises share the rotation. Early: splits-herken-huisje dominates (40, the ' +
     'canonical scaffold) with dot-pattern-decompose (30), splits-build-it (25, enactive swipe-to-cut) ' +

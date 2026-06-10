@@ -25,6 +25,7 @@ const EX = {
   fingerPatternRecognise:'finger-pattern-recognise',
   numberlinePlace:       'numberline-place',
   compareMoreLess:       'compare-more-less',
+  comparePick:           'compare-pick',
   rekenrekShow:          'rekenrek-show',
   tenFrameShow:          'ten-frame-show',
   numberSequenceOrder:   'number-sequence-order',
@@ -93,7 +94,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'getalbegrip-10',
     applicableExercises: [
       EX.countAndTap, EX.dotPatternRecognise, EX.fingerPatternRecognise,
-      EX.numberlinePlace, EX.compareMoreLess, EX.tenFrameShow, EX.rekenrekShow,
+      EX.numberlinePlace, EX.compareMoreLess, EX.comparePick, EX.tenFrameShow, EX.rekenrekShow,
       EX.numberSequenceOrder, EX.showMeOnTenFrame, EX.numberlineRead,
       EX.quantityMatch, EX.subitiseFlash,
     ],
@@ -119,11 +120,13 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: null,
     applicableExercises: [
       EX.countAndTap, EX.dotPatternRecognise, EX.fingerPatternRecognise,
-      EX.numberlinePlace, EX.compareMoreLess, EX.rekenrekShow, EX.tenFrameShow,
+      EX.numberlinePlace, EX.compareMoreLess, EX.comparePick, EX.rekenrekShow, EX.tenFrameShow,
       EX.numberSequenceOrder, EX.showMeOnTenFrame, EX.numberlineRead,
       EX.quantityMatch, EX.subitiseFlash,
     ],
-    generate: () => ({ op: 'count', n: rnd(1, 10) }),
+    // 70% in the 6–10 band — the skill's identity is the 5-anchor extension;
+    // 1–5 keeps a 30% refresh share (and rotates via getalbegrip-5 until that caps).
+    generate: () => ({ op: 'count', n: Math.random() < 0.7 ? rnd(6, 10) : rnd(1, 5) }),
   },
 
   // ── Splitsen ────────────────────────────────────────────────────────────────

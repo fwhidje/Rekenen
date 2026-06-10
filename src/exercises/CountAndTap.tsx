@@ -5,18 +5,20 @@ import { pickTier } from './tiers'
 import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { DOT_POS } from '../presentation/diePatterns'
+import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
+import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters one by one — recognisable items to count, the most concrete presentation.' },
-  { id: 'dots',  minScore: 40, label: 'stippen',    description: 'Tap subitising die-patterns — structured dots that nudge toward seeing rather than counting.' },
+  { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters one by one (running count shown), then name the total from 4 numerals — the cardinality probe.' },
+  { id: 'dots',  minScore: 40, label: 'stippen',    description: 'Same flow over subitising die-patterns — structured dots that nudge toward seeing rather than counting.' },
 ]
 
 interface CountAndTapMeta {
   style: 'emoji' | 'dots'
   sceneIndex: number
+  options: number[]
   tierId: string
 }
-
 
 // ─── Counter chip ─────────────────────────────────────────────────────────────
 
@@ -30,16 +32,15 @@ function CounterChip({ count, ink, paper }: { count: number; ink: string; paper:
     return () => clearTimeout(t)
   }, [count])
 
-  if (count === 0) return null
-
   return (
     <div style={{
       fontFamily: 'Fredoka One, cursive', fontSize: 22,
       color: ink, background: paper,
       border: `2px solid ${ink}`, borderRadius: 50,
-      padding: '3px 16px',
+      padding: '3px 16px', minWidth: 22, textAlign: 'center',
+      opacity: count === 0 ? 0.35 : 1,
       transform: bump ? 'scale(1.18)' : 'scale(1)',
-      transition: 'transform .15s ease',
+      transition: 'transform .15s ease, opacity .2s',
     }}>{count}</div>
   )
 }
@@ -60,39 +61,70 @@ function TapDot({ tapped, onClick, color }: { tapped: boolean; onClick: () => vo
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
+// Two phases: tap every item while the chip counts along (one-to-one
+// correspondence), then — the total was never shown — name how many there were
+// from 4 numerals. The choice is the cardinality probe: the count has to have
+// become a quantity, not just a tapping rhythm.
 
-function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentProps<CountAndTapMeta>) {
+function CountAndTapComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<CountAndTapMeta>) {
   const { operandA, meta } = question
   const [tapped, setTapped] = useState(new Set<number>())
-  const done = tapped.size === operandA
+  const [phase, setPhase] = useState<'tap' | 'howmany'>('tap')
   const legacyScene = pickScene(meta.sceneIndex)
-  const { ink, paper, accent, confirm, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, cream, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
+
+  const done = tapped.size === operandA
+
+  useEffect(() => { setTapped(new Set()); setPhase('tap') }, [operandA, meta])
 
   useEffect(() => {
-    if (done) {
-      const t = setTimeout(() => onResolve(true, { givenAnswer: operandA, tapCount: operandA }), 700)
+    if (done && phase === 'tap') {
+      const t = setTimeout(() => setPhase('howmany'), 500)
       return () => clearTimeout(t)
     }
-  }, [done, onResolve, operandA])
+  }, [done, phase])
 
   const tap = (i: number) => {
     if (done || tapped.has(i)) return
     setTapped(s => new Set([...s, i]))
   }
 
-  const targetBox = (
+  const prompt = (
     <div style={{
-      minWidth: 72, height: 72,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Fredoka One, cursive', fontSize: 48,
-      background: done ? confirm : accent,
-      color: 'white', border: `2px solid ${ink}`, borderRadius: 16,
-      boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)',
-      transition: 'background .35s',
-    }}>{operandA}</div>
+      background: cream, border: `2px solid ${ink}`, borderRadius: 18,
+      padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
+      fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
+    }}>{phase === 'tap' ? 'Tel maar!' : 'Hoeveel waren er?'}</div>
   )
 
-  // ── Counter / emoji style ─────────────────────────────────────────────────
+  // ── Cardinality question — items gone, chip hidden ────────────────────────
+  if (phase === 'howmany') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
+        {prompt}
+        <div style={{
+          width: 130, height: 130, borderRadius: 16, border: `2px dashed ${ink}55`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Fredoka One, cursive', fontSize: 48, color: `${ink}40`,
+        }}>?</div>
+        <ChoiceButtons
+          options={meta.options}
+          onPick={v => onResolve(v === operandA, { givenAnswer: v, tapCount: operandA })}
+          disabled={disabled}
+          tokens={scene?.tokens}
+        />
+      </div>
+    )
+  }
+
+  // ── Tap phase ──────────────────────────────────────────────────────────────
+  const header = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      {prompt}
+      <CounterChip count={tapped.size} ink={ink} paper={paper} />
+    </div>
+  )
+
   if (meta.style === 'emoji') {
     const row1 = Math.min(operandA, 5)
     const row2 = operandA - row1
@@ -120,10 +152,7 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {targetBox}
-          <CounterChip count={tapped.size} ink={ink} paper={paper} />
-        </div>
+        {header}
         <div style={{ background: containerBg, borderRadius: 16, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 10 }}>
             {Array.from({ length: row1 }, (_, i) => renderItem(i))}
@@ -158,10 +187,7 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
   if (operandA <= 5) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {targetBox}
-          <CounterChip count={tapped.size} ink={ink} paper={paper} />
-        </div>
+        {header}
         <div style={{ position: 'relative', width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
           {renderDieSquare(operandA, dot, 0, 130)}
         </div>
@@ -173,10 +199,7 @@ function CountAndTapComponent({ question, onResolve, scene }: ExerciseComponentP
   const right = operandA - 5
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        {targetBox}
-        <CounterChip count={tapped.size} ink={ink} paper={paper} />
-      </div>
+      {header}
       <div style={{
         background: paper, borderRadius: 16, border: `2px solid ${ink}`,
         padding: '10px 14px',
@@ -198,17 +221,22 @@ const CountAndTap: ExerciseDefinition<CountAndTapMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Operationalises one-to-one correspondence and cardinality (the telprincipes): every item gets exactly one count, and the last spoken word is the quantity. Links the count to its written numeral.',
+    goal: 'Operationalises one-to-one correspondence AND cardinality (the telprincipes): every item gets exactly one tap, and afterwards — the total was never shown — the child names how many there were. The final choice is the cardinality probe: the count has to have become a quantity.',
     pitfalls: [
-      'Skipping or double-tapping items (one-to-one breakdown).',
-      'Tapping faster than the count, so the synchrony breaks unnoticed.',
-      'Cardinality gap — taps every item, watches the counter rise, but doesn\'t connect the final number to "this many".',
+      'Cardinality gap — taps every item, watches the chip rise, but can\'t answer "hoeveel waren er?" once the items are gone.',
+      'Reads the chip mid-count instead of counting along — the reconfirm then tests chip memory, not cardinality (mitigated by hiding the chip during the question).',
+      'Off-by-one on the reconfirm — lost the count near the end of the tapping.',
     ],
     progression: 'Themed counters at low score (concrete, recognisable items to count) shift to die-pattern dots at higher score — the same count, but the pattern starts doing the seeing for the child. First step out of counting toward subitising.',
   },
-  generateMeta(_a, _b, score) {
+  generateMeta(operandA, _b, score) {
     const tier = pickTier(TIERS, score)
-    return { style: tier.id as CountAndTapMeta['style'], sceneIndex: Math.floor(Math.random() * 24), tierId: tier.id }
+    return {
+      style: tier.id as CountAndTapMeta['style'],
+      sceneIndex: Math.floor(Math.random() * 24),
+      options: makeNumeralOptions(operandA, numeralRangeMax(operandA)),
+      tierId: tier.id,
+    }
   },
   Component: CountAndTapComponent,
 }
