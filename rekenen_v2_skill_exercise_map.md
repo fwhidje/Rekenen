@@ -18,7 +18,7 @@ This is meant as input for Claude Code. All open questions from earlier drafts h
 
 - **Skill IDs**: kebab-case, lowercase, scope-suffixed (e.g. `splitsen-tot-10`, `aftrekken-wegnemen-5`).
 - **Vocabulary**: Flemish (splitsen, tienvrienden, dubbel, helft, buurgetal, wegnemen, verschil, aanvullen) — not NL variants.
-- **Score model**: each skill has its own 0–100 score — the *scaffolding dial*; presentation difficulty lives in the score → exercise-type weight, not in the skill itself. Unlocking is **not** score-based: a skill becomes available when all its prerequisites reach the `par` mastery milestone (enough recent attempts at high accuracy in *every* weighted exercise family — see `CLAUDE.md` → core model and `src/engine/mastery.ts`). Unlocks stay one-way.
+- **Score model**: each skill has its own 0–100 score; unlock threshold 60 (one-way); presentation difficulty lives in the score → exercise-type weight, not in the skill itself. Selection weights are additionally multiplied by a dynamic per-exercise factor that inflates on wrong answers, so a weak exercise recruits airtime and the score can't cross the threshold while a weakness is live — see `CLAUDE.md` → *Score model rationale* for why the scalar gate is sound.
 - **Generator pattern**: a small predicate over (a, b, op) describing what the engine may sample for that skill.
 
 ### Three independent skill relationships
@@ -440,7 +440,7 @@ Notes:
 
 ## Per-question record + error-type taxonomy
 
-Per-question records capture both correctness and *type of error*. The diagnostic value: an off-by-one error in `aftrekken-wegnemen-5` says something different (still terugtelling) than a reversal (non-commutativity not grasped) or a semantic-narrow error (treated as addition). The stream is captured and persisted per profile (`src/engine/diagnostics.ts` + `src/state/diagnosticsStorage.ts`) and already drives the `par`/`vlot` mastery milestones via accuracy and response time; biasing scaffolding off the *error types* becomes a v2.x feature once there's data to look at.
+Per-question records capture both correctness and *type of error*. The diagnostic value: an off-by-one error in `aftrekken-wegnemen-5` says something different (still terugtelling) than a reversal (non-commutativity not grasped) or a semantic-narrow error (treated as addition). The stream is captured and persisted per profile (`src/engine/diagnostics.ts` + `src/state/diagnosticsStorage.ts`) and already drives the dynamic per-exercise weight factor via correctness; biasing scaffolding off the *error types* becomes a v2.x feature once there's data to look at.
 
 ### Record shape
 

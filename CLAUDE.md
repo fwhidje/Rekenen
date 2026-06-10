@@ -71,7 +71,7 @@ components. No exercise file needs to change.
 ## ★ Round 2 progress — implement all exercise types
 
 Round 1 (done): curriculum data, engine, DebugMode. All 22 skills defined in `skills.ts` (splitsen-tot-5 split into herken/noteren halves).
-Engine foundations (done, June 2026): persisted answer stream, family-par unlock gates, retry-one-tier-down, typed `Problem`, curriculum validation, vitest suite — see Core model.
+Engine foundations (done, June 2026): persisted answer stream, retry-one-tier-down, typed `Problem`, dynamic per-exercise weight factors, curriculum validation, vitest suite — see Core model.
 Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tuned per skill.
 
 ### Procedure (per skill)
@@ -164,19 +164,23 @@ Status rots when it lives in more than one place. The rules:
 
 ## Core model (read first)
 
-Skills are narrow and atomic. Each carries a 0–100 score — the **scaffolding dial**: it controls which *exercise type* is chosen (weight matrix) and which tier scaffolds it, never the math the skill covers. Score moves +1 on correct, −3 on wrong (`engine/scoring.ts`).
+Skills are narrow and atomic. Each carries a 0–100 score that is both the **scaffolding dial** (which exercise type via the weight matrix, which tier within it — never the math the skill covers) **and the unlock gate**. Score moves +1 on correct, −3 on wrong; prerequisites must be unlocked and at score ≥ 60 (`UNLOCK_THRESHOLD`, `engine/scoring.ts`).
 
-**Mastery is not the score.** Whether a skill is mastered is a *width* claim computed from the persisted answer stream (`engine/mastery.ts`):
-- **`par`** — every *gate family* (applicable ∩ registered ∩ ever-weighted exercise id) has ≥ 8 of the last 20 attempts at ≥ 80% accuracy. **Unlock edges gate on this**, so grinding one exercise family can't unlock downstream.
-- **`vlot`** — par + median response time on recent correct answers ≤ 3s per family. Implemented, referenced by no edge yet; the future brug-van-10 edges will require it (automatised tienvrienden/splitsen).
-Thresholds are tweakables at the top of `mastery.ts`; DebugMode shows the live per-family gate state.
+### Score model rationale (why the scalar gate is sound)
 
-**The answer stream is the most important schema in the app.** Every answer becomes an `AnswerRecord` (`engine/diagnostics.ts`), persisted per profile in localStorage (`state/diagnosticsStorage.ts`, capped FIFO). Extend it additively; everything downstream (gates, future scheduler/remediation) is a derivation over it.
+- Under +1/−3 the expected score drift per answer is `4p − 3` (p = accuracy): the score only climbs on sustained **≥ 75% accuracy** and collapses at 50%. Crossing 60 is a mastery signal, not a volume count.
+- The **engine** controls the exercise mix (weight matrix + tiers keyed to the score), not the child — so the score measures accuracy over a curriculum-chosen, increasingly abstract mix. The weight matrix *is* the implicit facet schedule. There is deliberately no separate facet/par/vlot gating system: one was built and removed (git history, June 2026) — it was tier-blind in practice and made fluency probes block unlocks.
+- Unlock at 60 = **basic mastery**: ready to start the next skill while this one keeps deepening 60 → 100 in dual rotation (leerlijn overlap). The most abstract tiers (minScore 70+) and automatisation are deliberately *post*-unlock content.
+- The one structural leak in a scalar gate — **weak-exercise masking** (a rarely-served weak exercise is outvoted by strong ones, so the score crosses 60 with a live hole) — is closed by the dynamic weight factor below.
 
-**Failure response:** a wrong answer brings the *same problem* back once, one scaffolding tier lower, scene held stable (didactics: re-scaffold, don't move on). Retries are flagged `isRetry` and excluded from par statistics. The `SelectionContext` parameter of `selectExercise` is the seam where this — and the future scheduler — plugs in.
+**Dynamic per-exercise weight factor** (`engine/weightFactors.ts`): a wrong answer adds +0.5 to that exercise's selection-weight multiplier, a correct one subtracts 0.25, clamped to [1, 3]. A weak exercise recruits airtime until its errors dominate the score drift — the score cannot cross 60 while a weakness is live. Combined with the −3 dial drop and the retry, failure means "more of this exercise, in an easier form" (CSA move 1, not the more-of-the-same anti-move). The factor is **stored nowhere**: a pure fold over the answer stream per (profile, skill, exercise), window 20, retries excluded; constants are tweakables at the top of the file. A factor pinned at 3 (⚠ in DebugMode and the Admin inspector) is a *look at this exercise* signal, not a drill-harder signal.
+
+**The answer stream is the most important schema in the app.** Every answer becomes an `AnswerRecord` (`engine/diagnostics.ts`), persisted per profile in localStorage (`state/diagnosticsStorage.ts`, capped FIFO). Extend it additively; everything downstream (weight factors, stats, future scheduler/remediation) is a derivation over it.
+
+**Failure response:** a wrong answer brings the *same problem* back once, one scaffolding tier lower, scene held stable (didactics: re-scaffold, don't move on). Retries are flagged `isRetry` and excluded from factor and stats computations. The `SelectionContext` parameter of `selectExercise` is the seam where this — and the future scheduler — plugs in.
 
 Three independent skill relationships:
-- **`unlockedBy`** — list of prereq skill ids; ALL must be unlocked AND at `par` before this skill becomes available. Archived prereqs are grandfathered (they can no longer produce records).
+- **`unlockedBy`** — list of prereq skill ids; ALL must be unlocked AND at score ≥ `UNLOCK_THRESHOLD` before this skill becomes available. Archived prereqs satisfy implicitly (archival requires the capped score).
 - **`unlocks`** — inverse, kept for readability; the engine derives behaviour from `unlockedBy` only.
 - **`subsumedBy`** — single parent skill; when this skill caps at 100 AND the parent is unlocked, this skill is archived (removed from rotation, score preserved). `null` means never archive (typically fact-recall: tienvrienden, dubbels, helften).
 
@@ -191,10 +195,11 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/curriculum/weightMatrix.ts` | Per-skill weight tables (`SKILL_TABLES`); falls back to default global curve for untuned skills |
 | `src/curriculum/exercisePlan.ts` | Per-skill exercise-progression narrative (`EXERCISE_PLAN`) — the "why this order" doc layer over the weight curves; coverage-checked |
 | `src/curriculum/validate.ts` | Dev-time consistency checks across applicableExercises × registry × weight tables × EXERCISE_PLAN; runs after exercise registration |
-| `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX (scaffolding dial only) |
-| `src/engine/mastery.ts` | `par`/`vlot` milestone predicates over the answer stream; gate families; tweakable thresholds |
+| `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD (dial + unlock gate) |
+| `src/engine/exerciseStats.ts` | Per-exercise recent attempts / accuracy / median-RT reporting kernel (feeds the DebugMode mix monitor; nothing gates on it) |
+| `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants |
 | `src/engine/diagnostics.ts` | `AnswerRecord` (the long-term schema), `ErrorType`, `classifyError`, `DiagnosticsSink` + persisted singleton `diagnostics` |
-| `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator — gates on `par`, grandfathers archived prereqs |
+| `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator (unlocked + score ≥ UNLOCK_THRESHOLD) |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question; `SelectionContext` (retry one tier down, repeat avoidance); re-draws instead of returning null |
 | `src/engine/answer.ts` | `computeAnswer(problem)` + `problemOperands(problem)` (legacy a/b view) |
@@ -221,7 +226,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop |
-| `src/ui/AdminMode.tsx` | Profile management |
+| `src/ui/AdminMode.tsx` | Profile management + read-only per-profile state inspector (📊: scores, statuses, live weight factors) |
 | `src/ui/components/` | NumPad, ChoiceButtons, TFButtons |
 
 ## Adding a new exercise type
