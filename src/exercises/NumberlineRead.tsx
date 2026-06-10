@@ -36,14 +36,23 @@ function NumberLineStrip({ target, max, ink, paper, accent }: {
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+      {/* The marked cell must be unmissable: bouncing arrow + pulsing ring. */}
+      <style>{`
+        @keyframes nlr-bounce { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-7px) } }
+        @keyframes nlr-pulse  { 0%, 100% { box-shadow: 0 0 0 0 ${accent}88 } 50% { box-shadow: 0 0 0 7px ${accent}00 } }
+      `}</style>
       {numbers.map((n, idx) => {
         const isFirst = idx === 0
         const isLast  = idx === numbers.length - 1
         const isTarget = n === target
         return (
           <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ height: 18, color: ink, fontSize: 18 }}>{isTarget ? '▼' : ''}</div>
             <div style={{
+              height: 26, fontSize: 22, color: accent, lineHeight: 1,
+              animation: isTarget ? 'nlr-bounce 0.9s ease-in-out infinite' : undefined,
+            }}>{isTarget ? '▼' : ''}</div>
+            <div style={{
+              animation: isTarget ? 'nlr-pulse 1.4s ease-in-out infinite' : undefined,
               width: cellW, height: cellW,
               background: isTarget ? accent : paper,
               borderTop:    `2px solid ${ink}`, borderBottom: `2px solid ${ink}`,
