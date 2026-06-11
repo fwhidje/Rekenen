@@ -11,7 +11,7 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 ## Parked — needs design review before implementing
 
-- **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Dutch teaching materials use the rekenrek at this age — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants.
+- **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Dutch teaching materials use the rekenrek at this age — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants — `rekenrek-decompose` was removed from `splitsen-herken-5` for the same reason and stays listed only under `splitsen-tot-10`, where the 5-structure earns it.
 
 ---
 
@@ -87,7 +87,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 |---|---|---|
 | `getalbegrip-5` | ✅ all 12 live (incl. `compare-pick`); `rekenrek-show` parked | ✅ tuned |
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
-| `splitsen-herken-5` | ✅ 7 live: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje` + width probes `splits-build-it`, `splits-shuffle`, `same-split-or-different`, `splits-match`; `rekenrek-decompose` listed but not built | 🟡 initial guesses for the 4 width probes — playtest before trusting |
+| `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
 | `splitsen-noteren-5` *(disabled — no exercises built)* | 🔲 notation family not built (splitshuisje, splitsbenen, splits-vrij, splits-ontbreken-rechts/links, splits-alle) | 🔲 |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
@@ -107,7 +107,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `compare-pick` | `ComparePick.tsx` | ✅ done (relation-to-anchor incl. evenveel; tiers beeld/getal at 0/60; relation recorded as `variant`) |
 | `ten-frame-show` | `TenFrameShow.tsx` | ✅ done |
 | `dot-pattern-decompose` | `DotPatternDecompose.tsx` | ✅ done (4 reveal stages: die-die / die-numchoice / num-num / all-num at score 0/24/50/74) |
-| `splits-frame` | `SplitsFrame.tsx` | ✅ done (3 tiers: die-tap / num-tap / num-pad at score 0/30/70; `isCompatible` rejects a=0 or b=0) |
+| `splits-frame` | `SplitsFrame.tsx` | ✅ redesigned (3 tiers: die-keuze dots / getal-keuze numerals / num-pad at 0/30/70; '?' cell + reveal-and-merge animation; prompt carries the split statement '5 is 2 en ?') |
 | `splits-herken-huisje` | `SplitsHerkenHuisje.tsx` | ✅ done (4 tiers: die-both drag / die-one choose / die-numaid choose / num-two choose at score 0/24/50/74; drag-and-drop via pointer events) |
 | `number-sequence-order` | `NumberSequenceOrder.tsx` | ✅ done (4 tiers: with-start / gap-fill / shuffle / sparse at 0/30/55/75; tap-back un-place + ✓ confirm) |
 | `show-me-on-ten-frame` | `ShowMeOnTenFrame.tsx` | ✅ done |
@@ -115,9 +115,9 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `quantity-match` | `QuantityMatch.tsx` | ✅ done |
 | `subitise-flash` | `SubitiseFlash.tsx` | ✅ done (in-exercise replays recorded as `replayCount`) |
 | `same-split-or-different` | `SameSplitOrDifferent.tsx` | ✅ done (weights are initial guesses) |
-| `splits-match` | `SplitsMatch.tsx` | ✅ done (weights are initial guesses) |
-| `splits-shuffle` | `SplitsShuffle.tsx` | ✅ done (weights are initial guesses) |
-| `splits-build-it` | `SplitsBuildIt.tsx` | ✅ done (weights are initial guesses) |
+| `splits-match` | `SplitsMatch.tsx` | ✅ done (3 tiers: choose / koppelen face-up pairing / memory at 0/40/75) |
+| `splits-shuffle` | `SplitsShuffle.tsx` | ✅ rebuilt (whole visibly splits, original stays greyed as referent; tiers kijk / klopt-het trick-verify / welke-splitsing at 0/30/60) |
+| `splits-build-it` | `SplitsBuildIt.tsx` | ✅ done (open: cut + name the hidden part; gericht: 'Splits 5 in 2 en 3', either cut order accepted) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
 | `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 24; uncertain whether worth a separate type (see skill map) |
 | `fill-vis` | `FillVisual.tsx` | ⚠️ `+` only — needs `-`, `split`, `count`, `half` |
@@ -127,7 +127,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `collect-tap` | `CollectTap.tsx` | ⚠️ `+` only |
 | `collect-counter` | `CollectCounter.tsx` | ⚠️ `+` only |
 | `numberline-jump` | `NumberLine.tsx` | ⚠️ `+` only |
-| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — **Next stop** (skill `splitsen-noteren-5` is split out and disabled; lift WIP gate once any of these are built) |
+| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — together with the +/− round (skill `splitsen-noteren-5` is disabled; lift WIP gate once any of these are built) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific (7 types) | — | 🔲 not built |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -208,10 +208,10 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/tiers.ts` | Shared `pickTier(tiers, score)` — picks the active scaffolding tier (highest `minScore <= score`) |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
 | `src/exercises/choiceOptions.ts` | Shared range-clamped numeral-distractor builder (`makeNumeralOptions`) — tot-5 never shows a numeral above 5 |
-| `src/presentation/diePatterns.ts` | Canonical die/subitising `DOT_POS` map — single source (splitsen files still migrate) |
+| `src/presentation/diePatterns.ts` | Canonical die/subitising `DOT_POS` map — single source |
 | `src/exercises/index.ts` | Imports all exercise files to trigger registration |
 | `src/exercises/DotPatternDecompose.tsx` | `dot-pattern-decompose` — perceptual splits exercise (4 stages, choice buttons, reveal animation) |
-| `src/exercises/SplitsFrame.tsx` | `splits-frame` — joined-square frame, 3 tiers (die-tap / num-tap / num-pad) |
+| `src/exercises/SplitsFrame.tsx` | `splits-frame` — part + '?' frame with reveal-and-merge, 3 tiers (die-keuze / getal-keuze / num-pad) |
 | `src/exercises/SplitsHerkenHuisje.tsx` | `splits-herken-huisje` — splitshuisje intro, house shape, drag-and-drop, 4 tiers |
 | `src/exercises/ComparePick.tsx` | `compare-pick` — relation-to-anchor choice (meer/minder/evenveel), 2 tiers |
 | `src/exercises/FillVisual.tsx` | `fill-vis` — visual fill (dots / scene groups) |
@@ -283,7 +283,7 @@ npm run build     # production build
 
 ## Exercise invariants (locked)
 
-- **The equation is always visible.** Every exercise shows the operation — no exceptions.
+- **The equation is always visible.** Every exercise shows the operation — no exceptions. For splitsen the equation analog is the split statement ("5 is 2 en ?"): visible as text from the numeral tiers upward; at fully concrete tiers the structured visual (colour-split die, frame, huisje) carries the same statement.
 - **Reveal exercises build the equation piece by piece on a timer.** The sequence is: visual group A → `+` → visual group B → number A → `+` → number B → `= ?`. The child watches, input is locked until complete.
 - **Reveal detail is each exercise's own concern.** Which steps are included and their timing depends on exercise type and score. High score → no reveal, equation is instant.
 - **The visual is an illustration, not a gate.** Dots/scenes appear alongside their number, not instead of it.
