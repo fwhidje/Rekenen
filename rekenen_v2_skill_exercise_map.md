@@ -134,8 +134,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocked_by`**: `getalbegrip-5`
 - **`unlocks`**: `splitsen-noteren-5`, `+1-2-tot-5`, `-1-2-tot-5`, `splitsen-tot-10` *(see open question above)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD if tot-10 also splits)*
-- **Generator**: total ∈ [2, 5]; (a, b) with a+b = total, a ≥ 1, b ≥ 1 (no trivial 0-splits)
-- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `rekenrek-decompose` *(see also parked: `dot-pattern-decompose-pad`)*, `same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it`
+- **Generator**: total ∈ [2, 5] weighted 1:2:3:4 (linger on 5, the structural anchor; total 2 only has 1+1); (a, b) with a+b = total, a ≥ 1, b ≥ 1 (no trivial 0-splits)
+- **Applicable exercise types**: `dot-pattern-decompose`, `splits-frame`, `splits-herken-huisje`, `same-split-or-different`, `splits-match`, `splits-shuffle`, `splits-build-it` *(rekenrek presentations deferred to tot-10 where the 5-structure earns them; see also parked: `dot-pattern-decompose-pad`)*
 
 #### `splitsen-noteren-5`
 - **Name**: Splitsen noteren tot 5
@@ -342,13 +342,13 @@ These types live under `splitsen-herken-5` / `-10`. They show a total and ask "w
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
 | `dot-pattern-decompose` | total shown as die-pattern dots, child picks the missing part | structured dots (1 or 2 dies) | 4-choice buttons | low–mid |
-| `splits-frame` | total above a row of cells; known cells filled, ghost cells to tap/count/type | joined-square frame | tap / numpad (per tier) | low–high |
+| `splits-frame` | known part in the frame, missing part a '?'; choose (dots → numerals) or type it, then watch the parts merge back into the whole — composition made visible | part + '?' frame, reveal-and-merge | choice / numpad (per tier) | low–high |
 | `splits-herken-huisje` | splitshuisje-shaped scaffold for recognition: total on the roof, two part-rooms below, child fills/picks the parts | splitshuisje silhouette + dots/numerals per tier | drag / choice (per tier) | low–mid |
 | `rekenrek-decompose` | beads on a rekenrek already showing the split, child names parts | 20-bead rack | choice / numpad | mid (esp. tot-10) |
 | `same-split-or-different` | two splits shown; "is it the same split or different?" (order-independence; cross-representation at higher score) | two split visuals | ja / nee | low–mid |
-| `splits-match` | match a split across representations (dots ↔ splitshuisje ↔ ten-frame); memory-pairs at higher score | mixed split representations | choice / tap | mid |
-| `splits-shuffle` | dots regroup into a new split via animation; conservation check ("still 5?") then identify the new split | animated dot regroup | ja-nee / choice | low–mid |
-| `splits-build-it` | swipe to cut the total into two groups; targeted cut ("left = 2") at higher score | dot row / die-pattern | swipe-to-cut | low–mid |
+| `splits-match` | match a split across representations (dots ↔ splitshuisje ↔ notation); face-up pair-forming mid-score, memory-pairs at the top | mixed split representations | choice / tap | mid |
+| `splits-shuffle` | a whole visibly splits into two groups while the original stays greyed as referent; conservation verified by comparison (some rounds cheat by one dot), then identify the resulting split | animated whole→split, greyed original | ja-nee / choice | low–mid |
+| `splits-build-it` | tap a gap to cut the row into two groups, then name the hidden part of your own split; at higher score "Splits 5 in 2 en 3" with either cut order accepted | dot row | tap-to-cut + choice | low–mid |
 
 > **Parked**: `dot-pattern-decompose-pad` — same visual as `dot-pattern-decompose` but numpad input instead of choice buttons; would only be weighted from score ≥ 12 (i.e. where the child already reads numbers). Uncertain whether this adds enough over `splits-frame` tier 3 to be worth building as a separate exercise type.
 

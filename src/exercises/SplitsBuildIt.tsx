@@ -2,43 +2,60 @@ import { Fragment, useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
+import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { makeNumeralOptions } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'open',     minScore: 0,  label: 'vrij',    description: 'Structured total shown as a row of dots, or canonical die-pattern. Kid swipes vertically to cut the visual into two groups; the cut snaps to the nearest valid gap between dots. App shows the resulting split; kid confirms it with a choice tile.' },
-  { id: 'targeted', minScore: 50, label: 'gericht', description: 'Same gesture, with a target — "maak een splitsing waar links 2 is". Kid has to cut at the right place rather than any place. The cut itself commits the answer, no confirmation step.' },
+  { id: 'open',    minScore: 0,  label: 'vrij',    description: 'Row of dots; kid taps a gap to cut it into two groups. One group\'s value is then revealed ("2 en ?") and the kid names the other from numeral options — producing a split AND reading it back.' },
+  { id: 'gericht', minScore: 50, label: 'gericht', description: '"Splits 5 in 2 en 3" — kid has to cut so the groups are 2 and 3, in either order (order-independence is in the mechanic). The cut itself commits the answer.' },
 ]
 
 const DOT_SIZE = 38
 const DOT_GAP = 10        // intra-row gap between adjacent dots
 const TAP_W = 28          // width of the tappable gap zone (overlaps adjacent dots)
-const RESOLVE_DELAY = 600 // ms between cut and onResolve
+const RESOLVE_DELAY = 600 // ms between gericht cut and onResolve
 
 interface SplitsBuildItMeta {
   tierId: string
   total: number
-  targetLeft: number | null   // null for open tier
+  parts: [number, number]   // gericht target; unused at open
 }
 
 function SplitsBuildItComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsBuildItMeta>) {
   const { operandA, operandB, meta } = question
-  const { tierId, total, targetLeft } = meta
+  const { tierId, total, parts } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream, accent, accentText, confirm, refuse, dot, pop } = tokens
+  const { ink, cream, accentText, refuse, dot, pop } = tokens
 
   // cut: gap index (1..total-1) = how many dots are in the left group
   const [cut, setCut] = useState<number | null>(null)
+  // open-tier confirm step: which side is revealed + the numeral options
+  const [confirmStep, setConfirmStep] = useState<{ revealLeft: boolean; options: number[] } | null>(null)
 
-  useEffect(() => { setCut(null) }, [operandA, operandB, tierId])
+  useEffect(() => { setCut(null); setConfirmStep(null) }, [operandA, operandB, tierId])
 
   const tapGap = (i: number) => {
     if (disabled || cut !== null) return
     setCut(i)
-    const correct = tierId === 'open' ? true : (targetLeft !== null && i === targetLeft)
-    setTimeout(() => onResolve(correct, { givenAnswer: i }), RESOLVE_DELAY)
+    if (tierId === 'gericht') {
+      // Either order of the asked parts is the same split.
+      const correct = i === parts[0] || i === parts[1]
+      setTimeout(() => onResolve(correct, { givenAnswer: i }), RESOLVE_DELAY)
+      return
+    }
+    // open: reveal one side, ask the other — parts in tot-5 run 1..4.
+    const revealLeft = Math.random() < 0.5
+    const hidden = revealLeft ? total - i : i
+    setConfirmStep({ revealLeft, options: makeNumeralOptions(hidden, 4) })
   }
 
-  // Track which dots are in the left group (coloured A) once cut.
+  const pickHidden = (v: number) => {
+    if (disabled || !confirmStep || cut === null) return
+    const hidden = confirmStep.revealLeft ? total - cut : cut
+    onResolve(v === hidden, { givenAnswer: v })
+  }
+
   const dotsInLeft = cut ?? 0
 
   return (
@@ -48,8 +65,8 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
       }}>
-        {tierId === 'targeted'
-          ? <>Maak waar links <span style={{ color: accentText }}>{targetLeft}</span> is</>
+        {tierId === 'gericht'
+          ? <>Splits {total} in <span style={{ color: refuse }}>{parts[0]}</span> en <span style={{ color: pop }}>{parts[1]}</span></>
           : <>Maak je eigen splitsing van <span style={{ color: accentText }}>{total}</span></>
         }
       </div>
@@ -89,11 +106,11 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
                   {cut === i + 1 && (
                     <div style={{
                       width: 3, height: DOT_SIZE + 18,
-                      background: accent, borderRadius: 2,
-                      boxShadow: `0 0 6px ${accent}88`,
+                      background: ink, borderRadius: 2,
+                      boxShadow: `0 0 6px ${ink}55`,
                     }} />
                   )}
-                  {/* Subtle hover hint when no cut */}
+                  {/* Subtle gap hint when no cut */}
                   {cut === null && !disabled && (
                     <div style={{
                       width: 2, height: DOT_SIZE - 4,
@@ -107,20 +124,26 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
         })}
       </div>
 
-      {/* Result feedback */}
+      {/* Result line: gericht shows the made split; open reveals one side and asks the other */}
       <div style={{
         height: 28,
         fontFamily: 'Fredoka One, cursive', fontSize: 22, color: ink,
         opacity: cut !== null ? 1 : 0.25, transition: 'opacity .2s',
       }}>
-        {cut !== null
-          ? <><span style={{ color: refuse }}>{cut}</span> en <span style={{ color: pop }}>{total - cut}</span></>
-          : <span style={{ fontSize: 14 }}>Tik tussen de stippen</span>
+        {cut === null
+          ? <span style={{ fontSize: 14 }}>Tik tussen de stippen</span>
+          : tierId === 'gericht'
+            ? <><span style={{ color: refuse }}>{cut}</span> en <span style={{ color: pop }}>{total - cut}</span></>
+            : confirmStep?.revealLeft
+              ? <><span style={{ color: refuse }}>{cut}</span> en <span style={{ color: pop }}>?</span></>
+              : <><span style={{ color: refuse }}>?</span> en <span style={{ color: pop }}>{total - cut}</span></>
         }
       </div>
 
-      {/* Hidden — tokens used to avoid unused-var lint */}
-      <span style={{ display: 'none' }}>{paper}{confirm}</span>
+      {/* Open-tier confirm: name the hidden part */}
+      {confirmStep && (
+        <ChoiceButtons options={confirmStep.options} onPick={pickHidden} disabled={disabled} tokens={scene?.tokens} />
+      )}
     </div>
   )
 }
@@ -131,19 +154,17 @@ const SplitsBuildIt: ExerciseDefinition<SplitsBuildItMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Active perceptual splitting — instead of reading a split that\'s already shown, the kid decides where a split can go. Gesture-driven; the splitting-as-a-thing-the-kid-controls move that no other recognition exercise gets at.',
+    goal: 'Active splitting — the kid decides where a split goes instead of reading one that\'s shown, then names what they made. Production plus read-back at open; targeted production at gericht, where either order of the asked parts counts (order-independence in the mechanic).',
     pitfalls: [
-      'Cuts to leave one side empty (effectively a 0+5, excluded by skill scope) — hasn\'t yet committed to "both parts must have at least one".',
-      'At targeted tier, cuts at the wrong gap and produces the right left-count by accident (e.g. by counting from the right side) — logged via the gap-index for diagnosis.',
-      'Hovering, false-starts, releases without committing — diagnostic of indecision rather than wrong reasoning.',
+      'Echoes the revealed part instead of naming the hidden one — doesn\'t flip to the other group.',
+      'Off-by-one when naming the hidden part — misreads the group they just made.',
+      'At gericht, cuts a split with the right total but the wrong sizes (e.g. 1|4 when 2 en 3 was asked).',
     ],
-    progression: 'open (any valid split, kid commits and confirms what they made) → targeted (specific split requested, kid has to cut at the right place). Free exploration narrows into guided production.',
+    progression: 'open (cut anywhere, then read back the split you made — production and naming in one loop) → gericht (cut a specific split on request, either order accepted). Free production narrows into guided production.',
   },
   generateMeta(operandA, operandB, score) {
     const tierId = pickTier(TIERS, score).id
-    const total = operandA + operandB
-    const targetLeft = tierId === 'targeted' ? operandA : null
-    return { tierId, total, targetLeft }
+    return { tierId, total: operandA + operandB, parts: [operandA, operandB] }
   },
   Component: SplitsBuildItComponent,
 }

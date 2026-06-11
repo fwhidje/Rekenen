@@ -3,17 +3,10 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const DOT_POS: Record<number, [number, number][]> = {
-  0: [],
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
 const GREY = '#b9aa92'
 const ROOM = 80
@@ -444,7 +437,7 @@ const SplitsHerkenHuisje: ExerciseDefinition<SplitsHerkenHuisjeMeta> = {
     goal: 'Recognise the split of a total inside the splitshuisje shape (totaal op het dak, delen in de kamers) — the canonical Flemish notation, used here in recognition mode. The bridge from perceptual splits to the formal notation that splitsen-noteren-5 will produce.',
     pitfalls: [
       'Drags the known part back — near-miss, doesn\'t engage with the split.',
-      'Swaps the two parts (a goes in b\'s room and vice versa) — order confusion inside the shape.',
+      'Picks the off-by-one distractor at the choose tiers — reads the die roughly instead of exactly.',
       'At num-two, fills both rows with the same split or duplicates a part across rows — early sign of the incomplete-enumeration pitfall that splitsen-noteren-5 will deal with head-on.',
     ],
     progression: 'die-both (drag both die-parts into colour-coded rooms — orientation; colour-coding constrains the answer so the focus is learning the house shape) → die-one (one part as a die, drag the other) → die-numaid (one part as a numeral with a small die in the roof as aid, drag a numeral) → num-two (two splits of the same total in one card, drag numerals into both — first taste of systematicity, foreshadowing "alle splitsingen"). Dots fade to numerals; the single-split task expands into a two-split one at the top.',

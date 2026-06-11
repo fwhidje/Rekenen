@@ -5,6 +5,14 @@ import type { SkillDefinition } from './types'
 const rnd = (lo: number, hi: number) => Math.floor(Math.random() * (hi - lo + 1)) + lo
 const pickFrom = <T>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)]
 
+// Weighted value pick: [[value, weight], ...]
+const pickWeighted = (pairs: [number, number][]): number => {
+  const sum = pairs.reduce((s, [, w]) => s + w, 0)
+  let r = Math.random() * sum
+  for (const [v, w] of pairs) { r -= w; if (r <= 0) return v }
+  return pairs[pairs.length - 1][0]
+}
+
 // ─── Exercise type ids ────────────────────────────────────────────────────────
 // Centralised so a typo in `applicableExercises` is a compile error, not a
 // silent runtime "no exercises available". Includes types stubbed in round 2.
@@ -149,11 +157,13 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['splitsen-noteren-5', '+1-2-tot-5', '-1-2-tot-5', 'splitsen-tot-10'],
     subsumedBy: 'splitsen-tot-10',
     applicableExercises: [
-      EX.dotPatternDecompose, EX.splitsFrame, EX.splitsHerkenHuisje, EX.rekenrekDecompose,
+      EX.dotPatternDecompose, EX.splitsFrame, EX.splitsHerkenHuisje,
       EX.sameSplitOrDifferent, EX.splitsMatch, EX.splitsShuffle, EX.splitsBuildIt,
     ],
     generate: () => {
-      const total = rnd(2, 5)
+      // Totals weighted 1:2:3:4 — linger on 5 (the structural anchor); total 2
+      // has only the trivial 1+1 and drops to a 10% share.
+      const total = pickWeighted([[2, 1], [3, 2], [4, 3], [5, 4]])
       const partA = rnd(1, total - 1)
       return { op: 'split', partA, partB: total - partA }
     },

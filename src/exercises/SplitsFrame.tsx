@@ -3,35 +3,31 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NumPad } from '../ui/components/NumPad'
+import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-
-const DOT_POS: Record<number, [number, number][]> = {
-  0: [],
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
+import { DOT_POS } from '../presentation/diePatterns'
+import { makeNumeralOptions } from './choiceOptions'
 
 const CELL = 54   // cell size (px)
 
-type Stage = 'die-tap' | 'num-tap' | 'num-pad'
+type Stage = 'die-keuze' | 'getal-keuze' | 'num-pad'
+type Phase = 'ask' | 'reveal' | 'merge'
 
 // Tier ids match the Stage values; thresholds (0/30/70) live here.
 const TIERS: ExerciseTier[] = [
-  { id: 'die-tap', minScore: 0,  label: 'stippen tikken', description: 'Tap the dots in a split-die to fill the missing part — concrete, one-to-one.' },
-  { id: 'num-tap', minScore: 30, label: 'cellen tikken',  description: 'The total is a numeral; tap frame cells to build the missing part.' },
-  { id: 'num-pad', minScore: 70, label: 'intikken',        description: 'Type the missing part on the numpad — symbolic, no tapping aid.' },
+  { id: 'die-keuze',   minScore: 0,  label: 'stippen kiezen', description: 'Total as a colour-split die; the known part sits in the frame, the missing part is a "?" — pick it as a dot tile. Fully perceptual, but a real decision.' },
+  { id: 'getal-keuze', minScore: 30, label: 'getal kiezen',   description: 'The split statement ("5 is 2 en ?") with the known part as dots; pick the missing part as a numeral.' },
+  { id: 'num-pad',     minScore: 70, label: 'intikken',        description: 'Same statement, missing part typed on the numpad — symbolic, no choice scaffold.' },
 ]
 
 interface SplitsFrameMeta {
   showA: boolean
   stage: Stage
+  options: number[]
   tierId: string
 }
 
-// ─── Die visual (tier 1) ─────────────────────────────────────────────────────
+// ─── Die visuals ─────────────────────────────────────────────────────────────
 
 function DieDots({ count, colours, size }: { count: number; colours: string[]; size: number }) {
   const positions = DOT_POS[count] ?? []
@@ -56,78 +52,73 @@ function SplitDie({ total, splitAt, colourA, colourB, ink, paper, size }: {
   ink: string; paper: string; size: number
 }) {
   const r = Math.max(8, Math.round(size * 0.12))
-  if (total <= 5) {
-    const colours = Array.from({ length: total }, (_, i) => i < splitAt ? colourA : colourB)
-    return (
-      <div style={{ width: size, height: size, background: paper, borderRadius: r, border: `2px solid ${ink}` }}>
-        <DieDots count={total} colours={colours} size={size} />
-      </div>
-    )
-  }
-  const leftCount = 5, rightCount = total - 5
-  const leftC  = Array.from({ length: leftCount },  (_, i) => i < splitAt ? colourA : colourB)
-  const rightC = Array.from({ length: rightCount }, (_, i) => (leftCount + i) < splitAt ? colourA : colourB)
-  const sq = Math.round(size * 0.85)
+  const colours = Array.from({ length: total }, (_, i) => i < splitAt ? colourA : colourB)
   return (
-    <div style={{ background: paper, borderRadius: r, border: `2px solid ${ink}`, padding: '8px 12px', display: 'flex', gap: 10, alignItems: 'center' }}>
-      <DieDots count={leftCount}  colours={leftC}  size={sq} />
-      <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
-      <DieDots count={rightCount} colours={rightC} size={sq} />
+    <div style={{ width: size, height: size, background: paper, borderRadius: r, border: `2px solid ${ink}` }}>
+      <DieDots count={total} colours={colours} size={size} />
     </div>
   )
 }
 
 // ─── Joined frame ─────────────────────────────────────────────────────────────
-// All cells share borders — one outer border, internal dividers only.
+// ask:    known cells with dots + ONE fixed-width "?" cell (its width must not
+//         leak the size of the missing part).
+// reveal: the "?" becomes the missing cells, dots pop in.
+// merge:  dividers fade and all dots take one colour — the parts visibly
+//         become the whole.
 
-function JoinedFrame({ knownVal, unknownVal, knownColour, unknownCol, ink, paper, tapped, showNumpad, onTap, disabled }: {
+function Frame({ knownVal, unknownVal, knownColour, unknownCol, mergeColour, ink, paper, phase }: {
   knownVal: number; unknownVal: number
-  knownColour: string; unknownCol: string
+  knownColour: string; unknownCol: string; mergeColour: string
   ink: string; paper: string
-  tapped: boolean[]; showNumpad: boolean
-  onTap: (i: number) => void; disabled: boolean
+  phase: Phase
 }) {
-  const total = knownVal + unknownVal
   const dotSize = Math.round(CELL * 0.52)
+  const merged = phase === 'merge'
+  const revealed = phase !== 'ask'
+
+  const cell = (key: string, content: React.ReactNode, withDivider: boolean) => (
+    <div key={key} style={{
+      width: CELL, height: CELL,
+      background: paper,
+      borderRight: withDivider ? `2px solid ${merged ? `${ink}00` : ink}` : 'none',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'border-color .5s',
+      userSelect: 'none',
+    }}>{content}</div>
+  )
+
+  const dot = (colour: string, key: string) => (
+    <div key={key} style={{
+      width: dotSize, height: dotSize, borderRadius: '50%',
+      background: colour, boxShadow: `0 2px 6px ${colour}88`,
+      transition: 'background-color .45s, box-shadow .45s',
+    }} />
+  )
+
+  const cells: React.ReactNode[] = []
+  for (let i = 0; i < knownVal; i++) {
+    const colour = merged ? mergeColour : knownColour
+    // Known cells always have a divider: the "?" or the revealed cells follow.
+    cells.push(cell(`k${i}`, dot(colour, `kd${i}`), true))
+  }
+  if (!revealed) {
+    cells.push(cell('q', (
+      <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 30, color: unknownCol }}>?</span>
+    ), false))
+  } else {
+    for (let i = 0; i < unknownVal; i++) {
+      const colour = merged ? mergeColour : unknownCol
+      cells.push(cell(`u${i}`, dot(colour, `ud${i}`), i < unknownVal - 1))
+    }
+  }
 
   return (
     <div style={{
       display: 'inline-flex',
       border: `2px solid ${ink}`, borderRadius: 10,
       overflow: 'hidden',
-    }}>
-      {Array.from({ length: total }, (_, idx) => {
-        const isKnown  = idx < knownVal
-        const ghostIdx = idx - knownVal
-        const isTapped = !isKnown && (tapped[ghostIdx] || showNumpad)
-        const colour   = isKnown ? knownColour : unknownCol
-        const filled   = isKnown || isTapped
-        const ghost    = !isKnown && !isTapped
-        const tappable = !isKnown && !showNumpad && !tapped[ghostIdx] && !disabled
-
-        return (
-          <div
-            key={idx}
-            onClick={tappable ? () => onTap(ghostIdx) : undefined}
-            style={{
-              width: CELL, height: CELL,
-              background: paper,
-              borderRight: idx < total - 1 ? `2px solid ${ink}` : 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: tappable ? 'pointer' : 'default',
-              userSelect: 'none',
-            }}
-          >
-            <div style={{
-              width: dotSize, height: dotSize, borderRadius: '50%',
-              background: ghost ? `${colour}28` : colour,
-              boxShadow: filled ? `0 2px 6px ${colour}88` : 'none',
-              transition: 'background 0.18s, box-shadow 0.18s',
-            }} />
-          </div>
-        )
-      })}
-    </div>
+    }}>{cells}</div>
   )
 }
 
@@ -135,8 +126,8 @@ function JoinedFrame({ knownVal, unknownVal, knownColour, unknownCol, ink, paper
 
 function SplitsFrameComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsFrameMeta>) {
   const { operandA, operandB, meta } = question
-  const { showA, stage } = meta
-  const { ink, paper, cream, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const { showA, stage, options } = meta
+  const { ink, paper, cream, accentText, confirm, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
 
   const total       = operandA + operandB
   const knownVal    = showA ? operandA : operandB
@@ -144,61 +135,41 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
   const knownColour = showA ? refuse : dot
   const unknownCol  = showA ? dot   : refuse
 
-  const showDie    = stage === 'die-tap'
-  const showLabels = stage !== 'die-tap'
-  const showNumpad = stage === 'num-pad'
-
-  // Briefly true once the right answer is in: flips the "?" label to unknownVal
-  // before onResolve hands control to the success screen.
-  const [solved, setSolved] = useState(false)
-
-  // Tier 1 & 2: tap state
-  const [tapped, setTapped] = useState<boolean[]>(() => Array(unknownVal).fill(false))
-
-  // Tier 3: numpad
+  const [phase, setPhase] = useState<Phase>('ask')
   const [input, setInput] = useState('')
 
-  // Reset per-question state when the question changes — the component is
-  // reused across questions, so useState initialisers don't re-run.
   useEffect(() => {
-    setSolved(false)
-    setTapped(Array(unknownVal).fill(false))
+    setPhase('ask')
     setInput('')
-  }, [operandA, operandB, showA, stage, unknownVal])
+  }, [operandA, operandB, showA, stage])
 
-  const handleTap = (i: number) => {
-    if (disabled || tapped[i]) return
-    const next = [...tapped]
-    next[i] = true
-    setTapped(next)
-    if (next.every(Boolean)) {
-      setSolved(true)
-      setTimeout(() => onResolve(true, { givenAnswer: unknownVal, tapCount: unknownVal }), 300)
+  const answer = (given: number) => {
+    if (disabled || phase !== 'ask') return
+    if (given === unknownVal) {
+      setPhase('reveal')
+      setTimeout(() => setPhase('merge'), 500)
+      setTimeout(() => onResolve(true, { givenAnswer: given }), 1500)
+    } else {
+      onResolve(false, { givenAnswer: given })
     }
   }
 
   const handleKey = (key: string) => {
-    if (disabled) return
+    if (disabled || phase !== 'ask') return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
-    if (key === '✓') {
-      if (!input) return
-      const given = parseInt(input, 10)
-      const correct = given === unknownVal
-      if (correct) {
-        setSolved(true)
-        setTimeout(() => onResolve(true, { givenAnswer: given }), 500)
-      } else {
-        onResolve(false, { givenAnswer: given })
-      }
-      return
-    }
+    if (key === '✓') { if (input) answer(parseInt(input, 10)); return }
     if (input.length < 2) setInput(v => v + key)
   }
 
-  // Label widths: one label per group, each spans its group's cells.
-  // Each cell is CELL wide; internal borders are part of the cell, so widths add up exactly.
-  const knownLabelW   = knownVal   * CELL + (knownVal   - 1) * 2  // each internal border = 2px counted in right cell
-  const unknownLabelW = unknownVal * CELL + (unknownVal - 1) * 2
+  const solved = phase !== 'ask'
+
+  // Prompt: the split statement IS the equation-visible invariant for splitsen.
+  const prompt = stage === 'die-keuze'
+    ? <>Wat hoort erbij?</>
+    : <>
+        {total} is <span style={{ color: knownColour }}>{knownVal}</span> en{' '}
+        <span style={{ color: solved ? unknownCol : accentText }}>{solved ? unknownVal : '?'}</span>
+      </>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
@@ -206,48 +177,40 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
         background: cream, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>Hoeveel?</div>
+      }}>{prompt}</div>
 
       {/* Puzzle box */}
       <div style={{
         background: paper, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '20px 24px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
         boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
       }}>
-        {showDie
-          ? <SplitDie total={total} splitAt={operandA} colourA={refuse} colourB={dot} ink={ink} paper={paper} size={90} />
-          : <div style={{
-              width: 70, height: 70, flexShrink: 0,
-              background: paper, border: `2px solid ${ink}`, borderRadius: 14,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Fredoka One, cursive', fontSize: 42, color: ink,
-            }}>{total}</div>
-        }
+        {stage === 'die-keuze' && (
+          <SplitDie total={total} splitAt={operandA} colourA={refuse} colourB={dot}
+            ink={ink} paper={paper} size={90} />
+        )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-          {showLabels && (
-            <div style={{ display: 'flex' }}>
-              <div style={{
-                width: knownLabelW, textAlign: 'center',
-                fontFamily: 'Fredoka One, cursive', fontSize: 20, color: knownColour,
-              }}>{knownVal}</div>
-              <div style={{ width: 2 }} />
-              <div style={{
-                width: unknownLabelW, textAlign: 'center',
-                fontFamily: 'Fredoka One, cursive', fontSize: 20, color: unknownCol,
-              }}>{solved ? unknownVal : '?'}</div>
-            </div>
-          )}
-          <JoinedFrame
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Frame
             knownVal={knownVal} unknownVal={unknownVal}
-            knownColour={knownColour} unknownCol={unknownCol}
-            ink={ink} paper={paper}
-            tapped={tapped} showNumpad={showNumpad}
-            onTap={handleTap} disabled={disabled}
+            knownColour={knownColour} unknownCol={unknownCol} mergeColour={confirm}
+            ink={ink} paper={paper} phase={phase}
           />
+          {/* The whole, named — appears as the parts merge */}
+          <div style={{
+            minWidth: 46, height: 46, padding: '0 8px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: confirm, color: 'white',
+            borderRadius: 12, border: `2px solid ${ink}`,
+            fontFamily: 'Fredoka One, cursive', fontSize: 28,
+            opacity: phase === 'merge' ? 1 : 0,
+            transform: phase === 'merge' ? 'scale(1)' : 'scale(0.6)',
+            transition: 'opacity .4s, transform .4s',
+          }}>{total}</div>
         </div>
-        {showNumpad && (
+
+        {stage === 'num-pad' && (
           <div style={{
             width: 70, height: 52,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -260,8 +223,27 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
         )}
       </div>
 
-      {showNumpad && (
-        <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
+      {/* Input */}
+      {stage === 'die-keuze' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, width: '100%', maxWidth: 380 }}>
+          {options.map((v, i) => (
+            <div key={i} onClick={() => answer(v)} style={{
+              background: cream, border: `2px solid ${ink}`, borderRadius: 16,
+              padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: disabled || solved ? 'default' : 'pointer',
+              boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
+              opacity: disabled && !solved ? 0.45 : 1, userSelect: 'none',
+            }}>
+              <DieDots count={v} colours={Array(v).fill(unknownCol)} size={56} />
+            </div>
+          ))}
+        </div>
+      )}
+      {stage === 'getal-keuze' && (
+        <ChoiceButtons options={options} onPick={answer} disabled={disabled || solved} tokens={scene?.tokens} />
+      )}
+      {stage === 'num-pad' && (
+        <NumPad onKey={handleKey} disabled={disabled || solved} tokens={scene?.tokens} />
       )}
     </div>
   )
@@ -275,20 +257,24 @@ const SplitsFrame: ExerciseDefinition<SplitsFrameMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Complete a part-whole frame: given the total and one part shown together, identify the other. The widest scaffolding ladder in splitsen-herken — concrete dot-tap at low score, symbolic numpad at high — the bridge inside this skill toward fully written work.',
+    goal: 'Complete a part-whole frame: given the total and one part, identify the other — then watch the parts visibly merge back into the whole. The only splitsen exercise that shows composition (parts become the whole), not just decomposition.',
     pitfalls: [
-      'Fills the whole frame instead of just the missing part — doesn\'t yet read the frame as "what\'s there" + "what\'s missing".',
-      'Reads the total as the answer — near-miss, just echoes a visible number.',
-      'Off-by-one on the missing part, especially when counting dots at the die-tap tier.',
+      'Echoes the known part — picks the value that is already visible instead of the missing one.',
+      'Off-by-one on the missing part, especially reading the die at die-keuze.',
+      'At getal-keuze, answers the total instead of the part — reads "5 is 2 en ?" as "how many in total?".',
     ],
-    progression: 'die-tap (total and answer both as dots — concrete, one-to-one) → num-tap (total as a numeral but the slot is still tapped — symbol meets action) → num-pad (numerals only, missing part typed — fully symbolic). The dot scaffold fades first, then the tapping does.',
+    progression: 'die-keuze (split die + dot-tile options — perceptual matching, but a real decision) → getal-keuze (split statement + numeral choice — the part must be derived) → num-pad (typed, no choice scaffold). The merge animation plays at every tier: composition stays visible while the scaffolds fade.',
   },
   isCompatible: (a, b) => a > 0 && b > 0,
-  generateMeta(_a, _b, score) {
+  generateMeta(a, b, score) {
     const stage = pickTier(TIERS, score).id as Stage
+    const showA = Math.random() < 0.5
+    const unknown = showA ? b : a
     return {
-      showA: stage === 'die-tap' ? true : Math.random() < 0.5,
+      showA,
       stage,
+      // Parts in tot-5 run 1..4 — keep distractors in that range.
+      options: makeNumeralOptions(unknown, 4),
       tierId: stage,
     }
   },

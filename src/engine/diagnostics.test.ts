@@ -37,6 +37,27 @@ describe('classifyError', () => {
     expect(classifyError({ ...base, operandA: 7, operandB: 3, correctAnswer: 4, givenAnswer: 7 })).toBe('near-miss')
   })
 
+  it('split: echoing the shown/complementary part is a reversal', () => {
+    expect(classifyError({
+      skillId: 'splitsen-herken-5', op: 'split',
+      operandA: 2, operandB: 3, correctAnswer: 5, givenAnswer: 2,
+    })).toBe('reversal')
+  })
+
+  it('split: off-by-one is measured against the parts, not the total', () => {
+    expect(classifyError({
+      skillId: 'splitsen-herken-5', op: 'split',
+      operandA: 1, operandB: 4, correctAnswer: 5, givenAnswer: 3,
+    })).toBe('off-by-one') // |3 − 4| = 1; |3 − 5| would never be consulted
+  })
+
+  it('split: the total itself is not tagged as a near-miss artifact', () => {
+    expect(classifyError({
+      skillId: 'splitsen-herken-5', op: 'split',
+      operandA: 1, operandB: 3, correctAnswer: 4, givenAnswer: 5,
+    })).toBe('unclassified')
+  })
+
   it('tienvriend-mismatch', () => {
     expect(classifyError({
       skillId: 'tienvrienden', op: 'split',

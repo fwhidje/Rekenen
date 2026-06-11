@@ -29,14 +29,16 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'perceived as 5+n instead of counted by ones. number-sequence-order earns 30 here — its ' +
     'sparse tier (ordering non-consecutive numerals) only gets interesting in this range.',
   'splitsen-herken-5':
-    'Seven recognition exercises share the rotation. Early: splits-herken-huisje dominates (40, the ' +
-    'canonical scaffold) with dot-pattern-decompose (30), splits-build-it (25, enactive swipe-to-cut) ' +
-    'and splits-frame (20). As the score rises the width probes phase in and the early scaffolds ' +
-    'fade: splits-shuffle (conservation, from 10), same-split-or-different (order-independence, from ' +
-    '20), splits-match (representational transfer, from 30, up to 30 by 70). Each exercise also ramps ' +
-    'its own internal tiers, so cross-exercise weights shift the *kind* of thinking while ' +
-    'within-exercise tiers fade the scaffolding. rekenrek-decompose is listed but not yet built. ' +
-    'Weights are initial guesses pending playtesting.',
+    'Seven recognition exercises, all fallible from tier 0 (except two deliberate orientation ' +
+    'tiers: the huisje die-both drag and shuffle\'s watch tier, both weight-limited early). ' +
+    'Early mix: dot-pattern-decompose (30), splits-frame (25, redesigned: part + "?" with a ' +
+    'reveal-and-merge that shows composition), splits-herken-huisje (25) and splits-build-it ' +
+    '(25, cut-then-name-your-own-split). As the score rises the width probes phase in and the ' +
+    'production forms fade: splits-shuffle (whole visibly splits, greyed original as referent — ' +
+    'conservation by comparison), same-split-or-different (order-independence, from 20), ' +
+    'splits-match (representational transfer: choose → face-up koppelen → memory, from 30). ' +
+    'The generator lingers on total 5 (weights 1:2:3:4). Weights are initial guesses pending ' +
+    'playtesting.',
 
   // Notation + later branches — fill as exercises are built.
   'splitsen-noteren-5': TODO,
