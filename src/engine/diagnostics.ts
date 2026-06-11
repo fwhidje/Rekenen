@@ -51,6 +51,16 @@ export function classifyError(input: ClassifierInput): ErrorType {
 
   if (givenAnswer === undefined) return 'unclassified'
 
+  // Splits are classified against the PARTS: the recorded correctAnswer is the
+  // total, while the asked quantity is a missing part — comparing against the
+  // total would tag nonsense. An echoed part is the complementary/shown one.
+  if (op === 'split') {
+    if (givenAnswer === operandA || givenAnswer === operandB) return 'reversal'
+    if (Math.abs(givenAnswer - operandA) === 1 || Math.abs(givenAnswer - operandB) === 1) return 'off-by-one'
+    if (skillId === 'tienvrienden' && givenAnswer + operandA !== 10) return 'tienvriend-mismatch'
+    return 'unclassified'
+  }
+
   if (Math.abs(givenAnswer - correctAnswer) === 1) return 'off-by-one'
 
   // Semantic narrowing: a verschil/aanvullen problem solved as if it were a
@@ -64,12 +74,6 @@ export function classifyError(input: ClassifierInput): ErrorType {
   if (op === '-' && (givenAnswer === operandB - operandA || givenAnswer === operandA + operandB)) {
     return 'reversal'
   }
-  if (op === 'split' && givenAnswer === operandA + operandB - correctAnswer && correctAnswer !== givenAnswer) {
-    return 'reversal' // gave the complementary part
-  }
-
-  // Tienvrienden: the pair doesn't make ten.
-  if (skillId === 'tienvrienden' && givenAnswer + operandA !== 10) return 'tienvriend-mismatch'
 
   // Regurgitated one of the operands. Count problems carry operandB = 0 as an
   // encoding artifact, not an operand — never tag those as near-miss.

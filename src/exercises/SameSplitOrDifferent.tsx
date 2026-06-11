@@ -4,6 +4,7 @@ import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import type { SceneTokens } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
 
 const TIERS: ExerciseTier[] = [
   { id: 'aligned',   minScore: 0,  label: 'zelfde stijl', description: 'Two visual splits side by side in matching representation styles (both die-patterns, similar colour scheme). Order-equivalent cases (2+3 vs 3+2) and genuinely different cases (2+3 vs 1+4) are mixed.' },
@@ -15,13 +16,6 @@ const TIERS: ExerciseTier[] = [
 type SplitRepKind = 'split-die' | 'twin-dice' | 'mini-huisje' | 'notation'
 const SPLIT_REPS: SplitRepKind[] = ['split-die', 'twin-dice', 'mini-huisje', 'notation']
 
-const DOT_POS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
 function SplitDie({ a, b, size, colourA, colourB, ink, paper }: { a: number; b: number; size: number; colourA: string; colourB: string; ink: string; paper: string }) {
   const positions = DOT_POS[a + b] ?? []
@@ -193,7 +187,7 @@ function SameSplitOrDifferentComponent({ question, onResolve, disabled, scene }:
       </div>
 
       <TFButtons
-        onPick={v => onResolve(v === correctValue, { givenAnswer: v })}
+        onPick={v => onResolve(v === correctValue)}
         disabled={disabled}
         tokens={scene?.tokens}
       />

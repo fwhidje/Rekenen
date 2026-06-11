@@ -3,17 +3,10 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { DOT_POS } from '../presentation/diePatterns'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const DOT_POS: Record<number, [number, number][]> = {
-  0: [],
-  1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[50, 18], [22, 75], [78, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-}
 
 const GREY = '#b9aa92'
 const ROOM = 80
