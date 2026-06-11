@@ -7,8 +7,9 @@ import type { SplitRepKind } from './SameSplitOrDifferent'
 import { NATURE_TOKENS } from '../presentation/tokens'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'choose', minScore: 0,  label: 'kiezen', description: 'Target split in one representation (e.g. colour-coded die-pattern 2+3). Four option tiles in different representations (finger pattern split 2-and-3, ten-frame top-2 bottom-3, splitshuisje "2 | 3", one distractor). Kid picks the match.' },
-  { id: 'pairs',  minScore: 50, label: 'memory', description: 'Six tiles, three pairs hidden — kid taps to reveal and matches each split to its cross-representation twin. Memory format; raises working-memory demand.' },
+  { id: 'choose', minScore: 0,  label: 'kiezen',   description: 'Target split in one representation (e.g. colour-coded die-pattern 2+3). Four option tiles in different representations (finger pattern split 2-and-3, ten-frame top-2 bottom-3, splitshuisje "2 | 3", one distractor). Kid picks the match.' },
+  { id: 'match',  minScore: 40, label: 'koppelen', description: 'Six tiles face-up — three splits, each in two representations. Kid taps two tiles to pair them; a wrong pair counts as the mistake and ends the question.' },
+  { id: 'pairs',  minScore: 75, label: 'memory',   description: 'Same six tiles, but hidden — kid taps to reveal and matches each split to its cross-representation twin. Memory format; raises working-memory demand.' },
 ]
 
 interface SplitSpec { a: number; b: number; rep: SplitRepKind }
@@ -82,11 +83,15 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
       }, 500)
     } else {
       mismatchRef.current += 1
-      if (tierId === 'pairs') {
-        // memory tier: forgiving, flip back
-        setTimeout(() => { setSelected([]); setLock(false) }, 900)
+      if (tierId === 'match') {
+        // face-up tier: a wrong pair IS the mistake — flash and end the question
+        setWrongFlash(true)
+        setTimeout(() => {
+          setWrongFlash(false)
+          onResolve(false, { tapCount: mismatchRef.current })
+        }, WRONG_FLASH_MS)
       } else {
-        // (not reached — choose tier doesn't use this handler)
+        // memory tier: forgiving, flip back
         setTimeout(() => { setSelected([]); setLock(false) }, 900)
       }
     }
@@ -98,7 +103,7 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
         background: cream, border: `2px solid ${ink}`, borderRadius: 18,
         padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
         fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>{tierId === 'pairs' ? 'Zoek de paren' : 'Welke splitsing past?'}</div>
+      }}>{tierId === 'pairs' ? 'Zoek de paren' : tierId === 'match' ? 'Welke horen samen?' : 'Welke splitsing past?'}</div>
 
       {tierId === 'choose' ? (
         <>
@@ -152,7 +157,7 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
           padding: 8, borderRadius: 18, background: 'transparent',
         }}>
           {tiles.map((tile, i) => {
-            const show = selected.includes(i) || matched.has(i)
+            const show = tierId === 'match' || selected.includes(i) || matched.has(i)
             const isSelected = selected.includes(i)
             const isMatched = matched.has(i)
             const borderColor = isMatched ? confirm : isSelected ? accent : ink
@@ -160,8 +165,8 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
               <button key={i} onClick={() => tapTile(i)}
                 style={{
                   height: 104, borderRadius: 16,
-                  border: `${isSelected || isMatched ? 3 : 2}px solid ${borderColor}`,
-                  background: isMatched ? `${confirm}22` : paper,
+                  border: `${isSelected || isMatched ? 3 : 2}px solid ${wrongFlash && isSelected ? refuse : borderColor}`,
+                  background: wrongFlash && isSelected ? `${refuse}22` : isMatched ? `${confirm}22` : paper,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: disabled || isMatched ? 'default' : 'pointer',
                   boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
@@ -192,7 +197,7 @@ const SplitsMatch: ExerciseDefinition<SplitsMatchMeta> = {
       'Matches by total instead of by split — gets the total right but the split wrong, possible when distractors share the total.',
       'Locked into one representation — reads the dot-pattern target but freezes on the finger-pattern option.',
     ],
-    progression: 'choose (single-shot, all options visible) → pairs (memory format, holds multiple splits in working memory at once). Cognitive demand shifts from match-now to match-with-recall.',
+    progression: 'choose (single-shot, all options visible) → match (pair-forming, tiles face-up — pure cross-representation work) → pairs (same task from memory). Representation transfer first, recall load last.',
   },
   generateMeta(operandA, operandB, score) {
     const tierId = pickTier(TIERS, score).id

@@ -57,18 +57,16 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   },
 
   // ── Splitsen ─────────────────────────────────────────────────────────────────
-  // Initial guesses, to be tuned with playtesting:
-  // huisje dominant early (canonical scaffold), build-it (enactive swipe-to-cut)
-  // strongest at the start and fading; the width probes come in as the score
-  // rises — shuffle (conservation) early-mid, same-or-different (order
-  // independence) mid, splits-match (representational transfer) mid-high.
+  // Initial guesses, to be tuned with playtesting. All exercises are fallible
+  // from tier 0 except the huisje orientation tier (kept by design, weight
+  // modest at score 0) and shuffle's watch tier (weight starts low).
 
   'splitsen-herken-5': {
     'dot-pattern-decompose':   [30, 20],
-    'splits-frame':            [20, 20],
-    'splits-herken-huisje':    [40, 25],
-    'splits-build-it':         [25, 5],
-    'splits-shuffle':          [[10, 15], [50, 20], [100, 10]],
+    'splits-frame':            [25, 20],
+    'splits-herken-huisje':    [25, 25],
+    'splits-build-it':         [25, 8],
+    'splits-shuffle':          [[0, 8], [30, 18], [100, 12]],
     'same-split-or-different': [[20, 0], [50, 25], [100, 25]],
     'splits-match':            [[30, 0], [70, 30], [100, 30]],
   },
