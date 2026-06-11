@@ -1,9 +1,11 @@
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { TFButtons } from '../ui/components/TFButtons'
+import { NATURE_TOKENS } from '../presentation/tokens'
+import { opGlyph, opColor } from './opDisplay'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'judge', minScore: 0, label: 'waar/niet', description: 'Judge whether a shown sum is correct — recognition of a stated equation. Single tier.' },
+  { id: 'judge', minScore: 0, label: 'waar/niet', description: 'Judge whether a shown equation is correct — recognition of a stated equation. False answers are near-misses (off-by-one/two).' },
 ]
 
 interface TrueFalseMeta {
@@ -12,23 +14,33 @@ interface TrueFalseMeta {
   tierId: string
 }
 
-function TrueFalseComponent({ question, onResolve, disabled }: ExerciseComponentProps<TrueFalseMeta>) {
-  const { operandA, operandB, meta } = question
+function TrueFalseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<TrueFalseMeta>) {
+  const { operandA, operandB, op, meta } = question
+  const tokens = scene?.tokens ?? NATURE_TOKENS
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 48 }}>
-        <span style={{ color: '#4CC9F0' }}>{operandA}</span>
-        <span style={{ color: '#FF6B35' }}>+</span>
-        <span style={{ color: '#9B5DE5' }}>{operandB}</span>
-        <span style={{ color: '#CCC', fontSize: 40 }}>=</span>
+        <span style={{ color: tokens.accentText }}>{operandA}</span>
+        <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
+        <span style={{ color: tokens.pop }}>{operandB}</span>
+        <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 40 }}>=</span>
         <span style={{
-          background: '#FFF9C4', borderRadius: 12, padding: '2px 14px',
-          border: '2px solid #FFD166', color: '#2D2D2D',
+          background: tokens.cream, borderRadius: 12, padding: '2px 14px',
+          border: `2px solid ${tokens.accent}`, color: tokens.ink,
         }}>{meta.shownAnswer}</span>
       </div>
-      <TFButtons onPick={v => onResolve(v === (meta.isCorrect ? 1 : 0))} disabled={disabled} />
+      <TFButtons onPick={v => onResolve(v === (meta.isCorrect ? 1 : 0))} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )
+}
+
+// A false shown answer is a near-miss: ±1 or ±2 around the true answer,
+// clamped to ≥ 0 and guaranteed ≠ correct (the old unguarded clamp could
+// collapse a "false" statement onto the true answer).
+function makeFalseAnswer(correct: number): number {
+  const candidates = [correct - 2, correct - 1, correct + 1, correct + 2]
+    .filter(v => v >= 0)
+  return candidates[Math.floor(Math.random() * candidates.length)]
 }
 
 const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
@@ -42,12 +54,12 @@ const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
     progression: 'Single tier; the difficulty lives in how close the false distractor sits to the true answer.',
   },
 
-  generateMeta(operandA, operandB) {
-    const correct = operandA + operandB
+  generateMeta(operandA, operandB, _score, problem) {
+    const op = problem?.op ?? '+'
+    const correct = op === '-' ? operandA - operandB : operandA + operandB
     const isCorrect = Math.random() < 0.5
-    const offset = isCorrect ? 0 : (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 2) + 1)
     return {
-      shownAnswer: Math.max(1, correct + offset),
+      shownAnswer: isCorrect ? correct : makeFalseAnswer(correct),
       isCorrect,
       tierId: 'judge',
     }

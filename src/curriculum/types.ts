@@ -18,10 +18,14 @@ export type Problem =
   | { op: 'count'; n: number }
   | { op: 'half';  total: number }
 
-// Optional context handed to a skill's generator. The seam for per-fact
-// sampling: drill skills (tienvrienden, dubbels) can oversample the facts the
-// recent record stream shows to be weak. No generator uses it yet.
+// Optional context handed to a skill's generator. `score` lets a generator
+// shift its fact distribution along the scaffolding dial (0-splits entering
+// mid-skill, operand-flipped sums post-60) — never the math range itself.
+// `recentRecords` is the seam for per-fact sampling: drill skills
+// (tienvrienden, dubbels) can oversample the facts the recent record stream
+// shows to be weak. No generator uses the records yet.
 export interface GenerateContext {
+  score?: number
   recentRecords?: ReadonlyArray<import('../engine/diagnostics').AnswerRecord>
 }
 
