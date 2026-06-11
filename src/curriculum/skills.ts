@@ -1,4 +1,5 @@
 import type { SkillDefinition } from './types'
+import { sampleFact, enumeratePlus } from './factSampling'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ const EX = {
   fillPlain:      'fill-plain',
   choice:         'choice',
   tf:             'tf',
-  collectTap:     'collect-tap',
+  erbijTap:       'erbij-tap',
   collectCounter: 'collect-counter',
   numberlineJump: 'numberline-jump',
 
@@ -257,26 +258,35 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '+1-2-tot-5',
     name: '+1 / +2 tot 5',
-    intent: 'Add 1 or add 2 within 5 — counting on, no structural reasoning required.',
+    intent: 'Add 1 or add 2 within 5 — counting on, no structural reasoning required. Introduces the + sign and the equation form, with the erbij action as its meaning.',
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with splitsen-herken-5 — sees a quantity 1–5 as a whole that can contain parts, subitises structured patterns, and reads the numerals. Has not yet met the + sign or the equation form.',
+      goal: 'Given any a + 1 or a + 2 within 5, in equation form or acted out (erbij / samenvoegen), answers reliably without recounting the start group from 1: +1 is the buurgetal, +2 is one move of two. Post-60: the bare equation is fast, and a flipped form (1 + 4) is recognised as the same sum, started from the larger number.',
+      pitfalls: [
+        'Counting all — rebuilds the start group from 1 instead of counting on from it (the dead-end strategy; erbij-tap and the counter expose it via tap counts).',
+        '+2 as two separate +1 steps — the 2 hasn\'t become a unit (visible as slow, serial answers on +2 while +1 is instant).',
+        'Off-by-one at the step over the start group — says the start number again for the first arrival.',
+      ],
     },
     op: '+',
     unlockedBy: ['splitsen-herken-5'],
     unlocks: ['optellen-tot-5'],
     subsumedBy: 'optellen-tot-5',
     applicableExercises: [
-      EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.fillVis, EX.numberlineJump, EX.collectCounter,
+      EX.choice, EX.tf, EX.fillPlain,
     ],
-    generate: () => {
-      const b = pickFrom([1, 2])
-      const a = rnd(1, 5 - b)
-      return { op: '+', terms: [a, b] }
+    generate: (ctx) => {
+      // Uniform over the 7 facts (a+1 for a=1..4, a+2 for a=1..3). Post-60 a
+      // share arrives small-addend-first ("1 + 4") — the commutativity /
+      // start-from-the-larger material; the symbolic exercises display it as
+      // written and the action exercises enact it from the larger operand.
+      const fact = sampleFact(enumeratePlus(5, [1, 2]))
+      if ((ctx?.score ?? 0) >= 60 && fact.terms[0] > fact.terms[1] && Math.random() < 0.3) {
+        return { op: '+', terms: [fact.terms[1], fact.terms[0]] }
+      }
+      return fact
     },
-    disabled: true,  // WIP gate
   },
 
   {
@@ -294,7 +304,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.collectCounter, EX.numberlineJump,
     ],
     generate: () => {
       const a = rnd(1, 4)
@@ -318,7 +328,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.collectCounter, EX.numberlineJump,
     ],
     generate: () => {
       const b = pickFrom([1, 2])

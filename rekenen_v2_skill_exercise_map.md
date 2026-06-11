@@ -169,12 +169,12 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 ### Optellen
 
 #### `+1-2-tot-5`
-- **Intent**: add 1 or add 2 within 5 — counting on, no structural reasoning required
+- **Intent**: add 1 or add 2 within 5 — counting on, no structural reasoning required. Introduces the `+` sign and the equation form, with the erbij action as its meaning.
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: `optellen-tot-5`
 - **`subsumed_by`**: `optellen-tot-5`
-- **Generator**: a ∈ [1, 4], b ∈ {1, 2}, a + b ≤ 5
-- **Applicable exercise types**: `fill-vis`, `fill-plain`, `choice`, `tf`, `collect-tap`, `collect-counter`, `numberline-jump`. Heavy bias to `fill-vis` and `collect-tap` at low score.
+- **Generator**: uniform over the 7 facts (a+1 for a ∈ [1,4], a+2 for a ∈ [1,3]); post-60 a ~30% share arrives small-addend-first (`1 + 4`) as commutativity material — symbolic exercises display it as written (fill-vis demonstrates the explicit term swap), action exercises enact from the larger operand.
+- **Applicable exercise types**: `erbij-tap`, `fill-vis` (erbij/samenvoegen variants with canonical cue phrases), `numberline-jump`, `collect-counter`, `choice`, `tf`, `fill-plain`. The erbij action dominates at low score; symbolic forms take over toward 100. Post-60 width set (`splits-som-match`, `rekenverhaal`) joins in its own pass.
 
 #### `optellen-tot-5`
 - **Intent**: any optelling within 5 (a + b ≤ 5)
@@ -391,14 +391,16 @@ These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flem
 
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
-| `fill-vis` | sum visible + scene visual of the two groups | themed scene | numpad | low |
-| `fill-plain` | bare equation only | none | numpad | high |
-| `choice` | sum + 4 answer buttons | optional visual | tap | mid |
-| `tf` | sum + maybe-wrong answer; waar / niet waar | none | tap | mid |
-| `collect-tap` | tap items into a basket, builds the answer | scene | tap-to-collect | low |
-| `collect-counter` | start at C = a, tap + to add b, confirm | scene | +/- buttons | low–mid |
-| `numberline-jump` | jump arrow shown, pick destination | number line | choice | mid |
+| `fill-vis` | equation built by timed reveal over the semantic action: erbij (arrival), samenvoegen (merge) or wegnemen (leave), each with its canonical cue phrase; flipped `+` terms get an explicit commutativity swap at the equation tier | themed scene / dots | numpad | low–mid |
+| `fill-plain` | bare equation only (op-generic: `+` and `−`) | none | numpad | high |
+| `choice` | equation + 4 answer buttons; dots aid at low tier (combining groups for `+`, crossed-out group for `−`) | optional visual | tap | mid |
+| `tf` | equation + maybe-wrong answer; waar / niet waar. Tiers: near-miss traps → strikt (operand-echo, and order-reversal for `−`) | none | tap | mid–high |
+| `erbij-tap` | start group stands in the pen (a GIVEN quantity — chip reads it uncounted), child taps the arrivals in while the chip counts on, then names the hidden total; voorspel tier asks the answer before the arrival animates | scene | tap + choice | low |
+| `collect-counter` | counter starts at the larger operand, tap +/− to produce the answer, confirm; tap count probes the counting strategy | counter | +/- buttons | low–mid |
+| `numberline-jump` | jump on a full-range line; tiers: watch the animated jump → tap the landing yourself → sparse labels | number line | choice / tap-cell | mid |
 | `rekenrek-add` | move beads to model a + b | rekenrek | drag / tap | mid |
+
+> `collect-tap` (tap items into a basket) was removed: its tap-everything flow trained counting-all — the documented dead-end strategy — and could not fail. `erbij-tap` is its replacement with the counting-on structure built in.
 
 ### Aftrekken-specific presentations
 
@@ -427,7 +429,7 @@ Per the v2 logic, this is where difficulty lives. Below is a high-level shape; t
 | Score band | Bias |
 |---|---|
 | 0–20 | scene visuals + collect/tap; numpad mostly avoided; reveal animations on |
-| 20–50 | mix of fill-vis and choice; rekenrek/ten-frame appear; collect-counter replaces collect-tap |
+| 20–50 | mix of fill-vis and choice; rekenrek/ten-frame appear; collect-counter replaces erbij-tap |
 | 50–80 | fill-plain becomes plurality; tf appears; visuals only on the "harder" instances of the skill |
 | 80–100 | ~80% fill-plain; tf and choice fill the rest; visuals ≤ 10% |
 

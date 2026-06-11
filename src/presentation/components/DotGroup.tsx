@@ -17,6 +17,7 @@ export function DotGroup({ n, color, crossed = 0 }: Props) {
             width: 26, height: 26, borderRadius: '50%', background: color,
             boxShadow: `0 3px 8px ${color}66`,
             opacity: isCrossed ? 0.45 : 1,
+            transition: 'opacity .4s',
           }}>
             {isCrossed && (
               <span style={{

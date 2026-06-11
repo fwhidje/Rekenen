@@ -70,6 +70,22 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'same-split-or-different': [[20, 0], [50, 25], [100, 25]],
     'splits-match':            [[30, 0], [70, 30], [100, 30]],
   },
+
+  // ── Optellen ─────────────────────────────────────────────────────────────────
+  // +1-2-tot-5: the erbij action dominates the entry (doing), the middle belongs
+  // to the spatial/counter forms (seeing/strategy), the symbolic forms take over
+  // toward 100. tf silent until 25 (judging needs something to judge against).
+  // Initial guesses, to be tuned with playtesting.
+
+  '+1-2-tot-5': {
+    'erbij-tap':        [[0, 30], [35, 20], [70, 0]],
+    'fill-vis':         [30, 15],
+    'numberline-jump':  [[0, 10], [40, 20], [100, 10]],
+    'collect-counter':  [10, 5],
+    'choice':           [20, 10],
+    'tf':               [[25, 0], [60, 15], [100, 15]],
+    'fill-plain':       [[40, 0], [100, 40]],
+  },
 }
 
 // Validation hook: the explicit per-skill table ids (null when the skill falls
@@ -97,7 +113,7 @@ function defaultWeights(score: number): WeightMap {
     'fill-plain':       lerp( 0, 60, t),
     'choice':           lerp(25, 15, t),
     'tf':               lerp(10, 15, t),
-    'collect-tap':      lerp(25,  0, t),
+    'erbij-tap':        lerp(25,  0, t),
     'collect-counter':  lerp(15,  5, t),
     'numberline-jump':  lerp(15, 10, t),
   }
