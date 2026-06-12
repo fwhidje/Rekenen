@@ -34,6 +34,26 @@ describe('+1-2-tot-5 generator', () => {
   })
 })
 
+describe('splitsen-noteren-5 generator', () => {
+  const gen = SKILLS_BY_ID['splitsen-noteren-5'].generate
+
+  it('serves no 0-splits below score 30, does serve them after', () => {
+    let zerosEarly = 0
+    let zerosLate = 0
+    for (let i = 0; i < N; i++) {
+      const early = gen({ score: 0 })
+      const late = gen({ score: 50 })
+      if (early.op !== 'split' || late.op !== 'split') throw new Error('expected split')
+      expect(early.partA + early.partB).toBeGreaterThanOrEqual(2)
+      expect(early.partA + early.partB).toBeLessThanOrEqual(5)
+      if (early.partA === 0 || early.partB === 0) zerosEarly++
+      if (late.partA === 0 || late.partB === 0) zerosLate++
+    }
+    expect(zerosEarly).toBe(0)
+    expect(zerosLate).toBeGreaterThan(0)
+  })
+})
+
 describe('-1-2-tot-5 generator', () => {
   const gen = SKILLS_BY_ID['-1-2-tot-5'].generate
 

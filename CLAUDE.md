@@ -30,12 +30,12 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `splitsen-herken-5`
 - `+1-2-tot-5` (lifted June 2026 — opens `optellen-tot-5` → `+1-2-tot-10` → `+3-4-tot-10` on the default curve until their own tuning rounds)
 - `-1-2-tot-5` (lifted June 2026 — opens `aftrekken-wegnemen-5` (also needs `optellen-tot-5` ≥ 60) and the rest of the aftrekken-tot-5/-tot-10 chain on the default curve until their own tuning rounds)
+- `splitsen-noteren-5` (lifted June 2026 — parallel notation track, gates nothing downstream in v2)
 
-### Currently gated (5 subtree roots)
+### Currently gated (4 subtree roots)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
-| `splitsen-noteren-5` | parallel notation track (no downstream gating in v2) | notation exercises (splitshuisje, splitsbenen, splits-vrij/-ontbreken-*/-alle) built |
 | `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
 | `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
 | `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
@@ -88,7 +88,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `getalbegrip-5` | ✅ all 12 live (incl. `compare-pick`); `rekenrek-show` parked | ✅ tuned |
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
-| `splitsen-noteren-5` *(disabled — no exercises built)* | 🔲 notation family not built (splitshuisje, splitsbenen, splits-vrij, splits-ontbreken-rechts/links, splits-alle) | 🔲 |
+| `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
 | `+1-2-tot-5` | ✅ all 7 live, gate lifted (erbij-tap rework, fill-vis semantic variants + commutativity swap, numberline 3 tiers, tf strikt traps, op-generic symbolic trio); post-60 width set (`splits-som-match`, `rekenverhaal`) pending its own pass | 🟡 initial guesses |
@@ -133,7 +133,12 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
 | `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
 | `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; full-range line so the landing is never the last cell; direction seam for `numberline-jump-back`) |
-| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — together with the +/− round (skill `splitsen-noteren-5` is disabled; lift WIP gate once any of these are built) |
+| `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60) |
+| `splitsbenen` | `Splitsbenen.tsx` | ✅ done (second notation; tiers been-keuze 25 / been-pad 55; weight silent until 25 so the huisje lands first) |
+| `splits-ontbreken-rechts` | `SplitsOntbreken.tsx` | ✅ done (tiers is-en-keuze 20 / is-en-pad 40 / vergelijking "5 = 3 + ?" 55; also serves the aanvullen skills via op `-`) |
+| `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
+| `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent) |
+| `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; wrong digit ends the attempt) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -228,6 +233,11 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/ErbijTap.tsx` | `erbij-tap` — the erbij action performed by the child; counting-on chip; voorspel tier (replaces the removed counting-all `collect-tap`) |
 | `src/exercises/WegneemTap.tsx` | `wegneem-tap` — the wegnemen action performed by the child; counting-back chip; crossed ghosts; voorspel tier |
 | `src/exercises/WegnemenCrossedOut.tsx` | `wegnemen-crossed-out` — static werkboek take-away picture |
+| `src/exercises/Splitshuisje.tsx` | `splitshuisje` — production house (noteren); unsplit roof die-aid |
+| `src/exercises/Splitsbenen.tsx` | `splitsbenen` — second splits notation (noteren) |
+| `src/exercises/SplitsOntbreken.tsx` | `splits-ontbreken-rechts` + `-links` — total-first missing-part statements |
+| `src/exercises/SplitsVrij.tsx` | `splits-vrij` — open production + nog-een variety round |
+| `src/exercises/SplitsAlle.tsx` | `splits-alle` — full descending splits table |
 | `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
 | `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |

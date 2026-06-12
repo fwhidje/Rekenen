@@ -71,6 +71,21 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'splits-match':            [[30, 0], [70, 30], [100, 30]],
   },
 
+  // splitsen-noteren-5: splitshuisje owns the entry (the house is familiar
+  // from herken — "the same house, now you write"); benen joins at 25 as the
+  // second notation; ontbreken-rechts grows through the middle (the bridge to
+  // the equation form at its 55 tier); links / vrij / alle are post-60 depth.
+  // Initial guesses, to be tuned with playtesting.
+
+  'splitsen-noteren-5': {
+    'splitshuisje':            [40, 15],
+    'splitsbenen':             [[25, 0], [55, 22], [100, 18]],
+    'splits-ontbreken-rechts': [[20, 0], [55, 25], [100, 22]],
+    'splits-ontbreken-links':  [[60, 0], [85, 18], [100, 18]],
+    'splits-vrij':             [[35, 0], [60, 18], [100, 18]],
+    'splits-alle':             [[65, 0], [90, 15], [100, 15]],
+  },
+
   // ── Optellen ─────────────────────────────────────────────────────────────────
   // +1-2-tot-5: the erbij action dominates the entry (doing), the middle belongs
   // to the spatial/counter forms (seeing/strategy), the symbolic forms take over
@@ -137,6 +152,8 @@ function defaultWeights(score: number): WeightMap {
     'wegnemen-crossed-out': lerp(25,  5, t),
     'numberline-jump-back': lerp(15, 10, t),
     'collect-counter-down': lerp(15,  5, t),
+    // total-first missing-part form, for the untuned aanvullen skills
+    'splits-ontbreken-rechts': lerp(15, 25, t),
   }
 }
 

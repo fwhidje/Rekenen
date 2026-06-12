@@ -1,5 +1,5 @@
 import type { SkillDefinition } from './types'
-import { sampleFact, reweight, enumeratePlus, enumerateMinus } from './factSampling'
+import { sampleFact, reweight, enumerateSplits, enumeratePlus, enumerateMinus } from './factSampling'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -173,7 +173,6 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'splitsen-noteren-5',
-    disabled: true,  // WIP gate — notation exercises not yet built
     name: 'Splitsen noteren tot 5',
     intent: 'Second half of the part-whole spine: produces splits of totals 2–5 in the canonical Flemish notations (splitshuisje, splitsbenen, missing-part equations). Where herken reads a split that\'s shown, noteren generates one or completes it — the production complement to recognition. Runs parallel to the +/− track, not a prereq for it.',
     didactics: {
@@ -193,10 +192,12 @@ export const SKILLS: SkillDefinition[] = [
       EX.splitsVrij, EX.splitsOntbrekenRechts, EX.splitsOntbrekenLinks,
       EX.splitsAlle, EX.splitshuisje, EX.splitsbenen,
     ],
-    generate: () => {
-      const total = rnd(2, 5)
-      const partA = rnd(1, total - 1)
-      return { op: 'split', partA, partB: total - partA }
+    generate: (ctx) => {
+      // Fact-proportional over totals 2–5 (5 naturally lingers: most splits).
+      // 0-splits join the space from score 30 — visually odd at entry,
+      // normalised mid-skill, required in splits-alle's table.
+      const includeZero = (ctx?.score ?? 0) >= 30
+      return sampleFact(enumerateSplits(2, 5, { includeZero }))
     },
   },
 

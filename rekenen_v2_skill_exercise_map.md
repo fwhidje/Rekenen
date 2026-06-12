@@ -143,8 +143,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: *(nothing in the v2 graph — runs parallel to the +/- track, doesn't gate arithmetic)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD — if tot-10 also splits, this becomes `splitsen-noteren-10`)*
-- **Generator**: as `splitsen-herken-5`
-- **Applicable exercise types**: `splits-vrij`, `splits-ontbreken-rechts`, `splits-ontbreken-links`, `splits-alle`, `splitshuisje`, `splitsbenen`
+- **Generator**: fact-proportional over totals 2–5 (5 naturally lingers — most splits); 0-splits join the fact space from score 30, accepted in splits-vrij and required in splits-alle.
+- **Applicable exercise types**: `splitshuisje` (entry — the herken house, now written), `splitsbenen` (from 25 — second notation, transfer), `splits-ontbreken-rechts` ("5 is 3 en ?" wording → "5 = 3 + ?" equation form at 55, after + landed via the + track), then post-60: `splits-ontbreken-links`, `splits-vrij` (nog-een variety round), `splits-alle` (full table). **Boundary invariant vs herken**: the parts are never visible on screen — the roof die-aid is always an unsplit pattern; tier-0 choice is answer-entry scaffolding, numpad from ~30 is true production. Herken's `num-two` tier (74+) ≈ noteren's entry is the intended dual-rotation handover.
 
 #### `splitsen-tot-10`
 > **TBD**: should this also split into `splitsen-herken-10` / `splitsen-noteren-10`? If so, which side does each downstream skill (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) hang off, and how does it connect upstream to the tot-5 herken / noteren pair? Entry below describes the current pre-split form.
@@ -358,14 +358,16 @@ These types live under `splitsen-herken-5` / `-10`. They show a total and ask "w
 
 These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flemish primary-school notations.
 
+Production rule (the herken/noteren boundary): **the parts are never shown** — at most the unsplit total (die-aid) and one part as a bare numeral. The missing part comes out of the child's part-whole knowledge, not off the screen.
+
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
-| `splits-vrij` | "Geef een splitsing van 7" — open, multiple correct | optional dot/rekenrek | numpad ×2 | low |
-| `splits-ontbreken-rechts` | `7 = 4 + ?` | optional schematisch | numpad | mid |
-| `splits-ontbreken-links` | `7 = ? + 3` (the harder one — kids want to count up from the total) | optional schematisch | numpad | mid–high |
-| `splits-alle` | "Noem alle splitsingen van 7" | splitshuisje shows the slots | numpad multi | high |
-| `splitshuisje` | The Flemish house notation: number on roof, parts in rooms | the house | numpad / drag | low–mid (canonical scaffold) |
-| `splitsbenen` | Number with two "legs" coming down to the parts | the bone diagram | numpad | mid |
+| `splitshuisje` | The Flemish house notation: total on the roof (unsplit die-aid at the lowest tier), parts written in the rooms. Tiers: one room prefilled + choice → bare numpad → two houses, two different splits | the house | choice → numpad | low–mid (canonical scaffold) |
+| `splitsbenen` | Total with two "legs" down to the parts — the compact second notation; introduced after the huisje (transfer: same fact, new clothes) | the legs diagram | choice → numpad | mid |
+| `splits-ontbreken-rechts` | `5 is 3 en ?` → `5 = 3 + ?` (equation form from its 55 tier, once + landed via the + track). Total-first = splits notation, NOT the aanvulsom. Also serves the aanvullen skills (op −) | statement only | choice → numpad | mid |
+| `splits-ontbreken-links` | `5 = ? + 3` — the harder position: the slot reads before the given part | statement only | choice → numpad | post-60 |
+| `splits-vrij` | "Geef een splitsing van 5" — open, multiple correct, 0-splits accepted. The nog-een tier (60) demands a SECOND, different split (order-equivalent = same): variety against one-split bias | statement under construction | numpad ×2 | post-35 |
+| `splits-alle` | The full descending table of one total, both orders + 0-rows, as workbooks print it. Tiers: left column pre-printed → empty table | the huisje-table | numpad multi | post-60 capstone |
 
 ### Number-sense / pre-arithmetic
 

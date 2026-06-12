@@ -55,8 +55,24 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'answers with the explicit commutativity swap while the action exercises enact from the ' +
     'larger operand. Weights are initial guesses pending playtesting.',
 
-  // Notation + later branches — fill as exercises are built.
-  'splitsen-noteren-5': TODO,
+  'splitsen-noteren-5':
+    'Production complement to splitsen-herken-5; the invariant everywhere is that the parts are ' +
+    'never visible on screen (the roof die-aid is always an UNSPLIT pattern — a colour-split ' +
+    'roof would collapse production back into recognition). splitshuisje owns the entry (40→15): ' +
+    'the house the child knows from herken, now filled with numerals — one room prefilled with a ' +
+    'die-aid, then bare numpad at 30, then two-different-splits at 60. splitsbenen joins at 25 ' +
+    'as the second canonical notation (same fact, new clothes — notation transfer). ' +
+    'splits-ontbreken-rechts carries the middle (ramping to 25 at 55): it starts in the ' +
+    'symbol-free "5 is 3 en ?" wording and switches to the "5 = 3 + ?" equation form at 55, by ' +
+    'which time + is familiar from the parallel + track — deliberately the second equation shape ' +
+    'the child meets, protecting the equals sign as a relation. Post-60 is depth: ' +
+    'splits-ontbreken-links (the documented harder position), splits-vrij with the nog-een ' +
+    'variety round (anti one-split bias: a repeat, even order-flipped, is wrong), and ' +
+    'splits-alle (65+), the full descending table incl. 0-rows — systematicity as the capstone. ' +
+    'The generator brings 0-splits into the fact space from score 30. Weights are initial ' +
+    'guesses pending playtesting.',
+
+  // Later branches — fill as exercises are built.
   'splitsen-tot-10': TODO,
   'tienvrienden': TODO,
   'optellen-tot-5': TODO,
