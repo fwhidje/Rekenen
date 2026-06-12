@@ -92,3 +92,16 @@ const CollectCounter: ExerciseDefinition<CollectCounterMeta> = {
 }
 
 registerExercise(CollectCounter)
+
+// Downward twin — same component (the counter starts at the whole for '−' and
+// the child taps down). A separate id so the − skills weight it independently.
+registerExercise({
+  ...CollectCounter,
+  id: 'collect-counter-down',
+  label: 'Tel terug met de teller',
+  didactics: {
+    goal: 'Produce the remainder by counting back from the whole, internalising "tel terug" as a controlled move rather than a guess.',
+    pitfalls: ['Counting back one too few/many (boundary error)', 'Tapping + instead of − (operation confusion)', 'Confirming the whole unchanged'],
+    progression: 'Single tier; tap count is the diagnostic signal — ≈ operandB taps means counting back, anything else means the strategy slipped.',
+  },
+})

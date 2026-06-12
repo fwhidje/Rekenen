@@ -6,6 +6,7 @@ import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
+import { CountChip } from '../presentation/components/CountChip'
 import { opGlyph, opColor } from './opDisplay'
 
 // ─── erbij-tap ────────────────────────────────────────────────────────────────
@@ -24,26 +25,6 @@ interface ErbijTapMeta {
   sceneIndex: number
   options: number[]
   tierId: string
-}
-
-// Running chip that models counting on: starts at the known quantity, bumps up.
-function CountChip({ count, ink, paper }: { count: number; ink: string; paper: string }) {
-  const [bump, setBump] = useState(false)
-  useEffect(() => {
-    setBump(true)
-    const t = setTimeout(() => setBump(false), 180)
-    return () => clearTimeout(t)
-  }, [count])
-  return (
-    <div style={{
-      fontFamily: 'Fredoka One, cursive', fontSize: 22,
-      color: ink, background: paper,
-      border: `2px solid ${ink}`, borderRadius: 50,
-      padding: '3px 16px', minWidth: 22, textAlign: 'center',
-      transform: bump ? 'scale(1.18)' : 'scale(1)',
-      transition: 'transform .15s ease',
-    }}>{count}</div>
-  )
 }
 
 function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<ErbijTapMeta>) {

@@ -227,12 +227,12 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 ### Aftrekken
 
 #### `-1-2-tot-5`
-- **Intent**: take away 1 or 2 within 5 — counting back
+- **Intent**: take away 1 or 2 within 5 — counting back. Introduces the `−` sign, with the wegnemen action (things leave) as its meaning.
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: `aftrekken-wegnemen-5`
 - **`subsumed_by`**: `aftrekken-wegnemen-5`
-- **Generator**: a ∈ [1, 5], b ∈ {1, 2}, b ≤ a
-- **Applicable exercise types**: scaffolded heavily with `wegnemen-crossed-out` and `collect-counter-down`; later `numberline-jump-back`, `fill-plain`, `choice`, `tf`
+- **Generator**: uniform over the 9 facts (a−1 for a ∈ [1,5], a−2 for a ∈ [2,5]), including the two "alles weg" → 0 facts (1−1, 2−2), damped ×0.25 below score 30 so 0 doesn't appear before the action-meaning is anchored.
+- **Applicable exercise types**: `wegneem-tap`, `wegnemen-crossed-out` (low flat share throughout — the werkboek form), `fill-vis` (wegnemen reveal grammar: the leave IS the − sign's meaning), `numberline-jump-back`, `collect-counter-down`, `choice` (crossed-dots aid), `tf` (reversal traps "2 − 5 = 3" at the strikt tier — the only place order-sensitivity is tested), `fill-plain`. Entry more concrete-heavy than the + mirror: backward counting is weaker than forward. Post-60 width set (`splits-som-match`, `rekenverhaal`) joins in its own pass.
 
 #### `aftrekken-wegnemen-5`
 - **Intent**: take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?"
@@ -408,7 +408,8 @@ Each implicitly suggests a strategy. The score → exercise-type matrix shifts w
 
 | ID | Description | Strategy nudged | Suits |
 |---|---|---|---|
-| `wegnemen-crossed-out` | one group with some items crossed out | direct take-away | low (wegnemen) |
+| `wegneem-tap` | whole group stands as a GIVEN quantity (chip reads it uncounted); child taps the leavers, each fades to a crossed ghost while the chip counts back; then names the remainder. voorspel tier asks the answer before the leave animates | direct take-away, counting back | low (wegnemen) |
+| `wegnemen-crossed-out` | one group with some items crossed out — the static werkboek picture; tiers choice → numpad | direct take-away | low–mid (wegnemen) |
 | `verschil-two-groups` | two groups side-by-side, "hoeveel meer?" | comparison | low (verschil) |
 | `verschil-rekenrek` | top row vs bottom row, count the difference | comparison | mid (verschil) |
 | `aanvullen-target` | target (e.g. 5 stars) + partial (3 stars), fill missing | missing-part | low (aanvullen) |

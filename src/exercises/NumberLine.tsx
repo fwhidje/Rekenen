@@ -141,26 +141,51 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   )
 }
 
+function makeMeta(operandA: number, operandB: number, score: number, op: string): NumberLineMeta {
+  const tier = pickTier(TIERS, score)
+  const answer = op === '-' ? operandA - operandB : operandA + operandB
+  return {
+    options: makeNumeralOptions(answer, numeralRangeMax(Math.max(operandA, answer)), 0),
+    tierId: tier.id,
+  }
+}
+
 const NumberLine: ExerciseDefinition<NumberLineMeta> = {
   id: 'numberline-jump',
   label: 'Spring op de getallenlijn',
   supportsReveal: false,
   tiers: TIERS,
   didactics: {
-    goal: 'Model +1/+2 (and −1/−2) as jumps on the number line — counting on/back given spatial structure; the buurgetal relation made visible.',
+    goal: 'Model +1/+2 as forward jumps on the number line — counting on given spatial structure; the buurgetal relation made visible.',
     pitfalls: ['Off-by-one from counting the start cell as the first jump', 'Tapping the start instead of the landing', 'Reading cell labels instead of using the structure (probed by the sparse tier)'],
     progression: 'sprong-zien: the jump animates and the child reads the landing. sprong-zelf: the child makes the jump by tapping the landing. kale-sprong: same, on a line with only the ends labelled — the structure has to carry it. Watching → doing → doing without labels.',
   },
   generateMeta(operandA, operandB, score, problem) {
-    const tier = pickTier(TIERS, score)
-    const op = problem?.op ?? '+'
-    const answer = op === '-' ? operandA - operandB : operandA + operandB
-    return {
-      options: makeNumeralOptions(answer, numeralRangeMax(Math.max(operandA, answer)), 0),
-      tierId: tier.id,
-    }
+    return makeMeta(operandA, operandB, score, problem?.op ?? '+')
   },
   Component: NumberLineComponent,
 }
 
 registerExercise(NumberLine)
+
+// The backward twin — same component, direction follows question.op. A
+// separate id so the − skills weight it independently and the answer stream
+// distinguishes forward from backward jumping (backward counting is the
+// documented weak spot).
+const NumberLineBack: ExerciseDefinition<NumberLineMeta> = {
+  id: 'numberline-jump-back',
+  label: 'Spring terug op de getallenlijn',
+  supportsReveal: false,
+  tiers: TIERS,
+  didactics: {
+    goal: 'Model −1/−2 as backward jumps on the number line — counting back given spatial structure. Doubles as backward-counting practice, which is genuinely weaker than forward and needs its own airtime.',
+    pitfalls: ['Off-by-one from counting the start cell as the first backward step', 'Jumping forward out of habit', 'Tapping the start instead of the landing'],
+    progression: 'Same ladder as the forward twin: watch the backward jump → tap the landing yourself → sparse labels.',
+  },
+  generateMeta(operandA, operandB, score, problem) {
+    return makeMeta(operandA, operandB, score, problem?.op ?? '-')
+  },
+  Component: NumberLineComponent,
+}
+
+registerExercise(NumberLineBack)

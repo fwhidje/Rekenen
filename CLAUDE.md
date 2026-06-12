@@ -29,14 +29,14 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `getalbegrip-10`
 - `splitsen-herken-5`
 - `+1-2-tot-5` (lifted June 2026 — opens `optellen-tot-5` → `+1-2-tot-10` → `+3-4-tot-10` on the default curve until their own tuning rounds)
+- `-1-2-tot-5` (lifted June 2026 — opens `aftrekken-wegnemen-5` (also needs `optellen-tot-5` ≥ 60) and the rest of the aftrekken-tot-5/-tot-10 chain on the default curve until their own tuning rounds)
 
-### Currently gated (6 subtree roots)
+### Currently gated (5 subtree roots)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
 | `splitsen-noteren-5` | parallel notation track (no downstream gating in v2) | notation exercises (splitshuisje, splitsbenen, splits-vrij/-ontbreken-*/-alle) built |
 | `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
-| `-1-2-tot-5` | the whole `aftrekken` family (tot-5 and tot-10) | aftrekken-specific exercises built |
 | `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
 | `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
 | `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
@@ -93,8 +93,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
 | `+1-2-tot-5` | ✅ all 7 live, gate lifted (erbij-tap rework, fill-vis semantic variants + commutativity swap, numberline 3 tiers, tf strikt traps, op-generic symbolic trio); post-60 width set (`splits-som-match`, `rekenverhaal`) pending its own pass | 🟡 initial guesses |
 | `optellen-tot-5` and later optellen | 🔲 reachable on the default curve; own tuning round pending | 🔲 |
-| `-1-2-tot-5` | 🔲 **Next stop** — wegneem-tap, wegnemen-crossed-out, jump-back + counter-down twins, − weights | 🔲 |
-| other aftrekken skills | 🔲 Pass 5 | 🔲 |
+| `-1-2-tot-5` | ✅ all 8 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back + counter-down twins, fill-vis − grammar live, tf reversal traps); post-60 width set (`splits-som-match`, `rekenverhaal`) pending its own pass | 🟡 initial guesses |
+| `aftrekken-wegnemen-5` and later aftrekken | 🔲 reachable on the default curve (needs `optellen-tot-5` ≥ 60 too); own tuning round pending — verschil/aanvullen types not built | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
 ### Exercise file status
@@ -127,11 +127,15 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `choice` | `Choice.tsx` | ✅ op-generic (crossed-dots aid for `−` at visual tier; shared range-clamped distractors, 0 allowed for `−`) |
 | `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands) |
 | `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; tiers doen 0 / voorspel 35 — answer before the arrival confirms; counting-on chip starts at the given group; total hidden at answer time) |
+| `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
+| `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (static werkboek picture: whole drawn, removed part crossed; tiers keuze 0 / numpad 50) |
+| `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
+| `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
 | `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
 | `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; full-range line so the landing is never the last cell; direction seam for `numberline-jump-back`) |
 | splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — together with the +/− round (skill `splitsen-noteren-5` is disabled; lift WIP gate once any of these are built) |
 | optellen extras (2 types) | — | 🔲 not built |
-| aftrekken-specific (7 types) | — | 🔲 not built |
+| aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
 
 ### Per-exercise ritual
@@ -222,13 +226,15 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/Choice.tsx` | `choice` — 4-option multiple choice |
 | `src/exercises/TrueFalse.tsx` | `tf` — Waar / niet waar? |
 | `src/exercises/ErbijTap.tsx` | `erbij-tap` — the erbij action performed by the child; counting-on chip; voorspel tier (replaces the removed counting-all `collect-tap`) |
+| `src/exercises/WegneemTap.tsx` | `wegneem-tap` — the wegnemen action performed by the child; counting-back chip; crossed ghosts; voorspel tier |
+| `src/exercises/WegnemenCrossedOut.tsx` | `wegnemen-crossed-out` — static werkboek take-away picture |
 | `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
 | `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing (locked feedback constraints) |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
-| `src/presentation/components/` | DotGroup, SceneGroup |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop), CountChip |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |

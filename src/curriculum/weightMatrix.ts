@@ -86,6 +86,23 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'tf':               [[25, 0], [60, 15], [100, 15]],
     'fill-plain':       [[40, 0], [100, 40]],
   },
+
+  // ── Aftrekken ────────────────────────────────────────────────────────────────
+  // -1-2-tot-5: mirror of the + table with a more concrete-heavy entry
+  // (backward counting is weaker than forward). wegnemen-crossed-out keeps a
+  // low flat share throughout — it's the werkboek form, recognising it has
+  // standing transfer value. Initial guesses, to be tuned with playtesting.
+
+  '-1-2-tot-5': {
+    'wegneem-tap':           [[0, 30], [35, 22], [70, 0]],
+    'wegnemen-crossed-out':  [15, 8],
+    'fill-vis':              [25, 12],
+    'numberline-jump-back':  [[0, 10], [40, 20], [100, 10]],
+    'collect-counter-down':  [10, 5],
+    'choice':                [18, 10],
+    'tf':                    [[25, 0], [60, 15], [100, 15]],
+    'fill-plain':            [[40, 0], [100, 38]],
+  },
 }
 
 // Validation hook: the explicit per-skill table ids (null when the skill falls
@@ -116,6 +133,10 @@ function defaultWeights(score: number): WeightMap {
     'erbij-tap':        lerp(25,  0, t),
     'collect-counter':  lerp(15,  5, t),
     'numberline-jump':  lerp(15, 10, t),
+    // − mirrors, for untuned aftrekken skills on this fallback curve
+    'wegnemen-crossed-out': lerp(25,  5, t),
+    'numberline-jump-back': lerp(15, 10, t),
+    'collect-counter-down': lerp(15,  5, t),
   }
 }
 

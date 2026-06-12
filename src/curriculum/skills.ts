@@ -1,5 +1,5 @@
 import type { SkillDefinition } from './types'
-import { sampleFact, enumeratePlus } from './factSampling'
+import { sampleFact, reweight, enumeratePlus, enumerateMinus } from './factSampling'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,6 +69,7 @@ const EX = {
   dubbelRecognise:  'dubbel-recognise',
 
   // Aftrekken-specific presentations
+  wegneemTap:            'wegneem-tap',
   wegnemenCrossedOut:    'wegnemen-crossed-out',
   verschilTwoGroups:     'verschil-two-groups',
   verschilRekenrek:      'verschil-rekenrek',
@@ -431,11 +432,15 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '-1-2-tot-5',
     name: '−1 / −2 tot 5',
-    intent: 'Take away 1 or 2 within 5 — counting back.',
+    intent: 'Take away 1 or 2 within 5 — counting back. Introduces the − sign, with the wegnemen action (things leave) as its meaning.',
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with splitsen-herken-5 — sees a quantity 1–5 as a whole containing parts, subitises structured patterns, reads the numerals. Has met + via the parallel +1-2 track; has not yet met the − sign. Backward counting is genuinely weaker than forward — entry stays more concrete, longer, than the + mirror.',
+      goal: 'Given any a − 1 or a − 2 within 5, in equation form or acted out as wegnemen, answers reliably by counting back (or knowing): −1 is the buurgetal ervoor, −2 is one move of two back. Post-60: the bare equation is fast, and a reversed statement ("2 − 5 = 3") is rejected as niet waar.',
+      pitfalls: [
+        'Counting back off-by-one — says the whole again for the first leaver (the boundary error).',
+        'Reading − as + — answers the sum; the leave-action visual is kept long to anchor the sign\'s meaning.',
+        'Order-insensitivity — treats a − b and b − a as the same; only the tf reversal traps surface this, since the generator never produces smaller-first.',
+      ],
     },
     semanticForm: 'wegnemen',
     op: '-',
@@ -443,15 +448,18 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-wegnemen-5'],
     subsumedBy: 'aftrekken-wegnemen-5',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.collectCounterDown,
-      EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
+      EX.wegneemTap, EX.wegnemenCrossedOut, EX.fillVis,
+      EX.numberlineJumpBack, EX.collectCounterDown,
+      EX.choice, EX.tf, EX.fillPlain,
     ],
-    generate: () => {
-      const b = pickFrom([1, 2])
-      const a = rnd(b, 5)
-      return { op: '-', whole: a, part: b }
+    generate: (ctx) => {
+      // Uniform over the 9 facts (a−1 for a=1..5, a−2 for a=2..5), including
+      // the two "alles weg" → 0 facts (1−1, 2−2) — damped below score 30 so 0
+      // doesn't show up before the action-meaning is anchored.
+      const facts = enumerateMinus(5, [1, 2])
+      const score = ctx?.score ?? 0
+      return sampleFact(score < 30 ? reweight(facts, f => (f.whole === f.part ? 0.25 : 1)) : facts)
     },
-    disabled: true,  // WIP gate
   },
 
   {

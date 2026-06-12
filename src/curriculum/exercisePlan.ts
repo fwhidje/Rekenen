@@ -65,7 +65,22 @@ export const EXERCISE_PLAN: Record<string, string> = {
   'optellen-tot-10': TODO,
   'dubbels-tot-10': TODO,
   'helften-tot-10': TODO,
-  '-1-2-tot-5': TODO,
+  '-1-2-tot-5':
+    'Mirror of +1-2-tot-5 with a more concrete-heavy entry, because backward counting is ' +
+    'genuinely weaker than forward. The entry belongs to the wegnemen action: wegneem-tap (30, ' +
+    'fading by 70) has the child tap the leavers away while the chip counts back — the ghosts ' +
+    'keep the remainder readable, so the doen tier stays fully supported. fill-vis (25→12) acts ' +
+    'out the leave on the reveal (whole appears → b fade to crossed ghosts → equation builds) — ' +
+    'the leave IS the − sign\'s meaning, kept long against +/− confusion. wegnemen-crossed-out ' +
+    'holds a low flat share (15→8) through the whole curve: the static werkboek form, worth ' +
+    'recognising in its own right. The middle shifts to structure and strategy: ' +
+    'numberline-jump-back ramps to 20 at 40 (counting back as spatial moves, doubling as ' +
+    'backward-counting practice), collect-counter-down stays a low constant as the strategy ' +
+    'probe. Post-60 is width and automation: tf adds reversal traps ("2 − 5 = 3") and ' +
+    'operand-echo at 60 — the only place order-sensitivity gets tested, since the generator ' +
+    'never produces smaller-first — and fill-plain ramps from 40 to dominance. The generator ' +
+    'serves the two "alles weg" → 0 facts damped below score 30. Weights are initial guesses ' +
+    'pending playtesting.',
   'aftrekken-wegnemen-5': TODO,
   'aftrekken-verschil-5': TODO,
   'aftrekken-aanvullen-5': TODO,
