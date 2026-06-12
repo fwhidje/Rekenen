@@ -43,7 +43,7 @@ function buildRetry(original: ExerciseQuestion): ExerciseQuestion {
   const idx = tiers.findIndex(t => t.id === tierId)
   // One tier below the original; at the lowest tier (or unknown), stay there.
   const target = idx > 0 ? tiers[idx - 1] : tiers[0]
-  const meta = def.generateMeta(original.operandA, original.operandB, target?.minScore ?? 0)
+  const meta = def.generateMeta(original.operandA, original.operandB, target?.minScore ?? 0, original.problem)
   return { ...original, meta, isRetry: true }
 }
 
@@ -84,7 +84,7 @@ function buildQuestion(
   if (candidates.length === 0) return null
 
   for (let draw = 0; draw < MAX_PROBLEM_DRAWS; draw++) {
-    const problem = skill.generate()
+    const problem = skill.generate({ score, recentRecords: ctx?.records })
     if (
       draw < REPEAT_AVOID_DRAWS &&
       lastQuestion?.skillId === skill.id &&
@@ -108,7 +108,7 @@ function buildQuestion(
       operandB: b,
       op: problem.op,
       answer: computeAnswer(problem),
-      meta: def.generateMeta(a, b, score),
+      meta: def.generateMeta(a, b, score, problem),
     }
   }
   return null

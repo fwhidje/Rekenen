@@ -70,6 +70,58 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'same-split-or-different': [[20, 0], [50, 25], [100, 25]],
     'splits-match':            [[30, 0], [70, 30], [100, 30]],
   },
+
+  // splitsen-noteren-5: splitshuisje owns the entry (the house is familiar
+  // from herken — "the same house, now you write"); benen joins at 25 as the
+  // second notation; ontbreken-rechts grows through the middle (the bridge to
+  // the equation form at its 55 tier); links / vrij / alle are post-60 depth.
+  // Initial guesses, to be tuned with playtesting.
+
+  'splitsen-noteren-5': {
+    'splitshuisje':            [40, 15],
+    'splitsbenen':             [[25, 0], [55, 22], [100, 18]],
+    'splits-ontbreken-rechts': [[20, 0], [55, 25], [100, 22]],
+    'splits-ontbreken-links':  [[60, 0], [85, 18], [100, 18]],
+    'splits-vrij':             [[35, 0], [60, 18], [100, 18]],
+    'splits-alle':             [[65, 0], [90, 15], [100, 15]],
+  },
+
+  // ── Optellen ─────────────────────────────────────────────────────────────────
+  // +1-2-tot-5: the erbij action dominates the entry (doing), the middle belongs
+  // to the spatial/counter forms (seeing/strategy), the symbolic forms take over
+  // toward 100. tf silent until 25 (judging needs something to judge against).
+  // Initial guesses, to be tuned with playtesting.
+
+  '+1-2-tot-5': {
+    'erbij-tap':        [[0, 30], [35, 20], [70, 0]],
+    'fill-vis':         [30, 15],
+    'numberline-jump':  [[0, 10], [40, 20], [100, 10]],
+    'collect-counter':  [10, 5],
+    'choice':           [20, 10],
+    'tf':               [[25, 0], [60, 15], [100, 15]],
+    'fill-plain':       [[40, 0], [100, 40]],
+    'splits-som-match': [[60, 0], [80, 12], [100, 12]],
+    'rekenverhaal':     [[60, 0], [80, 15], [100, 15]],
+  },
+
+  // ── Aftrekken ────────────────────────────────────────────────────────────────
+  // -1-2-tot-5: mirror of the + table with a more concrete-heavy entry
+  // (backward counting is weaker than forward). wegnemen-crossed-out keeps a
+  // low flat share throughout — it's the werkboek form, recognising it has
+  // standing transfer value. Initial guesses, to be tuned with playtesting.
+
+  '-1-2-tot-5': {
+    'wegneem-tap':           [[0, 30], [35, 22], [70, 0]],
+    'wegnemen-crossed-out':  [15, 8],
+    'fill-vis':              [25, 12],
+    'numberline-jump-back':  [[0, 10], [40, 20], [100, 10]],
+    'collect-counter-down':  [10, 5],
+    'choice':                [18, 10],
+    'tf':                    [[25, 0], [60, 15], [100, 15]],
+    'fill-plain':            [[40, 0], [100, 38]],
+    'splits-som-match':      [[60, 0], [80, 12], [100, 12]],
+    'rekenverhaal':          [[60, 0], [80, 15], [100, 15]],
+  },
 }
 
 // Validation hook: the explicit per-skill table ids (null when the skill falls
@@ -97,9 +149,15 @@ function defaultWeights(score: number): WeightMap {
     'fill-plain':       lerp( 0, 60, t),
     'choice':           lerp(25, 15, t),
     'tf':               lerp(10, 15, t),
-    'collect-tap':      lerp(25,  0, t),
+    'erbij-tap':        lerp(25,  0, t),
     'collect-counter':  lerp(15,  5, t),
     'numberline-jump':  lerp(15, 10, t),
+    // − mirrors, for untuned aftrekken skills on this fallback curve
+    'wegnemen-crossed-out': lerp(25,  5, t),
+    'numberline-jump-back': lerp(15, 10, t),
+    'collect-counter-down': lerp(15,  5, t),
+    // total-first missing-part form, for the untuned aanvullen skills
+    'splits-ontbreken-rechts': lerp(15, 25, t),
   }
 }
 

@@ -79,7 +79,10 @@ export interface ExerciseDefinition<Meta = Record<string, unknown>> {
   tiers: ExerciseTier[]
   didactics: ExerciseDidactics
 
-  generateMeta(operandA: number, operandB: number, score: number): Meta
+  // `problem` carries the named-role shape for op-generic exercises (variant
+  // choice, op-aware trap construction). Optional: operand-only exercises
+  // ignore it. The selector passes it on both fresh draws and retries.
+  generateMeta(operandA: number, operandB: number, score: number, problem?: Problem): Meta
 
   // Optional guard: if provided, the selector will skip this exercise when
   // the generated (a, b) pair doesn't satisfy it. Use to exclude degenerate

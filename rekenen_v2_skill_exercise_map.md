@@ -143,8 +143,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: *(nothing in the v2 graph — runs parallel to the +/- track, doesn't gate arithmetic)*
 - **`subsumed_by`**: `splitsen-tot-10` *(TBD — if tot-10 also splits, this becomes `splitsen-noteren-10`)*
-- **Generator**: as `splitsen-herken-5`
-- **Applicable exercise types**: `splits-vrij`, `splits-ontbreken-rechts`, `splits-ontbreken-links`, `splits-alle`, `splitshuisje`, `splitsbenen`
+- **Generator**: fact-proportional over totals 2–5 (5 naturally lingers — most splits); 0-splits join the fact space from score 30, accepted in splits-vrij and required in splits-alle.
+- **Applicable exercise types**: `splitshuisje` (entry — the herken house, now written), `splitsbenen` (from 25 — second notation, transfer), `splits-ontbreken-rechts` ("5 is 3 en ?" wording → "5 = 3 + ?" equation form at 55, after + landed via the + track), then post-60: `splits-ontbreken-links`, `splits-vrij` (nog-een variety round), `splits-alle` (full table). **Boundary invariant vs herken**: the parts are never visible on screen — the roof die-aid is always an unsplit pattern; tier-0 choice is answer-entry scaffolding, numpad from ~30 is true production. Herken's `num-two` tier (74+) ≈ noteren's entry is the intended dual-rotation handover.
 
 #### `splitsen-tot-10`
 > **TBD**: should this also split into `splitsen-herken-10` / `splitsen-noteren-10`? If so, which side does each downstream skill (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) hang off, and how does it connect upstream to the tot-5 herken / noteren pair? Entry below describes the current pre-split form.
@@ -169,12 +169,12 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 ### Optellen
 
 #### `+1-2-tot-5`
-- **Intent**: add 1 or add 2 within 5 — counting on, no structural reasoning required
+- **Intent**: add 1 or add 2 within 5 — counting on, no structural reasoning required. Introduces the `+` sign and the equation form, with the erbij action as its meaning.
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: `optellen-tot-5`
 - **`subsumed_by`**: `optellen-tot-5`
-- **Generator**: a ∈ [1, 4], b ∈ {1, 2}, a + b ≤ 5
-- **Applicable exercise types**: `fill-vis`, `fill-plain`, `choice`, `tf`, `collect-tap`, `collect-counter`, `numberline-jump`. Heavy bias to `fill-vis` and `collect-tap` at low score.
+- **Generator**: uniform over the 7 facts (a+1 for a ∈ [1,4], a+2 for a ∈ [1,3]); post-60 a ~30% share arrives small-addend-first (`1 + 4`) as commutativity material — symbolic exercises display it as written (fill-vis demonstrates the explicit term swap), action exercises enact from the larger operand.
+- **Applicable exercise types**: `erbij-tap`, `fill-vis` (erbij/samenvoegen variants with canonical cue phrases), `numberline-jump`, `collect-counter`, `choice`, `tf`, `fill-plain`. The erbij action dominates at low score; symbolic forms take over toward 100. Post-60 width pair: `splits-som-match` (relation probe) and `rekenverhaal` (semantics by words alone).
 
 #### `optellen-tot-5`
 - **Intent**: any optelling within 5 (a + b ≤ 5)
@@ -227,12 +227,12 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 ### Aftrekken
 
 #### `-1-2-tot-5`
-- **Intent**: take away 1 or 2 within 5 — counting back
+- **Intent**: take away 1 or 2 within 5 — counting back. Introduces the `−` sign, with the wegnemen action (things leave) as its meaning.
 - **`unlocked_by`**: `splitsen-herken-5`
 - **`unlocks`**: `aftrekken-wegnemen-5`
 - **`subsumed_by`**: `aftrekken-wegnemen-5`
-- **Generator**: a ∈ [1, 5], b ∈ {1, 2}, b ≤ a
-- **Applicable exercise types**: scaffolded heavily with `wegnemen-crossed-out` and `collect-counter-down`; later `numberline-jump-back`, `fill-plain`, `choice`, `tf`
+- **Generator**: uniform over the 9 facts (a−1 for a ∈ [1,5], a−2 for a ∈ [2,5]), including the two "alles weg" → 0 facts (1−1, 2−2), damped ×0.25 below score 30 so 0 doesn't appear before the action-meaning is anchored.
+- **Applicable exercise types**: `wegneem-tap`, `wegnemen-crossed-out` (low flat share throughout — the werkboek form), `fill-vis` (wegnemen reveal grammar: the leave IS the − sign's meaning), `numberline-jump-back`, `collect-counter-down`, `choice` (crossed-dots aid), `tf` (reversal traps "2 − 5 = 3" at the strikt tier — the only place order-sensitivity is tested), `fill-plain`. Entry more concrete-heavy than the + mirror: backward counting is weaker than forward. Post-60 width pair: `splits-som-match` (relation probe) and `rekenverhaal` (semantics by words alone).
 
 #### `aftrekken-wegnemen-5`
 - **Intent**: take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?"
@@ -358,14 +358,16 @@ These types live under `splitsen-herken-5` / `-10`. They show a total and ask "w
 
 These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flemish primary-school notations.
 
+Production rule (the herken/noteren boundary): **the parts are never shown** — at most the unsplit total (die-aid) and one part as a bare numeral. The missing part comes out of the child's part-whole knowledge, not off the screen.
+
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
-| `splits-vrij` | "Geef een splitsing van 7" — open, multiple correct | optional dot/rekenrek | numpad ×2 | low |
-| `splits-ontbreken-rechts` | `7 = 4 + ?` | optional schematisch | numpad | mid |
-| `splits-ontbreken-links` | `7 = ? + 3` (the harder one — kids want to count up from the total) | optional schematisch | numpad | mid–high |
-| `splits-alle` | "Noem alle splitsingen van 7" | splitshuisje shows the slots | numpad multi | high |
-| `splitshuisje` | The Flemish house notation: number on roof, parts in rooms | the house | numpad / drag | low–mid (canonical scaffold) |
-| `splitsbenen` | Number with two "legs" coming down to the parts | the bone diagram | numpad | mid |
+| `splitshuisje` | The Flemish house notation: total on the roof (unsplit die-aid at the lowest tier), parts written in the rooms. Tiers: one room prefilled + choice → bare numpad → two houses, two different splits | the house | choice → numpad | low–mid (canonical scaffold) |
+| `splitsbenen` | Total with two "legs" down to the parts — the compact second notation; introduced after the huisje (transfer: same fact, new clothes) | the legs diagram | choice → numpad | mid |
+| `splits-ontbreken-rechts` | `5 is 3 en ?` → `5 = 3 + ?` (equation form from its 55 tier, once + landed via the + track). Total-first = splits notation, NOT the aanvulsom. Also serves the aanvullen skills (op −) | statement only | choice → numpad | mid |
+| `splits-ontbreken-links` | `5 = ? + 3` — the harder position: the slot reads before the given part | statement only | choice → numpad | post-60 |
+| `splits-vrij` | "Geef een splitsing van 5" — open, multiple correct, 0-splits accepted. The nog-een tier (60) demands a SECOND, different split (order-equivalent = same): variety against one-split bias | statement under construction | numpad ×2 | post-35 |
+| `splits-alle` | The full descending table of one total, both orders + 0-rows, as workbooks print it. Tiers: left column pre-printed → empty table | the huisje-table | numpad multi | post-60 capstone |
 
 ### Number-sense / pre-arithmetic
 
@@ -391,14 +393,16 @@ These types live under `splitsen-noteren-5` / `-10`. They use the canonical Flem
 
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
-| `fill-vis` | sum visible + scene visual of the two groups | themed scene | numpad | low |
-| `fill-plain` | bare equation only | none | numpad | high |
-| `choice` | sum + 4 answer buttons | optional visual | tap | mid |
-| `tf` | sum + maybe-wrong answer; waar / niet waar | none | tap | mid |
-| `collect-tap` | tap items into a basket, builds the answer | scene | tap-to-collect | low |
-| `collect-counter` | start at C = a, tap + to add b, confirm | scene | +/- buttons | low–mid |
-| `numberline-jump` | jump arrow shown, pick destination | number line | choice | mid |
+| `fill-vis` | equation built by timed reveal over the semantic action: erbij (arrival), samenvoegen (merge) or wegnemen (leave), each with its canonical cue phrase; flipped `+` terms get an explicit commutativity swap at the equation tier | themed scene / dots | numpad | low–mid |
+| `fill-plain` | bare equation only (op-generic: `+` and `−`) | none | numpad | high |
+| `choice` | equation + 4 answer buttons; dots aid at low tier (combining groups for `+`, crossed-out group for `−`) | optional visual | tap | mid |
+| `tf` | equation + maybe-wrong answer; waar / niet waar. Tiers: near-miss traps → strikt (operand-echo, and order-reversal for `−`) | none | tap | mid–high |
+| `erbij-tap` | start group stands in the pen (a GIVEN quantity — chip reads it uncounted), child taps the arrivals in while the chip counts on, then names the hidden total; voorspel tier asks the answer before the arrival animates | scene | tap + choice | low |
+| `collect-counter` | counter starts at the larger operand, tap +/− to produce the answer, confirm; tap count probes the counting strategy | counter | +/- buttons | low–mid |
+| `numberline-jump` | jump on a full-range line; tiers: watch the animated jump → tap the landing yourself → sparse labels | number line | choice / tap-cell | mid |
 | `rekenrek-add` | move beads to model a + b | rekenrek | drag / tap | mid |
+
+> `collect-tap` (tap items into a basket) was removed: its tap-everything flow trained counting-all — the documented dead-end strategy — and could not fail. `erbij-tap` is its replacement with the counting-on structure built in.
 
 ### Aftrekken-specific presentations
 
@@ -406,13 +410,23 @@ Each implicitly suggests a strategy. The score → exercise-type matrix shifts w
 
 | ID | Description | Strategy nudged | Suits |
 |---|---|---|---|
-| `wegnemen-crossed-out` | one group with some items crossed out | direct take-away | low (wegnemen) |
+| `wegneem-tap` | whole group stands as a GIVEN quantity (chip reads it uncounted); child taps the leavers, each fades to a crossed ghost while the chip counts back; then names the remainder. voorspel tier asks the answer before the leave animates | direct take-away, counting back | low (wegnemen) |
+| `wegnemen-crossed-out` | one group with some items crossed out — the static werkboek picture; tiers choice → numpad | direct take-away | low–mid (wegnemen) |
 | `verschil-two-groups` | two groups side-by-side, "hoeveel meer?" | comparison | low (verschil) |
 | `verschil-rekenrek` | top row vs bottom row, count the difference | comparison | mid (verschil) |
 | `aanvullen-target` | target (e.g. 5 stars) + partial (3 stars), fill missing | missing-part | low (aanvullen) |
 | `numberline-jump-back` | start at a, jump back b | terugtellen | low–mid (wegnemen) |
 | `numberline-jump-up-from-b` | start at b, jump up to a, count the jumps | aanvullend optellen | mid (aanvullen) |
 | `collect-counter-down` | start at C = a, tap − b times, confirm | take-away | low (wegnemen) |
+
+### Post-60 width set (op-generic, + and − skills)
+
+Width probes per the mastery-width criteria: representational transfer and semantic robustness, not more of the same presentation.
+
+| ID | Description | Probes | Suits |
+|---|---|---|---|
+| `splits-som-match` | a split representation next to som options ("welke som hoort erbij?"), and the inverse direction at the top tier. For + it binds the sum to its part-whole structure; for − it seeds via-splitsing (5 = 4 en 1, dus 5 − 1 = 4). Distractors are other facts — never the relation's own twin | representational transfer (Movement 5: operation → relation) | post-60 |
+| `rekenverhaal` | mini story problems whose WORDS carry the semantics (erbij / samenvoegen / wegnemen cue phrases as sentences), acted by the scene creatures; the equation builds as the story unfolds; replay tap re-acts the story as reading fallback. Weight-controlled, never a gate | semantic robustness by language alone (the language-gradient capstone) | post-60 |
 
 ### Generic high-score
 
@@ -427,7 +441,7 @@ Per the v2 logic, this is where difficulty lives. Below is a high-level shape; t
 | Score band | Bias |
 |---|---|
 | 0–20 | scene visuals + collect/tap; numpad mostly avoided; reveal animations on |
-| 20–50 | mix of fill-vis and choice; rekenrek/ten-frame appear; collect-counter replaces collect-tap |
+| 20–50 | mix of fill-vis and choice; rekenrek/ten-frame appear; collect-counter replaces erbij-tap |
 | 50–80 | fill-plain becomes plurality; tf appears; visuals only on the "harder" instances of the skill |
 | 80–100 | ~80% fill-plain; tf and choice fill the rest; visuals ≤ 10% |
 

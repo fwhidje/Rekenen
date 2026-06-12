@@ -3,6 +3,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { NumPad } from '../ui/components/NumPad'
 import { useState } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { opGlyph, opColor } from './opDisplay'
 
 const TIERS: ExerciseTier[] = [
   { id: 'plain', minScore: 0, label: 'invullen', description: 'Type the answer on the numpad — fully symbolic, no scaffolding. Single tier.' },
@@ -14,8 +15,9 @@ interface FillPlainMeta {
 
 function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<FillPlainMeta>) {
   const [input, setInput] = useState('')
-  const { operandA, operandB, answer } = question
-  const { ink, cream, accent, accentText, confirm, pop } = scene?.tokens ?? NATURE_TOKENS
+  const { operandA, operandB, answer, op } = question
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, cream, accent, accentText, confirm, pop } = tokens
 
   const handleKey = (key: string) => {
     if (disabled) return
@@ -33,7 +35,7 @@ function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseCo
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: accentText, lineHeight: 1 }}>{operandA}</span>
-        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: ink, lineHeight: 1 }}>+</span>
+        <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: opColor(op, tokens), lineHeight: 1 }}>{opGlyph(op)}</span>
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: pop, lineHeight: 1 }}>{operandB}</span>
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: ink, lineHeight: 1, opacity: 0.5 }}>=</span>
         <div style={{

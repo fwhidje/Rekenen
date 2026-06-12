@@ -28,15 +28,15 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `getalbegrip-5`
 - `getalbegrip-10`
 - `splitsen-herken-5`
+- `+1-2-tot-5` (lifted June 2026 — opens `optellen-tot-5` → `+1-2-tot-10` → `+3-4-tot-10` on the default curve until their own tuning rounds)
+- `-1-2-tot-5` (lifted June 2026 — opens `aftrekken-wegnemen-5` (also needs `optellen-tot-5` ≥ 60) and the rest of the aftrekken-tot-5/-tot-10 chain on the default curve until their own tuning rounds)
+- `splitsen-noteren-5` (lifted June 2026 — parallel notation track, gates nothing downstream in v2)
 
-### Currently gated (6 subtree roots)
+### Currently gated (4 subtree roots)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
-| `splitsen-noteren-5` | parallel notation track (no downstream gating in v2) | notation exercises (splitshuisje, splitsbenen, splits-vrij/-ontbreken-*/-alle) built |
 | `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
-| `+1-2-tot-5` | the whole `optellen` family (tot-5 and tot-10) | optellen exercises reworked and tested for `+` |
-| `-1-2-tot-5` | the whole `aftrekken` family (tot-5 and tot-10) | aftrekken-specific exercises built |
 | `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
 | `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
 | `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
@@ -88,11 +88,13 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `getalbegrip-5` | ✅ all 12 live (incl. `compare-pick`); `rekenrek-show` parked | ✅ tuned |
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
-| `splitsen-noteren-5` *(disabled — no exercises built)* | 🔲 notation family not built (splitshuisje, splitsbenen, splits-vrij, splits-ontbreken-rechts/links, splits-alle) | 🔲 |
+| `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
-| `+1-2-tot-5` and all optellen | 🔲 **Next stop** — lift WIP gate, fix 7 exercise types for `+` op, tune matrix | 🔲 |
-| all aftrekken skills | 🔲 Pass 5 | 🔲 |
+| `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap rework, fill-vis semantic variants + commutativity swap, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) | 🟡 initial guesses |
+| `optellen-tot-5` and later optellen | 🔲 reachable on the default curve; own tuning round pending | 🔲 |
+| `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back + counter-down twins, fill-vis − grammar live, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) | 🟡 initial guesses |
+| `aftrekken-wegnemen-5` and later aftrekken | 🔲 reachable on the default curve (needs `optellen-tot-5` ≥ 60 too); own tuning round pending — verschil/aanvullen types not built | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
 ### Exercise file status
@@ -120,16 +122,27 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-build-it` | `SplitsBuildIt.tsx` | ✅ done (open: cut + name the hidden part; gericht: 'Splits 5 in 2 en 3', either cut order accepted) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
 | `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 24; uncertain whether worth a separate type (see skill map) |
-| `fill-vis` | `FillVisual.tsx` | ⚠️ `+` only — needs `-`, `split`, `count`, `half` |
-| `fill-plain` | `FillPlain.tsx` | ⚠️ `+` only |
-| `choice` | `Choice.tsx` | ⚠️ `+` only |
-| `tf` | `TrueFalse.tsx` | ⚠️ `+` only |
-| `collect-tap` | `CollectTap.tsx` | ⚠️ `+` only |
-| `collect-counter` | `CollectCounter.tsx` | ⚠️ `+` only |
-| `numberline-jump` | `NumberLine.tsx` | ⚠️ `+` only |
-| splitsen notation family (6 types: splits-vrij, splits-ontbreken-rechts/links, splits-alle, splitshuisje, splitsbenen) | — | 🔲 not built — together with the +/− round (skill `splitsen-noteren-5` is disabled; lift WIP gate once any of these are built) |
+| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase + matching reveal grammar; `variant` recorded; commutativity term-swap at equation tier for flipped `+`; `−` grammar built, goes live with the −1-2 round) |
+| `fill-plain` | `FillPlain.tsx` | ✅ op-generic (`+`/`−` via opDisplay, tokens) |
+| `choice` | `Choice.tsx` | ✅ op-generic (crossed-dots aid for `−` at visual tier; shared range-clamped distractors, 0 allowed for `−`) |
+| `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands) |
+| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; tiers doen 0 / voorspel 35 — answer before the arrival confirms; counting-on chip starts at the given group; total hidden at answer time) |
+| `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
+| `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (static werkboek picture: whole drawn, removed part crossed; tiers keuze 0 / numpad 50) |
+| `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
+| `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
+| `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
+| `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; full-range line so the landing is never the last cell; direction seam for `numberline-jump-back`) |
+| `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60) |
+| `splitsbenen` | `Splitsbenen.tsx` | ✅ done (second notation; tiers been-keuze 25 / been-pad 55; weight silent until 25 so the huisje lands first) |
+| `splits-ontbreken-rechts` | `SplitsOntbreken.tsx` | ✅ done (tiers is-en-keuze 20 / is-en-pad 40 / vergelijking "5 = 3 + ?" 55; also serves the aanvullen skills via op `-`) |
+| `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
+| `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent) |
+| `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; wrong digit ends the attempt) |
+| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; tiers som-kiezen 60 / omgekeerd 80; distractors are other facts, never the relation's twin) |
+| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; equation builds with the story; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
-| aftrekken-specific (7 types) | — | 🔲 not built |
+| aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
 
 ### Per-exercise ritual
@@ -185,7 +198,7 @@ Three independent skill relationships:
 - **`unlocks`** — inverse, kept for readability; the engine derives behaviour from `unlockedBy` only.
 - **`subsumedBy`** — single parent skill; when this skill caps at 100 AND the parent is unlocked, this skill is archived (removed from rotation, score preserved). `null` means never archive (typically fact-recall: tienvrienden, dubbels, helften).
 
-A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill has a `generate()` returning a typed **`Problem`** with named roles per operation (`{ whole, part }` for `-`, `{ terms }` for `+`, `{ partA, partB }` for `split`, …). The engine derives the legacy `operandA`/`operandB` view for existing components; new exercises read `question.problem`. `generate` accepts an optional `GenerateContext` — the (unused) seam for per-fact sampling in drill skills. The selector re-draws past immediate repeats and drops unplayable skills from the pool before ever returning null.
+A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill has a `generate()` returning a typed **`Problem`** with named roles per operation (`{ whole, part }` for `-`, `{ terms }` for `+`, `{ partA, partB }` for `split`, …). The engine derives the legacy `operandA`/`operandB` view for existing components; new exercises read `question.problem`. `generate` accepts an optional `GenerateContext` carrying the skill's current `score` (used: 0-splits entering mid-skill, post-60 operand flips — never the math range) and `recentRecords` (the still-unused seam for need-based per-fact sampling). Generators sample over an explicit **fact space** (`curriculum/factSampling.ts`: enumerate + weighted sample) instead of chained `rnd()` picks, so a total's airtime follows its fact count. The selector re-draws past immediate repeats and drops unplayable skills from the pool before ever returning null.
 
 ## Module map
 
@@ -194,6 +207,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/curriculum/types.ts` | `SkillDefinition` (incl. `didactics`, `semanticForm`), `Problem` (named-role problem union), `GenerateContext`, `Operation`, `WeightFunction` types |
 | `src/curriculum/skills.ts` | All skill definitions (data — add new skills here) |
 | `src/curriculum/weightMatrix.ts` | Per-skill weight tables (`SKILL_TABLES`); falls back to default global curve for untuned skills |
+| `src/curriculum/factSampling.ts` | Fact-space enumeration + weighted sampling (`enumerateSplits/Plus/Minus`, `sampleFact`, `reweight`) — generators draw facts, not parameter chains |
 | `src/curriculum/exercisePlan.ts` | Per-skill exercise-progression narrative (`EXERCISE_PLAN`) — the "why this order" doc layer over the weight curves; coverage-checked |
 | `src/curriculum/validate.ts` | Dev-time consistency checks across applicableExercises × registry × weight tables × EXERCISE_PLAN; runs after exercise registration |
 | `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD (dial + unlock gate) |
@@ -218,13 +232,23 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/FillPlain.tsx` | `fill-plain` — plain numpad |
 | `src/exercises/Choice.tsx` | `choice` — 4-option multiple choice |
 | `src/exercises/TrueFalse.tsx` | `tf` — Waar / niet waar? |
-| `src/exercises/CollectTap.tsx` | `collect-tap` — tap items into a basket (low score) |
+| `src/exercises/ErbijTap.tsx` | `erbij-tap` — the erbij action performed by the child; counting-on chip; voorspel tier (replaces the removed counting-all `collect-tap`) |
+| `src/exercises/WegneemTap.tsx` | `wegneem-tap` — the wegnemen action performed by the child; counting-back chip; crossed ghosts; voorspel tier |
+| `src/exercises/WegnemenCrossedOut.tsx` | `wegnemen-crossed-out` — static werkboek take-away picture |
+| `src/exercises/Splitshuisje.tsx` | `splitshuisje` — production house (noteren); unsplit roof die-aid |
+| `src/exercises/Splitsbenen.tsx` | `splitsbenen` — second splits notation (noteren) |
+| `src/exercises/SplitsOntbreken.tsx` | `splits-ontbreken-rechts` + `-links` — total-first missing-part statements |
+| `src/exercises/SplitsVrij.tsx` | `splits-vrij` — open production + nog-een variety round |
+| `src/exercises/SplitsAlle.tsx` | `splits-alle` — full descending splits table |
+| `src/exercises/SplitsSomMatch.tsx` | `splits-som-match` — op-generic split ↔ som relation probe (post-60 width) |
+| `src/exercises/Rekenverhaal.tsx` | `rekenverhaal` — op-generic story problems (post-60 width; language gradient capstone) |
+| `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
 | `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing (locked feedback constraints) |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
-| `src/presentation/components/` | DotGroup, SceneGroup |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop), CountChip |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |

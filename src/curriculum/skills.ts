@@ -1,4 +1,5 @@
 import type { SkillDefinition } from './types'
+import { sampleFact, reweight, enumerateSplits, enumeratePlus, enumerateMinus } from './factSampling'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ const EX = {
   fillPlain:      'fill-plain',
   choice:         'choice',
   tf:             'tf',
-  collectTap:     'collect-tap',
+  erbijTap:       'erbij-tap',
   collectCounter: 'collect-counter',
   numberlineJump: 'numberline-jump',
 
@@ -59,6 +60,10 @@ const EX = {
   splitsShuffle:          'splits-shuffle',
   splitsBuildIt:          'splits-build-it',
 
+  // Post-60 width set (op-generic: + and − skills)
+  splitsSomMatch:  'splits-som-match',
+  rekenverhaal:    'rekenverhaal',
+
   // Tienvrienden-specific
   tienveldFill:    'tienveld-fill',
   rekenrekMakeTen: 'rekenrek-make-ten',
@@ -68,6 +73,7 @@ const EX = {
   dubbelRecognise:  'dubbel-recognise',
 
   // Aftrekken-specific presentations
+  wegneemTap:            'wegneem-tap',
   wegnemenCrossedOut:    'wegnemen-crossed-out',
   verschilTwoGroups:     'verschil-two-groups',
   verschilRekenrek:      'verschil-rekenrek',
@@ -171,7 +177,6 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'splitsen-noteren-5',
-    disabled: true,  // WIP gate — notation exercises not yet built
     name: 'Splitsen noteren tot 5',
     intent: 'Second half of the part-whole spine: produces splits of totals 2–5 in the canonical Flemish notations (splitshuisje, splitsbenen, missing-part equations). Where herken reads a split that\'s shown, noteren generates one or completes it — the production complement to recognition. Runs parallel to the +/− track, not a prereq for it.',
     didactics: {
@@ -191,10 +196,12 @@ export const SKILLS: SkillDefinition[] = [
       EX.splitsVrij, EX.splitsOntbrekenRechts, EX.splitsOntbrekenLinks,
       EX.splitsAlle, EX.splitshuisje, EX.splitsbenen,
     ],
-    generate: () => {
-      const total = rnd(2, 5)
-      const partA = rnd(1, total - 1)
-      return { op: 'split', partA, partB: total - partA }
+    generate: (ctx) => {
+      // Fact-proportional over totals 2–5 (5 naturally lingers: most splits).
+      // 0-splits join the space from score 30 — visually odd at entry,
+      // normalised mid-skill, required in splits-alle's table.
+      const includeZero = (ctx?.score ?? 0) >= 30
+      return sampleFact(enumerateSplits(2, 5, { includeZero }))
     },
   },
 
@@ -257,26 +264,36 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '+1-2-tot-5',
     name: '+1 / +2 tot 5',
-    intent: 'Add 1 or add 2 within 5 — counting on, no structural reasoning required.',
+    intent: 'Add 1 or add 2 within 5 — counting on, no structural reasoning required. Introduces the + sign and the equation form, with the erbij action as its meaning.',
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with splitsen-herken-5 — sees a quantity 1–5 as a whole that can contain parts, subitises structured patterns, and reads the numerals. Has not yet met the + sign or the equation form.',
+      goal: 'Given any a + 1 or a + 2 within 5, in equation form or acted out (erbij / samenvoegen), answers reliably without recounting the start group from 1: +1 is the buurgetal, +2 is one move of two. Post-60: the bare equation is fast, and a flipped form (1 + 4) is recognised as the same sum, started from the larger number.',
+      pitfalls: [
+        'Counting all — rebuilds the start group from 1 instead of counting on from it (the dead-end strategy; erbij-tap and the counter expose it via tap counts).',
+        '+2 as two separate +1 steps — the 2 hasn\'t become a unit (visible as slow, serial answers on +2 while +1 is instant).',
+        'Off-by-one at the step over the start group — says the start number again for the first arrival.',
+      ],
     },
     op: '+',
     unlockedBy: ['splitsen-herken-5'],
     unlocks: ['optellen-tot-5'],
     subsumedBy: 'optellen-tot-5',
     applicableExercises: [
-      EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.fillVis, EX.numberlineJump, EX.collectCounter,
+      EX.choice, EX.tf, EX.fillPlain,
+      EX.splitsSomMatch, EX.rekenverhaal,
     ],
-    generate: () => {
-      const b = pickFrom([1, 2])
-      const a = rnd(1, 5 - b)
-      return { op: '+', terms: [a, b] }
+    generate: (ctx) => {
+      // Uniform over the 7 facts (a+1 for a=1..4, a+2 for a=1..3). Post-60 a
+      // share arrives small-addend-first ("1 + 4") — the commutativity /
+      // start-from-the-larger material; the symbolic exercises display it as
+      // written and the action exercises enact it from the larger operand.
+      const fact = sampleFact(enumeratePlus(5, [1, 2]))
+      if ((ctx?.score ?? 0) >= 60 && fact.terms[0] > fact.terms[1] && Math.random() < 0.3) {
+        return { op: '+', terms: [fact.terms[1], fact.terms[0]] }
+      }
+      return fact
     },
-    disabled: true,  // WIP gate
   },
 
   {
@@ -294,7 +311,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.collectCounter, EX.numberlineJump,
     ],
     generate: () => {
       const a = rnd(1, 4)
@@ -318,7 +335,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.collectCounter, EX.numberlineJump,
     ],
     generate: () => {
       const b = pickFrom([1, 2])
@@ -421,11 +438,15 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '-1-2-tot-5',
     name: '−1 / −2 tot 5',
-    intent: 'Take away 1 or 2 within 5 — counting back.',
+    intent: 'Take away 1 or 2 within 5 — counting back. Introduces the − sign, with the wegnemen action (things leave) as its meaning.',
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with splitsen-herken-5 — sees a quantity 1–5 as a whole containing parts, subitises structured patterns, reads the numerals. Has met + via the parallel +1-2 track; has not yet met the − sign. Backward counting is genuinely weaker than forward — entry stays more concrete, longer, than the + mirror.',
+      goal: 'Given any a − 1 or a − 2 within 5, in equation form or acted out as wegnemen, answers reliably by counting back (or knowing): −1 is the buurgetal ervoor, −2 is one move of two back. Post-60: the bare equation is fast, and a reversed statement ("2 − 5 = 3") is rejected as niet waar.',
+      pitfalls: [
+        'Counting back off-by-one — says the whole again for the first leaver (the boundary error).',
+        'Reading − as + — answers the sum; the leave-action visual is kept long to anchor the sign\'s meaning.',
+        'Order-insensitivity — treats a − b and b − a as the same; only the tf reversal traps surface this, since the generator never produces smaller-first.',
+      ],
     },
     semanticForm: 'wegnemen',
     op: '-',
@@ -433,15 +454,19 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-wegnemen-5'],
     subsumedBy: 'aftrekken-wegnemen-5',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.collectCounterDown,
-      EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
+      EX.wegneemTap, EX.wegnemenCrossedOut, EX.fillVis,
+      EX.numberlineJumpBack, EX.collectCounterDown,
+      EX.choice, EX.tf, EX.fillPlain,
+      EX.splitsSomMatch, EX.rekenverhaal,
     ],
-    generate: () => {
-      const b = pickFrom([1, 2])
-      const a = rnd(b, 5)
-      return { op: '-', whole: a, part: b }
+    generate: (ctx) => {
+      // Uniform over the 9 facts (a−1 for a=1..5, a−2 for a=2..5), including
+      // the two "alles weg" → 0 facts (1−1, 2−2) — damped below score 30 so 0
+      // doesn't show up before the action-meaning is anchored.
+      const facts = enumerateMinus(5, [1, 2])
+      const score = ctx?.score ?? 0
+      return sampleFact(score < 30 ? reweight(facts, f => (f.whole === f.part ? 0.25 : 1)) : facts)
     },
-    disabled: true,  // WIP gate
   },
 
   {

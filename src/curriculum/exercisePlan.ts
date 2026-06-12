@@ -40,18 +40,67 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'The generator lingers on total 5 (weights 1:2:3:4). Weights are initial guesses pending ' +
     'playtesting.',
 
-  // Notation + later branches — fill as exercises are built.
-  'splitsen-noteren-5': TODO,
+  '+1-2-tot-5':
+    'The entry belongs to the erbij action: erbij-tap (30, fading out by 70) has the child tap ' +
+    'the arrivals into a standing group while the chip counts on — counting on physically ' +
+    'enacted, with the cardinality question hidden-group so a recount can\'t answer it. ' +
+    'fill-vis (30→15) carries the two semantic variants (erbij arrival / samenvoegen merge), ' +
+    'each bound to its canonical cue phrase, and owns the introduction of the + sign via the ' +
+    'reveal. The middle of the curve shifts to seeing and strategy: numberline-jump ramps to 20 ' +
+    'at 40 (sprongetjes: +1/+2 as spatial moves, tiers watch → tap-the-landing → sparse line), ' +
+    'collect-counter stays a low constant as the strategy probe (tap counts expose ' +
+    'counting-all), choice fades its dots at 50. Post-60 is width and automation: tf phases in ' +
+    'from 25 and adds operand-echo traps at 60, fill-plain ramps from 40 to dominance at 100, ' +
+    'and the generator starts serving flipped forms (1 + 4) that the equation tier of fill-vis ' +
+    'answers with the explicit commutativity swap while the action exercises enact from the ' +
+    'larger operand. The width pair joins from 60: splits-som-match (sum ↔ split, the relation ' +
+    'made explicit) and rekenverhaal (the words carry the semantics — erbij/samenvoegen ' +
+    'sentences, replay tap as reading fallback). Weights are initial guesses pending playtesting.',
+
+  'splitsen-noteren-5':
+    'Production complement to splitsen-herken-5; the invariant everywhere is that the parts are ' +
+    'never visible on screen (the roof die-aid is always an UNSPLIT pattern — a colour-split ' +
+    'roof would collapse production back into recognition). splitshuisje owns the entry (40→15): ' +
+    'the house the child knows from herken, now filled with numerals — one room prefilled with a ' +
+    'die-aid, then bare numpad at 30, then two-different-splits at 60. splitsbenen joins at 25 ' +
+    'as the second canonical notation (same fact, new clothes — notation transfer). ' +
+    'splits-ontbreken-rechts carries the middle (ramping to 25 at 55): it starts in the ' +
+    'symbol-free "5 is 3 en ?" wording and switches to the "5 = 3 + ?" equation form at 55, by ' +
+    'which time + is familiar from the parallel + track — deliberately the second equation shape ' +
+    'the child meets, protecting the equals sign as a relation. Post-60 is depth: ' +
+    'splits-ontbreken-links (the documented harder position), splits-vrij with the nog-een ' +
+    'variety round (anti one-split bias: a repeat, even order-flipped, is wrong), and ' +
+    'splits-alle (65+), the full descending table incl. 0-rows — systematicity as the capstone. ' +
+    'The generator brings 0-splits into the fact space from score 30. Weights are initial ' +
+    'guesses pending playtesting.',
+
+  // Later branches — fill as exercises are built.
   'splitsen-tot-10': TODO,
   'tienvrienden': TODO,
-  '+1-2-tot-5': TODO,
   'optellen-tot-5': TODO,
   '+1-2-tot-10': TODO,
   '+3-4-tot-10': TODO,
   'optellen-tot-10': TODO,
   'dubbels-tot-10': TODO,
   'helften-tot-10': TODO,
-  '-1-2-tot-5': TODO,
+  '-1-2-tot-5':
+    'Mirror of +1-2-tot-5 with a more concrete-heavy entry, because backward counting is ' +
+    'genuinely weaker than forward. The entry belongs to the wegnemen action: wegneem-tap (30, ' +
+    'fading by 70) has the child tap the leavers away while the chip counts back — the ghosts ' +
+    'keep the remainder readable, so the doen tier stays fully supported. fill-vis (25→12) acts ' +
+    'out the leave on the reveal (whole appears → b fade to crossed ghosts → equation builds) — ' +
+    'the leave IS the − sign\'s meaning, kept long against +/− confusion. wegnemen-crossed-out ' +
+    'holds a low flat share (15→8) through the whole curve: the static werkboek form, worth ' +
+    'recognising in its own right. The middle shifts to structure and strategy: ' +
+    'numberline-jump-back ramps to 20 at 40 (counting back as spatial moves, doubling as ' +
+    'backward-counting practice), collect-counter-down stays a low constant as the strategy ' +
+    'probe. Post-60 is width and automation: tf adds reversal traps ("2 − 5 = 3") and ' +
+    'operand-echo at 60 — the only place order-sensitivity gets tested, since the generator ' +
+    'never produces smaller-first — and fill-plain ramps from 40 to dominance. The width pair ' +
+    'joins from 60: splits-som-match (5 = 4 en 1 next to 5 − 1 — the via-splitsing seed) and ' +
+    'rekenverhaal (wegnemen sentences, replay tap as reading fallback). The generator serves ' +
+    'the two "alles weg" → 0 facts damped below score 30. Weights are initial guesses pending ' +
+    'playtesting.',
   'aftrekken-wegnemen-5': TODO,
   'aftrekken-verschil-5': TODO,
   'aftrekken-aanvullen-5': TODO,

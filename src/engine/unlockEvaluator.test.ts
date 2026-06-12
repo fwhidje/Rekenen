@@ -46,8 +46,8 @@ describe('evaluateUnlocks', () => {
 
   it('a disabled prerequisite never satisfies, even if its state says unlocked', () => {
     const profile = freshProfile()
-    // optellen-tot-5 hangs off +1-2-tot-5, which is WIP-gated (disabled)
-    profile.skills['+1-2-tot-5'] = { score: 100, unlocked: true, archived: true }
-    expect(evaluateUnlocks(profile, SKILLS)).not.toContain('optellen-tot-5')
+    // dubbels-tot-10 hangs off optellen-tot-10, which is WIP-gated (disabled)
+    profile.skills['optellen-tot-10'] = { score: 100, unlocked: true, archived: true }
+    expect(evaluateUnlocks(profile, SKILLS)).not.toContain('dubbels-tot-10')
   })
 })
