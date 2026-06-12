@@ -174,7 +174,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `optellen-tot-5`
 - **`subsumed_by`**: `optellen-tot-5`
 - **Generator**: uniform over the 7 facts (a+1 for a ∈ [1,4], a+2 for a ∈ [1,3]); post-60 a ~30% share arrives small-addend-first (`1 + 4`) as commutativity material — symbolic exercises display it as written (fill-vis demonstrates the explicit term swap), action exercises enact from the larger operand.
-- **Applicable exercise types**: `erbij-tap`, `fill-vis` (erbij/samenvoegen variants with canonical cue phrases), `numberline-jump`, `collect-counter`, `choice`, `tf`, `fill-plain`. The erbij action dominates at low score; symbolic forms take over toward 100. Post-60 width set (`splits-som-match`, `rekenverhaal`) joins in its own pass.
+- **Applicable exercise types**: `erbij-tap`, `fill-vis` (erbij/samenvoegen variants with canonical cue phrases), `numberline-jump`, `collect-counter`, `choice`, `tf`, `fill-plain`. The erbij action dominates at low score; symbolic forms take over toward 100. Post-60 width pair: `splits-som-match` (relation probe) and `rekenverhaal` (semantics by words alone).
 
 #### `optellen-tot-5`
 - **Intent**: any optelling within 5 (a + b ≤ 5)
@@ -232,7 +232,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`unlocks`**: `aftrekken-wegnemen-5`
 - **`subsumed_by`**: `aftrekken-wegnemen-5`
 - **Generator**: uniform over the 9 facts (a−1 for a ∈ [1,5], a−2 for a ∈ [2,5]), including the two "alles weg" → 0 facts (1−1, 2−2), damped ×0.25 below score 30 so 0 doesn't appear before the action-meaning is anchored.
-- **Applicable exercise types**: `wegneem-tap`, `wegnemen-crossed-out` (low flat share throughout — the werkboek form), `fill-vis` (wegnemen reveal grammar: the leave IS the − sign's meaning), `numberline-jump-back`, `collect-counter-down`, `choice` (crossed-dots aid), `tf` (reversal traps "2 − 5 = 3" at the strikt tier — the only place order-sensitivity is tested), `fill-plain`. Entry more concrete-heavy than the + mirror: backward counting is weaker than forward. Post-60 width set (`splits-som-match`, `rekenverhaal`) joins in its own pass.
+- **Applicable exercise types**: `wegneem-tap`, `wegnemen-crossed-out` (low flat share throughout — the werkboek form), `fill-vis` (wegnemen reveal grammar: the leave IS the − sign's meaning), `numberline-jump-back`, `collect-counter-down`, `choice` (crossed-dots aid), `tf` (reversal traps "2 − 5 = 3" at the strikt tier — the only place order-sensitivity is tested), `fill-plain`. Entry more concrete-heavy than the + mirror: backward counting is weaker than forward. Post-60 width pair: `splits-som-match` (relation probe) and `rekenverhaal` (semantics by words alone).
 
 #### `aftrekken-wegnemen-5`
 - **Intent**: take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?"
@@ -418,6 +418,15 @@ Each implicitly suggests a strategy. The score → exercise-type matrix shifts w
 | `numberline-jump-back` | start at a, jump back b | terugtellen | low–mid (wegnemen) |
 | `numberline-jump-up-from-b` | start at b, jump up to a, count the jumps | aanvullend optellen | mid (aanvullen) |
 | `collect-counter-down` | start at C = a, tap − b times, confirm | take-away | low (wegnemen) |
+
+### Post-60 width set (op-generic, + and − skills)
+
+Width probes per the mastery-width criteria: representational transfer and semantic robustness, not more of the same presentation.
+
+| ID | Description | Probes | Suits |
+|---|---|---|---|
+| `splits-som-match` | a split representation next to som options ("welke som hoort erbij?"), and the inverse direction at the top tier. For + it binds the sum to its part-whole structure; for − it seeds via-splitsing (5 = 4 en 1, dus 5 − 1 = 4). Distractors are other facts — never the relation's own twin | representational transfer (Movement 5: operation → relation) | post-60 |
+| `rekenverhaal` | mini story problems whose WORDS carry the semantics (erbij / samenvoegen / wegnemen cue phrases as sentences), acted by the scene creatures; the equation builds as the story unfolds; replay tap re-acts the story as reading fallback. Weight-controlled, never a gate | semantic robustness by language alone (the language-gradient capstone) | post-60 |
 
 ### Generic high-score
 

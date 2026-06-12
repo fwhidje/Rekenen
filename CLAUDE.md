@@ -91,9 +91,9 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
-| `+1-2-tot-5` | ✅ all 7 live, gate lifted (erbij-tap rework, fill-vis semantic variants + commutativity swap, numberline 3 tiers, tf strikt traps, op-generic symbolic trio); post-60 width set (`splits-som-match`, `rekenverhaal`) pending its own pass | 🟡 initial guesses |
+| `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap rework, fill-vis semantic variants + commutativity swap, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) | 🟡 initial guesses |
 | `optellen-tot-5` and later optellen | 🔲 reachable on the default curve; own tuning round pending | 🔲 |
-| `-1-2-tot-5` | ✅ all 8 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back + counter-down twins, fill-vis − grammar live, tf reversal traps); post-60 width set (`splits-som-match`, `rekenverhaal`) pending its own pass | 🟡 initial guesses |
+| `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back + counter-down twins, fill-vis − grammar live, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) | 🟡 initial guesses |
 | `aftrekken-wegnemen-5` and later aftrekken | 🔲 reachable on the default curve (needs `optellen-tot-5` ≥ 60 too); own tuning round pending — verschil/aanvullen types not built | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
@@ -139,6 +139,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
 | `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent) |
 | `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; wrong digit ends the attempt) |
+| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; tiers som-kiezen 60 / omgekeerd 80; distractors are other facts, never the relation's twin) |
+| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; equation builds with the story; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -238,6 +240,8 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/SplitsOntbreken.tsx` | `splits-ontbreken-rechts` + `-links` — total-first missing-part statements |
 | `src/exercises/SplitsVrij.tsx` | `splits-vrij` — open production + nog-een variety round |
 | `src/exercises/SplitsAlle.tsx` | `splits-alle` — full descending splits table |
+| `src/exercises/SplitsSomMatch.tsx` | `splits-som-match` — op-generic split ↔ som relation probe (post-60 width) |
+| `src/exercises/Rekenverhaal.tsx` | `rekenverhaal` — op-generic story problems (post-60 width; language gradient capstone) |
 | `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
 | `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |

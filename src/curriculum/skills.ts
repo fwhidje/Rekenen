@@ -60,6 +60,10 @@ const EX = {
   splitsShuffle:          'splits-shuffle',
   splitsBuildIt:          'splits-build-it',
 
+  // Post-60 width set (op-generic: + and − skills)
+  splitsSomMatch:  'splits-som-match',
+  rekenverhaal:    'rekenverhaal',
+
   // Tienvrienden-specific
   tienveldFill:    'tienveld-fill',
   rekenrekMakeTen: 'rekenrek-make-ten',
@@ -277,6 +281,7 @@ export const SKILLS: SkillDefinition[] = [
     applicableExercises: [
       EX.erbijTap, EX.fillVis, EX.numberlineJump, EX.collectCounter,
       EX.choice, EX.tf, EX.fillPlain,
+      EX.splitsSomMatch, EX.rekenverhaal,
     ],
     generate: (ctx) => {
       // Uniform over the 7 facts (a+1 for a=1..4, a+2 for a=1..3). Post-60 a
@@ -452,6 +457,7 @@ export const SKILLS: SkillDefinition[] = [
       EX.wegneemTap, EX.wegnemenCrossedOut, EX.fillVis,
       EX.numberlineJumpBack, EX.collectCounterDown,
       EX.choice, EX.tf, EX.fillPlain,
+      EX.splitsSomMatch, EX.rekenverhaal,
     ],
     generate: (ctx) => {
       // Uniform over the 9 facts (a−1 for a=1..5, a−2 for a=2..5), including
