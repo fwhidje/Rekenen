@@ -143,7 +143,7 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
   const renderGroup = (n: number, color: string, crossed = 0) =>
     meta.visualKind === 'dots'
       ? <DotGroup n={n} color={color} crossed={crossed} />
-      : <SceneGroup n={n} scene={legacyScene!} crossed={crossed} />
+      : <SceneGroup n={n} scene={legacyScene!} Counter={scene?.Counter} crossed={crossed} />
 
   const glyph = opGlyph(op)
   const glyphColor = opColor(op, tokens)

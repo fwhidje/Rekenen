@@ -69,9 +69,11 @@ export function DebugMode({ onClose }: Props) {
   const question: ExerciseQuestion | null = useMemo(() => {
     if (!exerciseId) return null
     const def = getExercise(exerciseId)
-    const problem = skill.generate()
+    // Mirror the live selector: pass score into generate (score-gated facts)
+    // and the problem into generateMeta (op-generic exercises read its op).
+    const problem = skill.generate({ score })
     const { a, b } = problemOperands(problem)
-    const meta = def.generateMeta(a, b, score)
+    const meta = def.generateMeta(a, b, score, problem)
     return { exerciseId, skillId: skill.id, problem, operandA: a, operandB: b, op: problem.op, answer: computeAnswer(problem), meta }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillId, score, exerciseId, qKey])

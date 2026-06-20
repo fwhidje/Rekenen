@@ -393,13 +393,13 @@ Production rule (the herken/noteren boundary): **the parts are never shown** —
 
 | ID | Description | Visual | Input | Suits |
 |---|---|---|---|---|
-| `fill-vis` | equation built by timed reveal over the semantic action: erbij (arrival), samenvoegen (merge) or wegnemen (leave), each with its canonical cue phrase; flipped `+` terms get an explicit commutativity swap at the equation tier | themed scene / dots | numpad | low–mid |
+| `fill-vis` | equation built by timed reveal over the semantic action: erbij (arrival), samenvoegen (merge) or wegnemen (leave), each with its canonical cue phrase; flipped `+` terms get an explicit commutativity swap at the equation tier | theme counter / dots | numpad | low–mid |
 | `fill-plain` | bare equation only (op-generic: `+` and `−`) | none | numpad | high |
 | `choice` | equation + 4 answer buttons; dots aid at low tier (combining groups for `+`, crossed-out group for `−`) | optional visual | tap | mid |
 | `tf` | equation + maybe-wrong answer; waar / niet waar. Tiers: near-miss traps → strikt (operand-echo, and order-reversal for `−`) | none | tap | mid–high |
-| `erbij-tap` | start group stands in the pen (a GIVEN quantity — chip reads it uncounted), child taps the arrivals in while the chip counts on, then names the hidden total; voorspel tier asks the answer before the arrival animates | scene | tap + choice | low |
+| `erbij-tap` | staged opening reveal (start group + number, then the arrival chunk + cue, then "=?"); the start group is a GIVEN quantity (chip reads it uncounted); child then taps the arrivals in while the chip counts on, then names the hidden total; voorspel tier asks the answer before the arrival animates. Written order: start = first operand, arrivals = second | theme counter | tap + choice | low |
 | `collect-counter` | counter starts at the larger operand, tap +/− to produce the answer, confirm; tap count probes the counting strategy | counter | +/- buttons | low–mid |
-| `numberline-jump` | jump on a full-range line; tiers: watch the animated jump → tap the landing yourself → sparse labels | number line | choice / tap-cell | mid |
+| `numberline-jump` | jump on a full-range line departing from the first operand (matches the written sum); tier 0 reveals sum → line → start → jump → target; tiers: watch the animated jump → tap the landing yourself → sparse labels | number line | choice / tap-cell | mid |
 | `rekenrek-add` | move beads to model a + b | rekenrek | drag / tap | mid |
 
 > `collect-tap` (tap items into a basket) was removed: its tap-everything flow trained counting-all — the documented dead-end strategy — and could not fail. `erbij-tap` is its replacement with the counting-on structure built in.
@@ -426,7 +426,7 @@ Width probes per the mastery-width criteria: representational transfer and seman
 | ID | Description | Probes | Suits |
 |---|---|---|---|
 | `splits-som-match` | a split representation next to som options ("welke som hoort erbij?"), and the inverse direction at the top tier. For + it binds the sum to its part-whole structure; for − it seeds via-splitsing (5 = 4 en 1, dus 5 − 1 = 4). Distractors are other facts — never the relation's own twin | representational transfer (Movement 5: operation → relation) | post-60 |
-| `rekenverhaal` | mini story problems whose WORDS carry the semantics (erbij / samenvoegen / wegnemen cue phrases as sentences), acted by the scene creatures; the equation builds as the story unfolds; replay tap re-acts the story as reading fallback. Weight-controlled, never a gate | semantic robustness by language alone (the language-gradient capstone) | post-60 |
+| `rekenverhaal` | mini story problems whose WORDS carry the semantics (erbij / samenvoegen / wegnemen cue phrases as sentences, with Dutch singular/plural agreement), acted by the scene creatures; the equation is **hidden on the first attempt** and revealed only as a scaffold on the wrong-answer retry, so the child must read the story; replay tap re-acts it. Weight-controlled, never a gate | semantic robustness by language alone (the language-gradient capstone) | post-60 |
 
 ### Generic high-score
 

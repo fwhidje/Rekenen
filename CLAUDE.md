@@ -122,25 +122,25 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-build-it` | `SplitsBuildIt.tsx` | ✅ done (open: cut + name the hidden part; gericht: 'Splits 5 in 2 en 3', either cut order accepted) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
 | `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 24; uncertain whether worth a separate type (see skill map) |
-| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase + matching reveal grammar; `variant` recorded; commutativity term-swap at equation tier for flipped `+`; `−` grammar built, goes live with the −1-2 round) |
+| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase + matching reveal grammar; `variant` recorded; commutativity term-swap at equation tier for flipped `+`; `−` grammar built, goes live with the −1-2 round; scene-visual uses the theme `Counter` via SceneGroup) |
 | `fill-plain` | `FillPlain.tsx` | ✅ op-generic (`+`/`−` via opDisplay, tokens) |
 | `choice` | `Choice.tsx` | ✅ op-generic (crossed-dots aid for `−` at visual tier; shared range-clamped distractors, 0 allowed for `−`) |
 | `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands) |
-| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; tiers doen 0 / voorspel 35 — answer before the arrival confirms; counting-on chip starts at the given group; total hidden at answer time) |
+| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; staged opening reveal — start group + number, then the arrival chunk + cue, then "=?"; child still taps arrivals in one by one; written order; pen lingers then hides for "hoeveel nu?"; completed-equation closure on correct; Panel; tiers doen 0 / voorspel 35) |
 | `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
-| `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (static werkboek picture: whole drawn, removed part crossed; tiers keuze 0 / numpad 50) |
+| `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (static werkboek picture: whole drawn, removed part crossed; theme `Counter` via SceneGroup; tiers keuze 0 / numpad 50) |
 | `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
 | `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
 | `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
-| `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; full-range line so the landing is never the last cell; direction seam for `numberline-jump-back`) |
+| `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; written order — jump departs from operandA; tier-0 staged reveal: sum builds → line → start → jump → target; Panel + completed-equation closure; full-range line; direction seam for `numberline-jump-back`) |
 | `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60) |
 | `splitsbenen` | `Splitsbenen.tsx` | ✅ done (second notation; tiers been-keuze 25 / been-pad 55; weight silent until 25 so the huisje lands first) |
 | `splits-ontbreken-rechts` | `SplitsOntbreken.tsx` | ✅ done (tiers is-en-keuze 20 / is-en-pad 40 / vergelijking "5 = 3 + ?" 55; also serves the aanvullen skills via op `-`) |
 | `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
 | `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent) |
 | `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; wrong digit ends the attempt) |
-| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; tiers som-kiezen 60 / omgekeerd 80; distractors are other facts, never the relation's twin) |
-| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; equation builds with the story; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
+| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid + Panel; tiers som-kiezen 60 / omgekeerd 80; distractors are other facts, never the relation's twin) |
+| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; equation HIDDEN on first attempt, revealed as scaffold on the wrong-answer retry — the sanctioned invariant exception; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -248,7 +248,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing (locked feedback constraints) |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
-| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop), CountChip |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, Panel (shared scene-`containerBg` card) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |
@@ -307,7 +307,8 @@ npm run build     # production build
 
 ## Exercise invariants (locked)
 
-- **The equation is always visible.** Every exercise shows the operation — no exceptions. For splitsen the equation analog is the split statement ("5 is 2 en ?"): visible as text from the numeral tiers upward; at fully concrete tiers the structured visual (colour-split die, frame, huisje) carries the same statement.
+- **The equation is always visible.** Every exercise shows the operation — with one documented exception (below). For splitsen the equation analog is the split statement ("5 is 2 en ?"): visible as text from the numeral tiers upward; at fully concrete tiers the structured visual (colour-split die, frame, huisje) carries the same statement.
+  - **Exception — `rekenverhaal`.** The story capstone hides the equation on the first attempt (the whole point is to read the words and extract the math); it reveals the equation as a scaffold only on the re-scaffolded retry (`question.isRetry`). This is the single sanctioned exception, justified because showing the equation would let the child skip reading.
 - **Reveal exercises build the equation piece by piece on a timer.** The sequence is: visual group A → `+` → visual group B → number A → `+` → number B → `= ?`. The child watches, input is locked until complete.
 - **Reveal detail is each exercise's own concern.** Which steps are included and their timing depends on exercise type and score. High score → no reveal, equation is instant.
 - **The visual is an illustration, not a gate.** Dots/scenes appear alongside their number, not instead of it.

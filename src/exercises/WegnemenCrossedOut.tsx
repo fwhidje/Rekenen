@@ -58,7 +58,7 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         {meta.style === 'dots'
           ? <DotGroup n={operandA} color={meta.color} crossed={operandB} />
-          : <SceneGroup n={operandA} scene={legacyScene} crossed={operandB} />}
+          : <SceneGroup n={operandA} scene={legacyScene} Counter={scene?.Counter} crossed={operandB} />}
       </div>
 
       {/* Equation — always visible */}
