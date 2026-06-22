@@ -1,15 +1,21 @@
+import type { ComponentType } from 'react'
 import type { Scene } from '../scenes'
+import type { CounterProps } from '../nature/Counters'
 
 interface Props {
   n: number
   scene: Scene
+  // The theme creature. When provided, the group renders N of these instead of
+  // the legacy emoji, so every exercise shows the same creature as the rest of
+  // the app. Emoji (scene.e) is the fallback when no theme is available.
+  Counter?: ComponentType<CounterProps>
   // How many items (from the end) render as crossed-out ghosts — the wegnemen
   // after-image: still countable as "what left", clearly no longer part of the
   // group. Mirrors DotGroup's crossed prop.
   crossed?: number
 }
 
-export function SceneGroup({ n, scene, crossed = 0 }: Props) {
+export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
   return (
     <div style={{
       background: scene.bg, borderRadius: 14, padding: '10px 12px',
@@ -22,12 +28,12 @@ export function SceneGroup({ n, scene, crossed = 0 }: Props) {
         return (
           <span key={i} style={{
             position: 'relative',
-            fontSize: 27, lineHeight: 1.1, display: 'inline-block',
+            fontSize: 27, lineHeight: 1.1, display: 'inline-flex',
             filter: scene.dk ? 'drop-shadow(0 0 3px rgba(255,255,255,.25))' : 'none',
             opacity: isCrossed ? 0.4 : 1,
             transition: 'opacity .4s',
           }}>
-            {scene.e}
+            {Counter ? <Counter size={30} /> : scene.e}
             {isCrossed && (
               <span style={{
                 position: 'absolute', inset: 0,

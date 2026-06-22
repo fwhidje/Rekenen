@@ -22,9 +22,9 @@ interface CollectCounterMeta {
 function CollectCounterComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<CollectCounterMeta>) {
   const { operandA, operandB, answer, op } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  // '+' counts on from the larger operand (a flipped "1 + 4" starts the
-  // counter at 4); '−' counts back from the whole.
-  const startCount = op === '-' ? operandA : Math.max(operandA, operandB)
+  // Written order: count on from the first operand ('+') / back from the whole
+  // ('−'). Both are operandA. (Start-from-the-larger lives only in fill-vis.)
+  const startCount = operandA
   const [count, setCount] = useState(startCount)
   const [taps, setTaps] = useState(0)
 

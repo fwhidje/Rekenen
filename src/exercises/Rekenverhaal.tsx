@@ -32,20 +32,26 @@ interface RekenverhaalMeta {
   tierId: string
 }
 
+// Dutch number agreement: 1 → "1 vriendje" (singular), N → "N vriendjes".
+const vriendjes = (n: number) => `${n} ${n === 1 ? 'vriendje' : 'vriendjes'}`
+// "er zit/zitten", "hier speelt/spelen" — verb agrees with the count.
+const zit = (n: number) => (n === 1 ? 'zit' : 'zitten')
+const speelt = (n: number) => (n === 1 ? 'speelt' : 'spelen')
+
 function sentences(variant: Variant, a: number, b: number): [string, string, string] {
   switch (variant) {
     case 'erbij': return [
-      `Er zitten ${a} vriendjes.`,
+      `Er ${zit(a)} ${vriendjes(a)}.`,
       b === 1 ? 'Er komt er 1 bij.' : `Er komen er ${b} bij.`,
       'Hoeveel zijn er nu?',
     ]
     case 'samenvoegen': return [
-      `Hier spelen ${a} vriendjes.`,
-      `Daar spelen ${b} vriendjes.`,
+      `Hier ${speelt(a)} ${vriendjes(a)}.`,
+      `Daar ${speelt(b)} ${vriendjes(b)}.`,
       'Hoeveel zijn er samen?',
     ]
     case 'wegnemen': return [
-      `Er zitten ${a} vriendjes.`,
+      `Er ${zit(a)} ${vriendjes(a)}.`,
       b === 1 ? 'Er gaat er 1 weg.' : `Er gaan er ${b} weg.`,
       'Hoeveel blijven er over?',
     ]
@@ -186,23 +192,27 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
           aria-label="speel het verhaal opnieuw">▶</button>
       </div>
 
-      {/* Equation — builds as the story unfolds, complete by answer time */}
+      {/* Answer area. On the first attempt only the answer box shows — the
+          story has to be read to know what to type. On the re-scaffolded retry
+          (question.isRetry) the equation is revealed as a scaffold. This is a
+          deliberate exception to the "equation always visible" invariant: the
+          capstone's whole job is to force reading the words. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38 }}>
-        {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{operandA}</span>)}
-        {eqPiece(textStep >= 2, <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>)}
-        {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
-        {eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
-        {eqPiece(textStep >= 3, (
-          <span style={{
-            minWidth: 48, height: 48, padding: '0 6px',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? tokens.accent : tokens.paper,
-            color: input ? 'white' : `${tokens.ink}55`,
-            border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
-            borderRadius: 12, fontSize: 30,
-            transition: 'background .18s, border-color .18s',
-          }}>{input || '?'}</span>
-        ))}
+        {question.isRetry && <>
+          {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{operandA}</span>)}
+          {eqPiece(textStep >= 2, <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>)}
+          {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
+          {eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
+        </>}
+        <span style={{
+          minWidth: 48, height: 48, padding: '0 6px',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          background: input ? tokens.accent : tokens.paper,
+          color: input ? 'white' : `${tokens.ink}55`,
+          border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
+          borderRadius: 12, fontSize: 30,
+          transition: 'background .18s, border-color .18s',
+        }}>{input || '?'}</span>
       </div>
 
       <NumPad onKey={handleKey} disabled={disabled || !complete} tokens={scene?.tokens} />
