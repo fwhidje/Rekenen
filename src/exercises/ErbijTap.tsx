@@ -41,6 +41,15 @@ const REVEAL_DELAYS = [500, 750, 600]
 // How long the full pen lingers after the last arrival before the pen is
 // hidden and the "hoeveel nu?" question appears (the child gets to see it).
 const HOWMANY_PAUSE = 1150
+// On a correct answer, hold the filled equation this long BEFORE resolving —
+// otherwise the full-screen "Goed!" overlay covers the completed sum.
+const CLOSURE_MS = 850
+
+const fadeStyle = (visible: boolean): React.CSSProperties => ({
+  opacity: visible ? 1 : 0,
+  transform: visible ? 'none' : 'scale(0.5)',
+  transition: 'opacity .35s ease, transform .35s ease',
+})
 
 function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<ErbijTapMeta>) {
   const { operandA, operandB, answer, op, meta } = question
@@ -58,6 +67,7 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   const [phase, setPhase] = useState<'tap' | 'howmany' | 'ask' | 'confirm'>(isVoorspel ? 'ask' : 'tap')
   const [arrived, setArrived] = useState(0)
   const [committed, setCommitted] = useState<number | null>(null)
+  const [resolved, setResolved] = useState(false)
   const given = useRef<number | null>(null)
 
   // Staged opening reveal; the interaction is locked until it completes.
@@ -70,14 +80,24 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
     setPhase(isVoorspel ? 'ask' : 'tap')
     setArrived(0)
     setCommitted(null)
+    setResolved(false)
     given.current = null
   }, [question, isVoorspel])
 
-  // Resolve once the outcome is known: on a correct answer, fill the equation's
-  // "?" with the answer so the completed sum shows during the feedback window.
+  // Resolve once the outcome is known. On a correct answer, fill the equation's
+  // "?" with the total and hold it briefly so the completed sum is seen before
+  // the full-screen feedback overlay covers everything. On wrong, resolve at
+  // once (red screen + re-scaffold).
   const resolve = (givenAnswer: number, tapCount?: number) => {
-    if (givenAnswer === answer) setCommitted(answer)
-    onResolve(givenAnswer === answer, { givenAnswer, tapCount })
+    if (resolved) return
+    setResolved(true)
+    const ok = givenAnswer === answer
+    if (ok) {
+      setCommitted(answer)
+      setTimeout(() => onResolve(true, { givenAnswer, tapCount }), CLOSURE_MS)
+    } else {
+      onResolve(false, { givenAnswer, tapCount })
+    }
   }
 
   // doen: after the last arrival, linger on the full pen, then the question.
@@ -101,12 +121,12 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   }, [phase, arrived, arrive])
 
   const tapWaiting = () => {
-    if (disabled || !complete || phase !== 'tap' || arrived >= arrive) return
+    if (disabled || resolved || !complete || phase !== 'tap' || arrived >= arrive) return
     setArrived(n => n + 1)
   }
 
   const pickAnswer = (v: number) => {
-    if (disabled) return
+    if (disabled || resolved) return
     if (phase === 'howmany') {
       resolve(v, arrive)
     } else if (phase === 'ask') {
@@ -115,23 +135,20 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
     }
   }
 
+  // Text stays calm: the cue once the arrivals show, the cardinality question
+  // only at the hidden-pen step (tier 0). No rekenverhaal-style question flips.
   const cue = arrive === 1 ? 'Er komt er 1 bij!' : `Er komen er ${arrive} bij!`
   const prompt =
     phase === 'howmany' ? 'Hoeveel zijn er nu?' :
-    phase === 'ask'     ? (complete ? `${cue} Hoeveel zijn er dan?` : cue) :
-    phase === 'confirm' ? 'Kijk maar!' :
     showArrivals        ? cue : 'Kijk!'
 
-  const renderCreature = (key: string, popIn: boolean, wiggleDelay?: number) => {
-    const style: React.CSSProperties = {
-      display: 'inline-block',
-      animation: popIn
-        ? 'erbij-pop .3s ease-out'
-        : wiggleDelay !== undefined ? `erbij-wiggle 1.6s ease-in-out ${wiggleDelay}s infinite` : undefined,
-    }
+  // Items appear where they end up — a single gentle fade/scale, no rotation,
+  // no bobbing (the earlier pop+wiggle made everything "move about").
+  const renderCreature = (key: string, style?: React.CSSProperties) => {
+    const base: React.CSSProperties = { display: 'inline-block', ...style }
     return Counter
-      ? <div key={key} style={style}><Counter size={40} /></div>
-      : <span key={key} style={{ fontSize: 36, ...style }}>{legacyScene.e}</span>
+      ? <div key={key} style={base}><Counter size={40} /></div>
+      : <span key={key} style={{ fontSize: 36, ...base }}>{legacyScene.e}</span>
   }
 
   const showChip = (phase === 'tap' || phase === 'confirm') && showStart
@@ -143,8 +160,7 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
       <style>{`
-        @keyframes erbij-pop { from { transform: scale(0) rotate(-12deg); } to { transform: scale(1) rotate(0deg); } }
-        @keyframes erbij-wiggle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes erbij-fade { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: none; } }
       `}</style>
 
       <Panel bg={containerBg} style={{ minWidth: 300 }}>
@@ -182,8 +198,10 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
               display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
               maxWidth: 240, minHeight: 52, alignItems: 'center',
             }}>
-              {showStart && Array.from({ length: start }, (_, i) => renderCreature(`a${i}`, true))}
-              {Array.from({ length: arrived }, (_, i) => renderCreature(`in${i}`, true))}
+              {/* start group fades in together at reveal step 1 */}
+              {Array.from({ length: start }, (_, i) => renderCreature(`a${i}`, fadeStyle(showStart)))}
+              {/* each tapped-in arrival gets one gentle fade, in place */}
+              {Array.from({ length: arrived }, (_, i) => renderCreature(`in${i}`, { animation: 'erbij-fade .3s ease-out' }))}
             </div>
 
             {/* The arrivals, waiting outside — appear as a chunk, then tapped in */}
@@ -193,10 +211,10 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
                 style={{
                   border: `2px dashed ${ink}45`, borderRadius: 14, padding: '10px 12px',
                   display: 'flex', gap: 8, alignItems: 'center',
-                  cursor: complete && phase === 'tap' ? 'pointer' : 'default',
-                  animation: 'erbij-pop .3s ease-out',
+                  cursor: complete && phase === 'tap' && !resolved ? 'pointer' : 'default',
+                  animation: 'erbij-fade .3s ease-out',
                 }}>
-                {Array.from({ length: waitingLeft }, (_, i) => renderCreature(`w${i}`, false, i * 0.25))}
+                {Array.from({ length: waitingLeft }, (_, i) => renderCreature(`w${i}`))}
               </div>
             )}
           </div>
@@ -205,7 +223,7 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
 
       {/* Input lives outside the panel */}
       {((phase === 'howmany') || (phase === 'ask' && complete)) && (
-        <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled} tokens={scene?.tokens} />
+        <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled || resolved} tokens={scene?.tokens} />
       )}
     </div>
   )

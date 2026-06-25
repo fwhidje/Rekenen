@@ -4,6 +4,7 @@ import { getExercisePlan } from '../curriculum/exercisePlan'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { pickTier } from '../exercises/tiers'
 import { computeAnswer, problemOperands } from '../engine/answer'
+import { buildRetry } from '../engine/exerciseSelector'
 import { diagnostics, classifyError } from '../engine/diagnostics'
 import type { AnswerRecord } from '../engine/diagnostics'
 import { exerciseStats, STATS_WINDOW } from '../engine/exerciseStats'
@@ -40,6 +41,11 @@ export function DebugMode({ onClose }: Props) {
   const [exerciseId, setExerciseId] = useState<string>('')
   const [qKey, setQKey]             = useState(0)
   const [feedback, setFeedback]     = useState<Feedback | null>(null)
+  // When set, this overrides the freshly-generated question — the engine's
+  // one-tier-down re-presentation after a wrong answer (mirrors KidMode), so
+  // the retry / re-scaffold behaviour (e.g. rekenverhaal revealing the sum) is
+  // visible in debug. Cleared on a fresh question.
+  const [retryQuestion, setRetryQuestion] = useState<ExerciseQuestion | null>(null)
   const [bgIdx, setBgIdx]           = useState(0)
   const [counterIdx, setCounterIdx] = useState(0)
   const [logTick, setLogTick]       = useState(0)
@@ -66,7 +72,7 @@ export function DebugMode({ onClose }: Props) {
     }
   }, [availableExercises, exerciseId])
 
-  const question: ExerciseQuestion | null = useMemo(() => {
+  const freshQuestion: ExerciseQuestion | null = useMemo(() => {
     if (!exerciseId) return null
     const def = getExercise(exerciseId)
     // Mirror the live selector: pass score into generate (score-gated facts)
@@ -78,7 +84,14 @@ export function DebugMode({ onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillId, score, exerciseId, qKey])
 
+  // The retry re-presentation wins over the fresh question while it's active.
+  const question = retryQuestion ?? freshQuestion
+
+  // A pending retry must not bleed across a manual skill/score/exercise change.
+  useEffect(() => { setRetryQuestion(null) }, [skillId, score, exerciseId])
+
   const regenerate = useCallback(() => {
+    setRetryQuestion(null)
     setFeedback(null)
     setQKey(k => k + 1)
   }, [])
@@ -105,6 +118,7 @@ export function DebugMode({ onClose }: Props) {
       correctAnswer: question.answer,
       givenAnswer: given,
       correct,
+      isRetry: question.isRetry,
       errorType: correct ? null : classifyError({
         skillId: question.skillId, op: question.op, semanticForm: skill?.semanticForm,
         operandA: question.operandA, operandB: question.operandB,
@@ -117,7 +131,15 @@ export function DebugMode({ onClose }: Props) {
     diagnostics.record(record)
     setLogTick(t => t + 1)
 
-    setTimeout(regenerate, correct ? 1100 : 2000)
+    // Failure response (mirrors KidMode): a wrong answer brings the SAME problem
+    // back once, one tier down (isRetry) — so the re-scaffold is visible in
+    // debug. Correct, or a wrong retry, moves on to a fresh question.
+    if (!correct && !question.isRetry) {
+      const retry = buildRetry(question)
+      setTimeout(() => { setRetryQuestion(retry); setFeedback(null); setQKey(k => k + 1) }, 2000)
+    } else {
+      setTimeout(regenerate, correct ? 1100 : 2000)
+    }
   }, [feedback, question, regenerate])
 
   const def = exerciseId ? getExercise(exerciseId) : null
