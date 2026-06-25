@@ -171,7 +171,10 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
             padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
             fontFamily: 'Fredoka One, cursive', fontSize: 22, color: ink,
           }}>{prompt}</div>
-          {showChip && <CountChip count={start + arrived} ink={ink} paper={paper} />}
+          {/* Reserve space so the prompt label never shifts when the chip appears */}
+          <div style={{ minWidth: 44 }}>
+            {showChip && <CountChip count={start + arrived} ink={ink} paper={paper} />}
+          </div>
         </div>
 
         {/* Equation — built up by the reveal, always visible once assembled */}
@@ -204,19 +207,24 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
               {Array.from({ length: arrived }, (_, i) => renderCreature(`in${i}`, { animation: 'erbij-fade .3s ease-out' }))}
             </div>
 
-            {/* The arrivals, waiting outside — appear as a chunk, then tapped in */}
-            {showArrivals && waitingLeft > 0 && (
-              <div
-                onClick={tapWaiting}
-                style={{
-                  border: `2px dashed ${ink}45`, borderRadius: 14, padding: '10px 12px',
-                  display: 'flex', gap: 8, alignItems: 'center',
-                  cursor: complete && phase === 'tap' && !resolved ? 'pointer' : 'default',
-                  animation: 'erbij-fade .3s ease-out',
-                }}>
-                {Array.from({ length: waitingLeft }, (_, i) => renderCreature(`w${i}`))}
-              </div>
-            )}
+            {/* The arrivals, waiting outside — always in DOM (prevents flex reflow);
+                opacity-controlled so the pen never shifts when arrivals appear. */}
+            <div
+              onClick={showArrivals && waitingLeft > 0 && complete && phase === 'tap' && !resolved
+                ? tapWaiting : undefined}
+              style={{
+                opacity: showArrivals && waitingLeft > 0 ? 1 : 0,
+                transition: 'opacity .3s ease-out',
+                pointerEvents: showArrivals && waitingLeft > 0 ? 'auto' : 'none',
+                border: `2px dashed ${ink}45`, borderRadius: 14, padding: '10px 12px',
+                display: 'flex', gap: 8, alignItems: 'center',
+                cursor: complete && phase === 'tap' && !resolved && waitingLeft > 0 ? 'pointer' : 'default',
+              }}>
+              {/* Always render `arrive` creatures; tapped ones fade out (fixed width → no reflow) */}
+              {Array.from({ length: arrive }, (_, i) =>
+                renderCreature(`w${i}`, { opacity: i < arrived ? 0 : 1, transition: 'opacity .2s' })
+              )}
+            </div>
           </div>
         )}
       </Panel>
