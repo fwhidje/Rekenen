@@ -122,11 +122,11 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-build-it` | `SplitsBuildIt.tsx` | ✅ done (open: cut + name the hidden part; gericht: 'Splits 5 in 2 en 3', either cut order accepted) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
 | `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 24; uncertain whether worth a separate type (see skill map) |
-| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase + matching reveal grammar; `variant` recorded; commutativity term-swap at equation tier for flipped `+`; `−` grammar built, goes live with the −1-2 round; scene-visual uses the theme `Counter` via SceneGroup) |
+| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase + matching reveal grammar; `variant` recorded; commutativity term-swap at equation tier for flipped `+`; `−` grammar built, goes live with the −1-2 round; scene-visual uses the theme `Counter` on a transparent ground via SceneGroup; cue+visual+equation on a shared `Panel`, numpad outside) |
 | `fill-plain` | `FillPlain.tsx` | ✅ op-generic (`+`/`−` via opDisplay, tokens) |
 | `choice` | `Choice.tsx` | ✅ op-generic (crossed-dots aid for `−` at visual tier; shared range-clamped distractors, 0 allowed for `−`) |
 | `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands) |
-| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; staged opening reveal — start group + number, then the arrival chunk + cue, then "=?"; child still taps arrivals in one by one; written order; pen lingers then hides for "hoeveel nu?"; completed-equation closure on correct; Panel; tiers doen 0 / voorspel 35) |
+| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; staged opening reveal — start group + number, then the arrival chunk + cue, then "=?"; items fade in place, no bob/rotate; child still taps arrivals in one by one; written order; calm stable prompt; pen lingers then hides for "hoeveel nu?"; completed-equation closure held ~850ms before the feedback overlay; Panel; tiers doen 0 / voorspel 35) |
 | `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
 | `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (static werkboek picture: whole drawn, removed part crossed; theme `Counter` via SceneGroup; tiers keuze 0 / numpad 50) |
 | `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
@@ -254,6 +254,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop |
+| `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
 | `src/ui/AdminMode.tsx` | Profile management + read-only per-profile state inspector (📊: scores, statuses, live weight factors) |
 | `src/ui/components/` | NumPad, ChoiceButtons, TFButtons |
 

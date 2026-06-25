@@ -36,7 +36,7 @@ export interface SelectionContext {
 // exercise's declared TIERS, so the drop is done by regenerating meta at the
 // lower tier's floor score — pickTier inside generateMeta lands on it without
 // any exercise file knowing about retries.
-function buildRetry(original: ExerciseQuestion): ExerciseQuestion {
+export function buildRetry(original: ExerciseQuestion): ExerciseQuestion {
   const def = getExercise(original.exerciseId)
   const tiers = [...def.tiers].sort((x, y) => x.minScore - y.minScore)
   const tierId = (original.meta as { tierId?: string }).tierId

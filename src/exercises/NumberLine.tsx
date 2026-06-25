@@ -32,6 +32,8 @@ interface NumberLineMeta {
 const REVEAL_DELAYS = [450, 550, 500, 500]
 const HOP_START_DELAY = 600
 const HOP_STEP_MS = 480
+// Hold the filled equation before the feedback overlay (see ErbijTap).
+const CLOSURE_MS = 850
 
 function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberLineMeta>) {
   const { operandA, operandB, answer, op, meta } = question
@@ -53,9 +55,10 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   // sprong-zien: hop = jumps taken so far (0..jumpN), starting after the reveal.
   const [hop, setHop] = useState(0)
   const [committed, setCommitted] = useState<number | null>(null)
+  const [resolved, setResolved] = useState(false)
   const animDone = !isZien || hop >= jumpN
 
-  useEffect(() => { setHop(0); setCommitted(null) }, [question])
+  useEffect(() => { setHop(0); setCommitted(null); setResolved(false) }, [question])
   useEffect(() => {
     if (!isZien || !revealDone || hop >= jumpN) return
     const t = setTimeout(() => setHop(h => h + 1), hop === 0 ? HOP_START_DELAY : HOP_STEP_MS)
@@ -65,13 +68,22 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   const tappable = !isZien
   const sparse = tier === 'kale-sprong'
 
+  // On a correct answer, fill the equation and hold it briefly so the completed
+  // sum is seen before the full-screen feedback overlay covers it.
   const resolve = (v: number) => {
-    if (v === answer) setCommitted(answer)
-    onResolve(v === answer, { givenAnswer: v })
+    if (resolved) return
+    setResolved(true)
+    const ok = v === answer
+    if (ok) {
+      setCommitted(answer)
+      setTimeout(() => onResolve(true, { givenAnswer: v }), CLOSURE_MS)
+    } else {
+      onResolve(false, { givenAnswer: v })
+    }
   }
 
   const tapCell = (i: number) => {
-    if (!tappable || disabled) return
+    if (!tappable || disabled || resolved) return
     resolve(i)
   }
 
@@ -153,7 +165,7 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
         <ChoiceButtons
           options={meta.options}
           onPick={resolve}
-          disabled={disabled || !animDone}
+          disabled={disabled || !animDone || resolved}
           tokens={scene?.tokens}
         />
       )}

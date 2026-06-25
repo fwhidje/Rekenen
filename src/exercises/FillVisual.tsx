@@ -7,6 +7,7 @@ import { SceneGroup } from '../presentation/components/SceneGroup'
 import { NumPad } from '../ui/components/NumPad'
 import { pickScene, pickColors } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { Panel } from '../presentation/components/Panel'
 import { useReveal } from '../presentation/useReveal'
 import { opGlyph, opColor } from './opDisplay'
 
@@ -151,6 +152,9 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
 
+     {/* Cue + visual + equation share one panel; the numpad sits outside it. */}
+     <Panel bg={scene?.containerBg ?? 'rgba(255,255,255,.5)'} style={{ minWidth: 300 }}>
+
       {/* Cue phrase — the rekentaal of the variant, shown with the action */}
       {hasVisual && (
         <div style={{
@@ -214,6 +218,8 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
           transition: 'background .18s, border-color .18s, opacity .3s ease, transform .35s ease',
         }}>{input || '?'}</div>
       </div>
+
+     </Panel>
 
       <NumPad onKey={handleKey} disabled={disabled || !complete} tokens={scene?.tokens} />
     </div>

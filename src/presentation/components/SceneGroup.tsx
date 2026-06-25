@@ -16,12 +16,17 @@ interface Props {
 }
 
 export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
+  // With the theme counter the group sits on its parent's panel — the legacy
+  // gradient (scene.bg) is the old v1 look and clashes, so drop it. The emoji
+  // fallback keeps the gradient card.
+  const themed = !!Counter
   return (
     <div style={{
-      background: scene.bg, borderRadius: 14, padding: '10px 12px',
-      display: 'flex', flexWrap: 'wrap', gap: 5, justifyContent: 'center',
+      background: themed ? 'transparent' : scene.bg,
+      borderRadius: 14, padding: themed ? '4px 2px' : '10px 12px',
+      display: 'flex', flexWrap: 'wrap', gap: themed ? 6 : 5, justifyContent: 'center',
       minWidth: 68, maxWidth: n > 6 ? 158 : 122,
-      boxShadow: '0 4px 14px rgba(0,0,0,.18)',
+      boxShadow: themed ? 'none' : '0 4px 14px rgba(0,0,0,.18)',
     }}>
       {Array.from({ length: n }).map((_, i) => {
         const isCrossed = i >= n - crossed
@@ -29,7 +34,7 @@ export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
           <span key={i} style={{
             position: 'relative',
             fontSize: 27, lineHeight: 1.1, display: 'inline-flex',
-            filter: scene.dk ? 'drop-shadow(0 0 3px rgba(255,255,255,.25))' : 'none',
+            filter: !themed && scene.dk ? 'drop-shadow(0 0 3px rgba(255,255,255,.25))' : 'none',
             opacity: isCrossed ? 0.4 : 1,
             transition: 'opacity .4s',
           }}>
@@ -39,7 +44,8 @@ export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
                 position: 'absolute', inset: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 26, lineHeight: 1,
-                color: scene.dk ? 'rgba(255,255,255,.85)' : 'rgba(40,30,20,.8)',
+                // themed sits on the light panel → always the dark ✕
+                color: !themed && scene.dk ? 'rgba(255,255,255,.85)' : 'rgba(40,30,20,.8)',
               }}>✕</span>
             )}
           </span>
