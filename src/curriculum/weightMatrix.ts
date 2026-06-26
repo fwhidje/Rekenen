@@ -100,7 +100,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'choice':           [20, 10],
     'tf':               [[25, 0], [60, 15], [100, 15]],
     'fill-plain':       [[40, 0], [100, 40]],
-    'splits-som-match': [[60, 0], [80, 12], [100, 12]],
+    'splits-som-match': [[40, 0], [65, 10], [100, 12]],
     'rekenverhaal':     [[60, 0], [80, 15], [100, 15]],
   },
 
@@ -119,7 +119,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'choice':                [18, 10],
     'tf':                    [[25, 0], [60, 15], [100, 15]],
     'fill-plain':            [[40, 0], [100, 38]],
-    'splits-som-match':      [[60, 0], [80, 12], [100, 12]],
+    'splits-som-match':      [[40, 0], [65, 10], [100, 12]],
     'rekenverhaal':          [[60, 0], [80, 15], [100, 15]],
   },
 }

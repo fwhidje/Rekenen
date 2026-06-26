@@ -28,14 +28,16 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `getalbegrip-5`
 - `getalbegrip-10`
 - `splitsen-herken-5`
-- `+1-2-tot-5` (lifted June 2026 — opens `optellen-tot-5` → `+1-2-tot-10` → `+3-4-tot-10` on the default curve until their own tuning rounds)
-- `-1-2-tot-5` (lifted June 2026 — opens `aftrekken-wegnemen-5` (also needs `optellen-tot-5` ≥ 60) and the rest of the aftrekken-tot-5/-tot-10 chain on the default curve until their own tuning rounds)
+- `+1-2-tot-5` (lifted June 2026 — its downstream `optellen-tot-5` chain is re-gated below until each gets its own tuning round, so the playtest stays scoped)
+- `-1-2-tot-5` (lifted June 2026 — its downstream `aftrekken-wegnemen-5` chain is re-gated below until each gets its own tuning round)
 - `splitsen-noteren-5` (lifted June 2026 — parallel notation track, gates nothing downstream in v2)
 
-### Currently gated (4 subtree roots)
+### Currently gated (6 subtree roots)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
+| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | optellen-tot-5 tuning round done |
+| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `aftrekken-aanvullen-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream | aftrekken-wegnemen-5 tuning round done + verschil/aanvullen exercise types built |
 | `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
 | `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
 | `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
@@ -128,7 +130,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands) |
 | `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; staged opening reveal — start group + number, then the arrival chunk + cue, then "=?"; items fade in place, no bob/rotate; child still taps arrivals in one by one; written order; calm stable prompt; pen lingers then hides for "hoeveel nu?"; completed-equation closure held ~850ms before the feedback overlay; Panel; tiers doen 0 / voorspel 35) |
 | `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
-| `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (static werkboek picture: whole drawn, removed part crossed; theme `Counter` via SceneGroup; tiers keuze 0 / numpad 50) |
+| `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (werkboek picture: whole drawn, removed part crossed; theme `Counter` via SceneGroup; tiers keuze 0 (cross-out animates one item at a time via useReveal, equation builds, no reflow) / numpad 50 (instant static)) |
 | `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
 | `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
 | `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
@@ -139,7 +141,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
 | `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent) |
 | `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; free-entry grid, end validation; left-column duplicate guard in tabel-vol — orange warning teaches uniqueness; for splitsen-10 the guard should likely be dropped) |
-| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid + Panel; tiers som-kiezen 60 / omgekeerd 80; distractors are other facts, never the relation's twin) |
+| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid + Panel; tiers som-vol 40 (full som incl. = uitkomst — gentle entry) / som-kiezen 60 (bare som) / omgekeerd 80; entry lowered to ~40 in the +/− weight tables; distractors are other facts, never the relation's twin) |
 | `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; equation HIDDEN on first attempt, revealed as scaffold on the wrong-answer retry — the sanctioned invariant exception; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |

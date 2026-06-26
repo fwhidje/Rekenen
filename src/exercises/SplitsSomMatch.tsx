@@ -15,8 +15,9 @@ import { opGlyph, opColor } from './opDisplay'
 // Post-60 width content for the +/− skills.
 
 const TIERS: ExerciseTier[] = [
-  { id: 'som-kiezen', minScore: 60, label: 'som kiezen',   description: 'A split representation is shown; pick the som that says the same thing, among soms of OTHER facts.' },
-  { id: 'omgekeerd',  minScore: 80, label: 'omgekeerd',    description: 'The som is shown; pick the split representation that matches — the same relation read in the other direction.' },
+  { id: 'som-vol',    minScore: 40, label: 'volledige som', description: 'A split representation is shown; pick the FULL som (incl. = uitkomst) that says the same thing — all three numbers visible to match.' },
+  { id: 'som-kiezen', minScore: 60, label: 'som kiezen',    description: 'A split representation is shown; pick the bare som (no uitkomst) that says the same thing, among soms of OTHER facts.' },
+  { id: 'omgekeerd',  minScore: 80, label: 'omgekeerd',     description: 'The som is shown; pick the split representation that matches — the same relation read in the other direction.' },
 ]
 
 // Visual reps only — the 'notation' rep would duplicate the som side.
@@ -51,11 +52,16 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
   const { op, meta } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
 
-  const somText = ([x, y]: Som, fs: number) => (
+  const showResult = meta.tierId === 'som-vol'
+  const somText = ([x, y]: Som, fs: number, withResult = false) => (
     <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: fs, display: 'inline-flex', gap: 8, alignItems: 'center' }}>
       <span style={{ color: tokens.accentText }}>{x}</span>
       <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
       <span style={{ color: tokens.pop }}>{y}</span>
+      {withResult && <>
+        <span style={{ color: tokens.ink, opacity: 0.4 }}>=</span>
+        <span style={{ color: tokens.ink }}>{op === '-' ? x - y : x + y}</span>
+      </>}
     </span>
   )
 
@@ -100,7 +106,7 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
             ))
           : meta.options.map((som, i) => (
               <div key={i} style={tileStyle} onClick={() => pick(i)}>
-                {somText(som, 30)}
+                {somText(som, 30, showResult)}
               </div>
             ))}
       </div>
@@ -119,7 +125,7 @@ const SplitsSomMatch: ExerciseDefinition<SplitsSomMatchMeta> = {
       'Matching on a single visible number instead of the whole relation (distractors share digits with the target).',
       'For −: matching a som whose whole is right but whose part belongs to a different split.',
     ],
-    progression: 'som-kiezen (60): split shown, pick the som. omgekeerd (80): som shown, pick the split — the same relation read in the other direction.',
+    progression: 'som-vol (40): split shown, pick the FULL som with its uitkomst (5 − 1 = 4) — all three numbers visible to match, the gentle entry. som-kiezen (60): same direction but the bare som (5 − 1), so the relation must be reasoned, not digit-matched. omgekeerd (80): som shown, pick the split — the same relation read in the other direction.',
   },
   generateMeta(operandA, operandB, score, problem?: Problem) {
     const tier = pickTier(TIERS, score)

@@ -298,6 +298,7 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'optellen-tot-5',
+    disabled: true,  // WIP gate — scoped out of the current playtest; own tuning round pending
     name: 'Optellen tot 5',
     intent: 'Any optelling within 5 (a + b ≤ 5).',
     didactics: {
@@ -471,6 +472,7 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'aftrekken-wegnemen-5',
+    disabled: true,  // WIP gate — scoped out of the current playtest; own tuning round + verschil/aanvullen exercises pending
     name: 'Aftrekken (wegnemen) tot 5',
     intent: 'Take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?"',
     didactics: {
