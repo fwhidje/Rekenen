@@ -53,9 +53,11 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'from 25 and adds operand-echo traps at 60, fill-plain ramps from 40 to dominance at 100, ' +
     'and the generator starts serving flipped forms (1 + 4) that the equation tier of fill-vis ' +
     'answers with the explicit commutativity swap while the action exercises enact from the ' +
-    'larger operand. The width pair joins from 60: splits-som-match (sum ↔ split, the relation ' +
-    'made explicit) and rekenverhaal (the words carry the semantics — erbij/samenvoegen ' +
-    'sentences, replay tap as reading fallback). Weights are initial guesses pending playtesting.',
+    'larger operand. splits-som-match joins early (from ~40) via a full-som scaffold tier — the ' +
+    'whole som with its uitkomst (2 + 3 = 5) shown so all three numbers match the split — before ' +
+    'the bare-som relation tiers at 60/80. rekenverhaal joins from 60 (the words carry the ' +
+    'semantics — erbij/samenvoegen sentences, replay tap as reading fallback). Weights are ' +
+    'initial guesses pending playtesting.',
 
   'splitsen-noteren-5':
     'Production complement to splitsen-herken-5; the invariant everywhere is that the parts are ' +
@@ -96,11 +98,12 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'backward-counting practice), collect-counter-down stays a low constant as the strategy ' +
     'probe. Post-60 is width and automation: tf adds reversal traps ("2 − 5 = 3") and ' +
     'operand-echo at 60 — the only place order-sensitivity gets tested, since the generator ' +
-    'never produces smaller-first — and fill-plain ramps from 40 to dominance. The width pair ' +
-    'joins from 60: splits-som-match (5 = 4 en 1 next to 5 − 1 — the via-splitsing seed) and ' +
-    'rekenverhaal (wegnemen sentences, replay tap as reading fallback). The generator serves ' +
-    'the two "alles weg" → 0 facts damped below score 30. Weights are initial guesses pending ' +
-    'playtesting.',
+    'never produces smaller-first — and fill-plain ramps from 40 to dominance. splits-som-match ' +
+    'joins early (from ~40) via a full-som scaffold tier — 5 − 1 = 4 shown whole so all three ' +
+    'numbers match the split — before the bare-som via-splitsing tiers at 60/80 (5 − 1 next to ' +
+    'the split {1,4}). rekenverhaal joins from 60 (wegnemen sentences, replay tap as reading ' +
+    'fallback). The generator serves the two "alles weg" → 0 facts damped below score 30. ' +
+    'Weights are initial guesses pending playtesting.',
   'aftrekken-wegnemen-5': TODO,
   'aftrekken-verschil-5': TODO,
   'aftrekken-aanvullen-5': TODO,
