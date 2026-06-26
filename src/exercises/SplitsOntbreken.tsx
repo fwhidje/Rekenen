@@ -61,30 +61,43 @@ function makeComponent(side: 'rechts' | 'links') {
     const { meta } = question
     const tokens = scene?.tokens ?? NATURE_TOKENS
     const [input, setInput] = useState('')
-    useEffect(() => { setInput('') }, [question])
+    const [solved, setSolved] = useState<number | null>(null)
+    useEffect(() => { setInput(''); setSolved(null) }, [question])
+
+    useEffect(() => {
+      if (solved === null) return
+      const t = setTimeout(() => onResolve(true, { givenAnswer: solved }), 800)
+      return () => clearTimeout(t)
+    }, [solved, onResolve])
 
     const isEn = meta.tierId.startsWith('is-en')
     const typed = meta.tierId === 'is-en-pad' || meta.tierId === 'vergelijking' || meta.tierId === 'links-pad'
 
-    const resolve = (v: number) => onResolve(v === meta.missing, { givenAnswer: v })
+    const resolve = (v: number) => {
+      if (v === meta.missing) setSolved(v)
+      else onResolve(false, { givenAnswer: v })
+    }
     const handleKey = (key: string) => {
-      if (disabled) return
+      if (disabled || solved !== null) return
       if (key === '⌫') { setInput(''); return }
       if (key === '✓') { if (input) resolve(parseInt(input, 10)); return }
       if (input.length < 1) setInput(key)
     }
+
+    const slotValue = solved !== null ? String(solved) : (typed ? (input || '?') : '?')
+    const slotFilled = solved !== null || !!input
 
     const fs = 44
     const slot = (
       <span style={{
         minWidth: 52, height: 52, padding: '0 8px',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        background: input ? tokens.accent : tokens.paper,
-        color: input ? 'white' : `${tokens.ink}55`,
-        border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
+        background: slotFilled ? tokens.accent : tokens.paper,
+        color: slotFilled ? 'white' : `${tokens.ink}55`,
+        border: `2px solid ${slotFilled ? tokens.accent : tokens.paperMid}`,
         borderRadius: 12, fontSize: 36, fontFamily: 'Fredoka One, cursive',
         transition: 'background .18s, border-color .18s',
-      }}>{typed ? (input || '?') : '?'}</span>
+      }}>{slotValue}</span>
     )
     const num = (v: number, color: string) => (
       <span style={{ color, fontSize: fs }}>{v}</span>
@@ -108,8 +121,8 @@ function makeComponent(side: 'rechts' | 'links') {
         }}>{statement}</div>
 
         {typed
-          ? <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-          : <ChoiceButtons options={meta.options} onPick={resolve} disabled={disabled} tokens={scene?.tokens} />}
+          ? <NumPad onKey={handleKey} disabled={disabled || solved !== null} tokens={scene?.tokens} />
+          : <ChoiceButtons options={meta.options} onPick={resolve} disabled={disabled || solved !== null} tokens={scene?.tokens} />}
       </div>
     )
   }

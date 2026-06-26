@@ -59,13 +59,15 @@ function SplitsVrijComponent({ question, onResolve, disabled, scene }: ExerciseC
   // digits entered so far: 2 per round
   const [digits, setDigits] = useState<number[]>([])
   const [firstSplit, setFirstSplit] = useState<[number, number] | null>(null)
+  const [sameWarning, setSameWarning] = useState(false)
 
-  useEffect(() => { setDigits([]); setFirstSplit(null) }, [question])
+  useEffect(() => { setDigits([]); setFirstSplit(null); setSameWarning(false) }, [question])
 
   const inRound2 = firstSplit !== null
 
   const handleKey = (key: string) => {
     if (disabled) return
+    if (sameWarning) setSameWarning(false)
     if (key === '⌫') { setDigits(d => d.slice(0, -1)); return }
     if (key === '✓') {
       if (digits.length !== 2) return
@@ -79,8 +81,12 @@ function SplitsVrijComponent({ question, onResolve, disabled, scene }: ExerciseC
         setDigits([])
         return
       }
-      const different = !splitEq(firstSplit![0], firstSplit![1], a, b)
-      onResolve(different, { givenAnswer: a })
+      if (splitEq(firstSplit![0], firstSplit![1], a, b)) {
+        setSameWarning(true)
+        setDigits([])
+      } else {
+        onResolve(true, { givenAnswer: a })
+      }
       return
     }
     if (digits.length < 2) setDigits(d => [...d, parseInt(key, 10)])
@@ -93,11 +99,19 @@ function SplitsVrijComponent({ question, onResolve, disabled, scene }: ExerciseC
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-        fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
-      }}>{prompt}</div>
+      {sameWarning ? (
+        <div style={{
+          background: '#f97316', border: '2px solid #ea6c0a', borderRadius: 18,
+          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
+          fontFamily: 'Fredoka One, cursive', fontSize: 22, color: 'white',
+        }}>Dat is dezelfde splitsing — probeer een andere!</div>
+      ) : (
+        <div style={{
+          background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
+          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
+          fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
+        }}>{prompt}</div>
+      )}
 
       {/* The statement under construction: "5 is ? en ?" */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>

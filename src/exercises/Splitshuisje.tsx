@@ -102,31 +102,50 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
   const [cells, setCells] = useState<number[]>([])
   // single-house numpad input
   const [input, setInput] = useState('')
+  // linger state: show completed house before handing off to onResolve
+  const [solvedAnswer, setSolvedAnswer] = useState<number | null>(null)
+  const [solvedDouble, setSolvedDouble] = useState(false)
 
-  useEffect(() => { setCells([]); setInput('') }, [question])
+  useEffect(() => { setCells([]); setInput(''); setSolvedAnswer(null); setSolvedDouble(false) }, [question])
+
+  useEffect(() => {
+    if (solvedAnswer === null) return
+    const t = setTimeout(() => onResolve(true, { givenAnswer: solvedAnswer }), 800)
+    return () => clearTimeout(t)
+  }, [solvedAnswer, onResolve])
+
+  useEffect(() => {
+    if (!solvedDouble) return
+    const t = setTimeout(() => onResolve(true), 800)
+    return () => clearTimeout(t)
+  }, [solvedDouble, onResolve])
 
   const prompt = meta.tierId === 'twee-huisjes'
     ? 'Maak twee verschillende splitsingen!'
     : 'Vul het huisje in!'
 
-  const resolveSingle = (v: number) => onResolve(v === missing, { givenAnswer: v })
+  const resolveSingle = (v: number) => {
+    if (v === missing) setSolvedAnswer(v)
+    else onResolve(false, { givenAnswer: v })
+  }
 
   const handleKeySingle = (key: string) => {
-    if (disabled) return
+    if (disabled || solvedAnswer !== null) return
     if (key === '⌫') { setInput(''); return }
     if (key === '✓') { if (input) resolveSingle(parseInt(input, 10)); return }
     if (input.length < 1) setInput(key)
   }
 
   const handleKeyDouble = (key: string) => {
-    if (disabled) return
+    if (disabled || solvedDouble) return
     if (key === '⌫') { setCells(c => c.slice(0, -1)); return }
     if (key === '✓') {
       if (cells.length === 4) {
         const [a1, b1, a2, b2] = cells
         const valid = a1 + b1 === total && a2 + b2 === total
         const different = !splitEq(a1, b1, a2, b2)
-        onResolve(valid && different)
+        if (valid && different) setSolvedDouble(true)
+        else onResolve(false)
       }
       return
     }
@@ -134,7 +153,12 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
   }
 
   const cellVal = (i: number) => (cells.length > i ? String(cells[i]) : '?')
-  const activeIdx = cells.length
+  const activeIdx = solvedDouble ? null : cells.length
+
+  // When solved, show the missing room filled with the correct answer
+  const singleMissingDisplay = solvedAnswer !== null
+    ? String(solvedAnswer)
+    : (meta.tierId === 'één-kamer' ? '?' : (input || '?'))
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
@@ -154,18 +178,18 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
               activeCell={activeIdx === 2 ? 'left' : activeIdx === 3 ? 'right' : null}
               dieAid={false} tokens={tokens} />
           </div>
-          <NumPad onKey={handleKeyDouble} disabled={disabled} tokens={scene?.tokens} />
+          <NumPad onKey={handleKeyDouble} disabled={disabled || solvedDouble} tokens={scene?.tokens} />
         </>
       ) : (
         <>
           <House total={total}
-            left={meta.givenSide === 'left' ? String(given) : (meta.tierId === 'één-kamer' ? '?' : (input || '?'))}
-            right={meta.givenSide === 'right' ? String(given) : (meta.tierId === 'één-kamer' ? '?' : (input || '?'))}
-            activeCell={meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
+            left={meta.givenSide === 'left' ? String(given) : singleMissingDisplay}
+            right={meta.givenSide === 'right' ? String(given) : singleMissingDisplay}
+            activeCell={solvedAnswer !== null || meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
             dieAid={meta.tierId === 'één-kamer'} tokens={tokens} />
           {meta.tierId === 'één-kamer'
-            ? <ChoiceButtons options={meta.options} onPick={resolveSingle} disabled={disabled} tokens={scene?.tokens} />
-            : <NumPad onKey={handleKeySingle} disabled={disabled} tokens={scene?.tokens} />}
+            ? <ChoiceButtons options={meta.options} onPick={resolveSingle} disabled={disabled || solvedAnswer !== null} tokens={scene?.tokens} />
+            : <NumPad onKey={handleKeySingle} disabled={disabled || solvedAnswer !== null} tokens={scene?.tokens} />}
         </>
       )}
     </div>
