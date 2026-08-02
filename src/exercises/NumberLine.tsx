@@ -4,7 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { Panel } from '../presentation/components/Panel'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { opGlyph, opColor } from './opDisplay'
@@ -98,7 +98,9 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
 
-      <Panel bg={scene?.containerBg ?? 'rgba(255,255,255,.5)'} style={{ width: '100%', maxWidth: 380 }}>
+      <ExerciseTitle tokens={tokens}>{op === '-' ? 'Spring terug' : 'Spring naar het antwoord'}</ExerciseTitle>
+
+      <ExerciseStage tokens={tokens} style={{ width: '100%', maxWidth: 380 }}>
         {/* Equation — built by the reveal, then always visible */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38, minHeight: 46 }}>
           <span style={{ color: tokens.accentText, opacity: showA ? 1 : 0, transition: 'opacity .3s' }}>{operandA}</span>
@@ -159,7 +161,7 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
             })}
           </div>
         </div>
-      </Panel>
+      </ExerciseStage>
 
       {isZien && (
         <ChoiceButtons

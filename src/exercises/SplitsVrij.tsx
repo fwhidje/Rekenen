@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { NumPad } from '../ui/components/NumPad'
 
 // ─── splits-vrij ──────────────────────────────────────────────────────────────
@@ -106,27 +107,25 @@ function SplitsVrijComponent({ question, onResolve, disabled, scene }: ExerciseC
           fontFamily: 'Fredoka One, cursive', fontSize: 22, color: 'white',
         }}>Dat is dezelfde splitsing — probeer een andere!</div>
       ) : (
-        <div style={{
-          background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
-        }}>{prompt}</div>
+        <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
       )}
 
       {/* The statement under construction: "5 is ? en ?" */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        {inRound2 && firstSplit && (
+      <ExerciseStage tokens={tokens}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          {inRound2 && firstSplit && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive' }}>
+              <span style={{ color: tokens.ink, opacity: 0.5, fontSize: 30 }}>{total} is</span>
+              <SlotPair a={String(firstSplit[0])} b={String(firstSplit[1])} active={null} greyed tokens={tokens} />
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive' }}>
-            <span style={{ color: tokens.ink, opacity: 0.5, fontSize: 30 }}>{total} is</span>
-            <SlotPair a={String(firstSplit[0])} b={String(firstSplit[1])} active={null} greyed tokens={tokens} />
+            <span style={{ color: tokens.accentText, fontSize: 38 }}>{total}</span>
+            <span style={{ color: tokens.ink, opacity: 0.6, fontSize: 30 }}>is</span>
+            <SlotPair a={val(0)} b={val(1)} active={active} greyed={false} tokens={tokens} />
           </div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive' }}>
-          <span style={{ color: tokens.accentText, fontSize: 38 }}>{total}</span>
-          <span style={{ color: tokens.ink, opacity: 0.6, fontSize: 30 }}>is</span>
-          <SlotPair a={val(0)} b={val(1)} active={active} greyed={false} tokens={tokens} />
         </div>
-      </div>
+      </ExerciseStage>
 
       <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
     </div>

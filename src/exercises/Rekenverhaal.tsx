@@ -6,6 +6,7 @@ import type { Problem } from '../curriculum/types'
 import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { NumPad } from '../ui/components/NumPad'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor } from './opDisplay'
 
 // ─── rekenverhaal ─────────────────────────────────────────────────────────────
@@ -65,7 +66,6 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const legacyScene = pickScene(meta.sceneIndex)
   const Counter = scene?.Counter
-  const containerBg = scene?.containerBg ?? legacyScene.bg
 
   const isTekst = meta.tierId === 'tekst'
   // film: step drives text + equation + animation together (input at step 3).
@@ -136,10 +136,10 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
     if (meta.variant === 'samenvoegen') {
       return (
         <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ background: containerBg, borderRadius: 14, padding: '10px 12px', display: 'flex', gap: 6, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+          <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', gap: 6, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
             {Array.from({ length: operandA }, (_, i) => creature(`a${i}`, false))}
           </div>
-          <div style={{ background: containerBg, borderRadius: 14, padding: '10px 12px', display: 'flex', gap: 6, opacity: actionDone ? 1 : 0, transition: 'opacity .3s' }}>
+          <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', gap: 6, opacity: actionDone ? 1 : 0, transition: 'opacity .3s' }}>
             {Array.from({ length: operandB }, (_, i) => creature(`b${i}`, false))}
           </div>
         </div>
@@ -149,7 +149,7 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
     const extra = meta.variant === 'erbij' && actionDone ? operandB : 0
     const base = operandA
     return (
-      <div style={{ background: containerBg, borderRadius: 14, padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 250, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+      <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 250, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
         {Array.from({ length: base }, (_, i) => creature(`a${i}`, ghosts && i >= base - operandB))}
         {Array.from({ length: extra }, (_, i) => creature(`x${i}`, false))}
       </div>
@@ -170,50 +170,49 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>
 
-      {/* The story */}
-      <div style={{
-        background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-        padding: '10px 22px 12px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)', maxWidth: 320,
-      }}>
+      {/* The story — the title band for this exercise */}
+      <ExerciseTitle tokens={tokens} style={{ padding: '10px 22px 12px', maxWidth: 320 }}>
         <div style={lineStyle(0)}>{lines[0]}</div>
         <div style={lineStyle(1)}>{lines[1]}</div>
         <div style={{ ...lineStyle(2), fontSize: 23 }}>{lines[2]}</div>
-      </div>
+      </ExerciseTitle>
 
-      {/* The acted story + replay */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {showAnim && anim()}
-        <button onClick={replay} disabled={disabled}
-          style={{
-            width: 46, height: 46, borderRadius: '50%', border: `2px solid ${tokens.ink}`,
-            background: tokens.paper, fontSize: 20, cursor: disabled ? 'default' : 'pointer',
-            boxShadow: '2px 3px 0 rgba(61,47,30,.12)',
-          }}
-          aria-label="speel het verhaal opnieuw">▶</button>
-      </div>
+      <ExerciseStage tokens={tokens}>
+        {/* The acted story + replay */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {showAnim && anim()}
+          <button onClick={replay} disabled={disabled}
+            style={{
+              width: 46, height: 46, borderRadius: '50%', border: `2px solid ${tokens.ink}`,
+              background: tokens.paper, fontSize: 20, cursor: disabled ? 'default' : 'pointer',
+              boxShadow: '2px 3px 0 rgba(61,47,30,.12)',
+            }}
+            aria-label="speel het verhaal opnieuw">▶</button>
+        </div>
 
-      {/* Answer area. On the first attempt only the answer box shows — the
-          story has to be read to know what to type. On the re-scaffolded retry
-          (question.isRetry) the equation is revealed as a scaffold. This is a
-          deliberate exception to the "equation always visible" invariant: the
-          capstone's whole job is to force reading the words. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38 }}>
-        {question.isRetry && <>
-          {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{operandA}</span>)}
-          {eqPiece(textStep >= 2, <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>)}
-          {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
-          {eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
-        </>}
-        <span style={{
-          minWidth: 48, height: 48, padding: '0 6px',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          background: input ? tokens.accent : tokens.paper,
-          color: input ? 'white' : `${tokens.ink}55`,
-          border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
-          borderRadius: 12, fontSize: 30,
-          transition: 'background .18s, border-color .18s',
-        }}>{input || '?'}</span>
-      </div>
+        {/* Answer area. On the first attempt only the answer box shows — the
+            story has to be read to know what to type. On the re-scaffolded retry
+            (question.isRetry) the equation is revealed as a scaffold. This is a
+            deliberate exception to the "equation always visible" invariant: the
+            capstone's whole job is to force reading the words. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38 }}>
+          {question.isRetry && <>
+            {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{operandA}</span>)}
+            {eqPiece(textStep >= 2, <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>)}
+            {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
+            {eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
+          </>}
+          <span style={{
+            minWidth: 48, height: 48, padding: '0 6px',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            background: input ? tokens.accent : tokens.paper,
+            color: input ? 'white' : `${tokens.ink}55`,
+            border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
+            borderRadius: 12, fontSize: 30,
+            transition: 'background .18s, border-color .18s',
+          }}>{input || '?'}</span>
+        </div>
+      </ExerciseStage>
 
       <NumPad onKey={handleKey} disabled={disabled || !complete} tokens={scene?.tokens} />
     </div>

@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'fill', minScore: 0, label: 'invullen', description: 'Target numeral shown. Kid taps cells of an empty ten-frame to fill exactly N. Cells toggle so an overshoot can be corrected. Single tier; the 5/10 structure of the frame is the built-in scaffold.' },
@@ -56,7 +57,7 @@ function FillableTenFrame({ filled, onToggle, disabled, ink, paper, accent }: {
 
 function ShowMeOnTenFrameComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<ShowMeOnTenFrameMeta>) {
   const { operandA } = question
-  const { ink, paper, cream, accent, accentText, confirm } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, accent, accentText, confirm } = scene?.tokens ?? NATURE_TOKENS
 
   const [filled, setFilled] = useState<Set<number>>(new Set())
   const [taps, setTaps] = useState(0)
@@ -79,13 +80,9 @@ function ShowMeOnTenFrameComponent({ question, onResolve, disabled, scene }: Exe
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={scene?.tokens}>
         Maak <span style={{ color: accentText }}>{operandA}</span>
-      </div>
+      </ExerciseTitle>
 
       <FillableTenFrame filled={filled} onToggle={toggle} disabled={disabled} ink={ink} paper={paper} accent={accent} />
 

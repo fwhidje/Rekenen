@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 
 
@@ -161,7 +162,7 @@ function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick,
 function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DotPatternDecomposeMeta>) {
   const { operandA, operandB, meta } = question
   const { showA, options, stage } = meta
-  const { ink, paper, cream, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
 
   const total       = operandA + operandB
   const colourA     = refuse
@@ -204,21 +205,12 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={scene?.tokens}>
         {total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownCol }}>?</span>
-      </div>
+      </ExerciseTitle>
 
-      {/* Puzzle box: total + given/? row */}
-      <div style={{
-        background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '20px 24px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
-        boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-      }}>
+      {/* Puzzle stage: total + given/? row */}
+      <ExerciseStage tokens={scene?.tokens} style={{ gap: 20 }}>
         {showTotalNum
           ? <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{
@@ -268,7 +260,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
             <QuestionSlot colour={unknownCol} paper={paper} />
           </div>
         </div>
-      </div>
+      </ExerciseStage>
 
       {/* Choices */}
       <div style={{

@@ -5,6 +5,7 @@ import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { pickColors } from '../presentation/scenes'
 import { DotGroup } from '../presentation/components/DotGroup'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { opGlyph, opColor } from './opDisplay'
 
@@ -31,31 +32,35 @@ function ChoiceComponent({ question, onResolve, disabled, scene }: ExerciseCompo
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
 
-      {/* Visual dots — additive when score is low, not a replacement for the
-          equation. For '+' two groups combine; for '−' one whole group with
-          the removed part crossed out (the wegnemen after-image). */}
-      {meta.showVisual && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {op === '-' ? (
-            <DotGroup n={operandA} color={meta.colorA} crossed={operandB} />
-          ) : (
-            <>
-              <DotGroup n={operandA} color={meta.colorA} />
-              <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: glyphColor }}>{glyph}</span>
-              <DotGroup n={operandB} color={meta.colorB} />
-            </>
-          )}
-        </div>
-      )}
+      <ExerciseTitle tokens={tokens}>Hoeveel is het?</ExerciseTitle>
 
-      {/* Equation — always visible */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: fs }}>
-        <span style={{ color: tokens.accentText }}>{operandA}</span>
-        <span style={{ color: glyphColor }}>{glyph}</span>
-        <span style={{ color: tokens.pop }}>{operandB}</span>
-        <span style={{ color: tokens.ink, opacity: 0.4, fontSize: Math.round(fs * 0.85) }}>=</span>
-        <span style={{ color: tokens.accentText }}>?</span>
-      </div>
+      <ExerciseStage tokens={tokens}>
+        {/* Visual dots — additive when score is low, not a replacement for the
+            equation. For '+' two groups combine; for '−' one whole group with
+            the removed part crossed out (the wegnemen after-image). */}
+        {meta.showVisual && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {op === '-' ? (
+              <DotGroup n={operandA} color={meta.colorA} crossed={operandB} />
+            ) : (
+              <>
+                <DotGroup n={operandA} color={meta.colorA} />
+                <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: glyphColor }}>{glyph}</span>
+                <DotGroup n={operandB} color={meta.colorB} />
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Equation — always visible */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: fs }}>
+          <span style={{ color: tokens.accentText }}>{operandA}</span>
+          <span style={{ color: glyphColor }}>{glyph}</span>
+          <span style={{ color: tokens.pop }}>{operandB}</span>
+          <span style={{ color: tokens.ink, opacity: 0.4, fontSize: Math.round(fs * 0.85) }}>=</span>
+          <span style={{ color: tokens.accentText }}>?</span>
+        </div>
+      </ExerciseStage>
 
       <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
     </div>

@@ -7,7 +7,7 @@ import { SceneGroup } from '../presentation/components/SceneGroup'
 import { NumPad } from '../ui/components/NumPad'
 import { pickScene, pickColors } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { Panel } from '../presentation/components/Panel'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { opGlyph, opColor } from './opDisplay'
 
@@ -149,21 +149,17 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
   const glyph = opGlyph(op)
   const glyphColor = opColor(op, tokens)
 
+  // Title band: the variant's cue phrase frames the task when there's a visual
+  // (erbij / samenvoegen / wegnemen), otherwise a neutral prompt.
+  const title = hasVisual ? cuePhrase(meta.variant, operandB) : 'Hoeveel is het?'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
 
-     {/* Cue + visual + equation share one panel; the numpad sits outside it. */}
-     <Panel bg={scene?.containerBg ?? 'rgba(255,255,255,.5)'} style={{ minWidth: 300 }}>
+     <ExerciseTitle tokens={tokens}>{title}</ExerciseTitle>
 
-      {/* Cue phrase — the rekentaal of the variant, shown with the action */}
-      {hasVisual && (
-        <div style={{
-          ...fade(v.cue),
-          background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-          padding: '6px 18px 8px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 20, color: tokens.ink,
-        }}>{cuePhrase(meta.variant, operandB)}</div>
-      )}
+     {/* Visual + equation share one stage; the numpad sits outside it. */}
+     <ExerciseStage tokens={tokens} style={{ minWidth: 300 }}>
 
       {/* Visual row — the semantic action */}
       {hasVisual && (
@@ -219,7 +215,7 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
         }}>{input || '?'}</div>
       </div>
 
-     </Panel>
+     </ExerciseStage>
 
       <NumPad onKey={handleKey} disabled={disabled || !complete} tokens={scene?.tokens} />
     </div>

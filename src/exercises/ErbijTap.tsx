@@ -7,7 +7,7 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { CountChip } from '../presentation/components/CountChip'
-import { Panel } from '../presentation/components/Panel'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { opGlyph, opColor } from './opDisplay'
 
@@ -59,7 +59,6 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   const { ink, paper } = tokens
   const legacyScene = pickScene(meta.sceneIndex)
   const Counter = scene?.Counter
-  const containerBg = scene?.containerBg ?? legacyScene.bg
 
   const isVoorspel = meta.tierId === 'voorspel'
   // doen:     'tap'  → all arrived → 'howmany' (choice)
@@ -163,18 +162,13 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
         @keyframes erbij-fade { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: none; } }
       `}</style>
 
-      <Panel bg={containerBg} style={{ minWidth: 300 }}>
-        {/* Prompt + counting-on chip */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minHeight: 44 }}>
-          <div style={{
-            background: tokens.cream, border: `2px solid ${ink}`, borderRadius: 18,
-            padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-            fontFamily: 'Fredoka One, cursive', fontSize: 22, color: ink,
-          }}>{prompt}</div>
-          {/* Reserve space so the prompt label never shifts when the chip appears */}
-          <div style={{ minWidth: 44 }}>
-            {showChip && <CountChip count={start + arrived} ink={ink} paper={paper} />}
-          </div>
+      {/* Prompt lives in the title band above the stage */}
+      <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
+
+      <ExerciseStage tokens={tokens} style={{ minWidth: 300 }}>
+        {/* Counting-on chip — reserve height so the equation never shifts */}
+        <div style={{ minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {showChip && <CountChip count={start + arrived} ink={ink} paper={paper} />}
         </div>
 
         {/* Equation — built up by the reveal, always visible once assembled */}
@@ -195,9 +189,10 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
           }}>?</div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, minHeight: 80 }}>
-            {/* The pen: start group + arrivals tapped/animated in */}
+            {/* The pen: start group + arrivals tapped/animated in — transparent
+                so the single stage colour shows through */}
             <div style={{
-              background: 'rgba(255,255,255,.35)', borderRadius: 16, padding: '14px 18px',
+              borderRadius: 16, padding: '14px 18px',
               display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
               maxWidth: 240, minHeight: 52, alignItems: 'center',
             }}>
@@ -227,9 +222,9 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
             </div>
           </div>
         )}
-      </Panel>
+      </ExerciseStage>
 
-      {/* Input lives outside the panel */}
+      {/* Input lives outside the stage */}
       {((phase === 'howmany') || (phase === 'ask' && complete)) && (
         <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled || resolved} tokens={scene?.tokens} />
       )}

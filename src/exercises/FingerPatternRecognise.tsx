@@ -3,6 +3,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
@@ -39,15 +40,11 @@ function FingerPattern({ n, ink, paper }: { n: number; ink: string; paper: strin
 
 function FingerPatternRecogniseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<FingerPatternRecogniseMeta>) {
   const { operandA, answer, meta } = question
-  const { ink, paper, cream } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper } = scene?.tokens ?? NATURE_TOKENS
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>Hoeveel?</div>
+      <ExerciseTitle tokens={scene?.tokens}>Hoeveel?</ExerciseTitle>
       <FingerPattern n={operandA} ink={ink} paper={paper} />
       <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
     </div>

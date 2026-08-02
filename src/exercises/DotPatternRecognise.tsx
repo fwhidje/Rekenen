@@ -2,6 +2,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
@@ -63,15 +64,11 @@ function DotPattern({ n, ink, paper, dot, refuse }: { n: number; ink: string; pa
 
 function DotPatternRecogniseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DotPatternRecogniseMeta>) {
   const { operandA, answer, meta } = question
-  const { ink, paper, cream, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>Hoeveel?</div>
+      <ExerciseTitle tokens={scene?.tokens}>Hoeveel?</ExerciseTitle>
       <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
       <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
     </div>

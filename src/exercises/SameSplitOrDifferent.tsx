@@ -3,6 +3,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 import type { SceneTokens } from '../presentation/tokens'
 import { DOT_POS } from '../presentation/diePatterns'
 
@@ -154,17 +155,13 @@ function SameSplitOrDifferentComponent({ question, onResolve, disabled, scene }:
   const { operandA, operandB, meta } = question
   const { isSame, leftRep, rightRep, rightSplit } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream } = tokens
+  const { ink, paper } = tokens
 
   const correctValue = isSame ? 1 : 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>Zelfde splitsing?</div>
+      <ExerciseTitle tokens={scene?.tokens}>Zelfde splitsing?</ExerciseTitle>
 
       <div style={{ display: 'flex', gap: 28, justifyContent: 'center', alignItems: 'center' }}>
         <div style={{

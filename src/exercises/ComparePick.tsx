@@ -5,6 +5,7 @@ import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import type { CounterProps } from '../presentation/nature/Counters'
 import type { ComponentType } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'beeld', minScore: 0,  label: 'met beeld',   description: 'Anchor shown as numeral + counter group; the four options are counter groups (sizes vary so length is no cue). The relation is judged on visible quantities.' },
@@ -67,13 +68,9 @@ function ComparePickComponent({ question, onResolve, disabled, scene }: Exercise
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={scene?.tokens}>
         <span style={{ color: accentText }}>{relationWord}</span> {operandA}
-      </div>
+      </ExerciseTitle>
 
       {/* Anchor */}
       <div style={{

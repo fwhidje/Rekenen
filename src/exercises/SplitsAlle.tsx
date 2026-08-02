@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { NumPad } from '../ui/components/NumPad'
 
 // ─── splits-alle ──────────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ interface SplitsAlleMeta {
 function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsAlleMeta>) {
   const { operandA, operandB, meta } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, paperMid, accent, cream, accentText } = tokens
+  const { ink, paper, paperMid, accent, accentText } = tokens
   const total = operandA + operandB
   const rows = total + 1   // total..0 in the left column
 
@@ -178,28 +179,26 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
           fontFamily: 'Fredoka One, cursive', fontSize: 20, color: 'white',
         }}>Dit getal staat er al!</div>
       ) : (
-        <div style={{
-          background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 22, color: ink,
-        }}>Alle splitsingen van <span style={{ color: accentText }}>{total}</span>!</div>
+        <ExerciseTitle tokens={tokens}>Alle splitsingen van <span style={{ color: accentText }}>{total}</span>!</ExerciseTitle>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {/* roof header */}
-        <div style={{
-          width: 110, height: 40, background: paper, border: `2px solid ${ink}`,
-          borderBottom: 'none', borderRadius: '14px 14px 0 0',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink,
-        }}>{total}</div>
-        {Array.from({ length: rows }, (_, r) => (
-          <div key={r} style={{ display: 'flex', gap: 4, padding: '2px 0' }}>
-            {cellEl(r, 0)}
-            {cellEl(r, 1)}
-          </div>
-        ))}
-      </div>
+      <ExerciseStage tokens={tokens}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* roof header */}
+          <div style={{
+            width: 110, height: 40, background: paper, border: `2px solid ${ink}`,
+            borderBottom: 'none', borderRadius: '14px 14px 0 0',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink,
+          }}>{total}</div>
+          {Array.from({ length: rows }, (_, r) => (
+            <div key={r} style={{ display: 'flex', gap: 4, padding: '2px 0' }}>
+              {cellEl(r, 0)}
+              {cellEl(r, 1)}
+            </div>
+          ))}
+        </div>
+      </ExerciseStage>
 
       <NumPad onKey={handleKey} disabled={disabled || submitting} tokens={scene?.tokens} />
     </div>

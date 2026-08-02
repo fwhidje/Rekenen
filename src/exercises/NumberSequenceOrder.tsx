@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'with-start', minScore: 0,  label: 'met startgetal', description: 'Strip with the starting numeral already placed; kid drags the other three numerals into ascending positions next to it.' },
@@ -88,18 +89,10 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>{tierId === 'gap-fill' ? 'Welk getal ontbreekt?' : 'Zet op volgorde'}</div>
+      <ExerciseTitle tokens={scene?.tokens}>{tierId === 'gap-fill' ? 'Welk getal ontbreekt?' : 'Zet op volgorde'}</ExerciseTitle>
 
-      {/* Puzzle card — strip + tray on a clear panel */}
-      <div style={{
-        background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '18px 20px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18,
-      }}>
+      {/* Puzzle stage — strip + tray on one surface */}
+      <ExerciseStage tokens={scene?.tokens} style={{ gap: 18, padding: '18px 20px' }}>
       {/* Sequence strip */}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         {sequence.map((val, i) => {
@@ -145,7 +138,7 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
           )
         })}
       </div>
-      </div>
+      </ExerciseStage>
 
       {/* Confirm — appears once every slot is filled; placed tiles can still
           be tapped back to the tray until then. */}

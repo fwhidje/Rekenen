@@ -7,6 +7,7 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { CountChip } from '../presentation/components/CountChip'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor } from './opDisplay'
 
 // ─── wegneem-tap ──────────────────────────────────────────────────────────────
@@ -32,10 +33,9 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
   const whole = operandA
   const leave = operandB
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream } = tokens
+  const { ink, paper } = tokens
   const legacyScene = pickScene(meta.sceneIndex)
   const Counter = scene?.Counter
-  const containerBg = scene?.containerBg ?? legacyScene.bg
 
   const isVoorspel = meta.tierId === 'voorspel'
   // doen:     'tap' (tap the leavers) → 'howmany' (choice)
@@ -132,33 +132,34 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
 
-      {/* Prompt + counting-back chip */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      {/* Prompt lives in the title band above the stage */}
+      <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
+
+      <ExerciseStage tokens={tokens}>
+        {/* Counting-back chip — reserve height so nothing shifts */}
+        <div style={{ minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {showChip && <CountChip count={whole - gone.size} ink={ink} paper={paper} />}
+        </div>
+
+        {/* Equation — always visible */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 32 }}>
+          <span style={{ color: tokens.accentText }}>{operandA}</span>
+          <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
+          <span style={{ color: tokens.pop }}>{operandB}</span>
+          <span style={{ color: ink, opacity: 0.4, fontSize: 27 }}>=</span>
+          <span style={{ color: tokens.accentText }}>?</span>
+        </div>
+
+        {/* The pen: whole group; leavers fade to crossed ghosts — transparent
+            so the single stage colour shows through */}
         <div style={{
-          background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 22, color: ink,
-        }}>{prompt}</div>
-        {showChip && <CountChip count={whole - gone.size} ink={ink} paper={paper} />}
-      </div>
-
-      {/* Equation — always visible */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 32 }}>
-        <span style={{ color: tokens.accentText }}>{operandA}</span>
-        <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
-        <span style={{ color: tokens.pop }}>{operandB}</span>
-        <span style={{ color: ink, opacity: 0.4, fontSize: 27 }}>=</span>
-        <span style={{ color: tokens.accentText }}>?</span>
-      </div>
-
-      {/* The pen: whole group; leavers fade to crossed ghosts */}
-      <div style={{
-        background: containerBg, borderRadius: 16, padding: '14px 18px',
-        display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
-        maxWidth: 260, minHeight: 52, alignItems: 'center',
-      }}>
-        {Array.from({ length: whole }, (_, i) => renderCreature(i))}
-      </div>
+          borderRadius: 16, padding: '4px 8px',
+          display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
+          maxWidth: 260, minHeight: 52, alignItems: 'center',
+        }}>
+          {Array.from({ length: whole }, (_, i) => renderCreature(i))}
+        </div>
+      </ExerciseStage>
 
       {(phase === 'howmany' || phase === 'ask') && (
         <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled} tokens={scene?.tokens} />

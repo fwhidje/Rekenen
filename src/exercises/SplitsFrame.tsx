@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { NumPad } from '../ui/components/NumPad'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions } from './choiceOptions'
 
@@ -173,19 +174,10 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>{prompt}</div>
+      <ExerciseTitle tokens={scene?.tokens}>{prompt}</ExerciseTitle>
 
-      {/* Puzzle box */}
-      <div style={{
-        background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '20px 24px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-        boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-      }}>
+      {/* Puzzle stage */}
+      <ExerciseStage tokens={scene?.tokens}>
         {stage === 'die-keuze' && (
           <SplitDie total={total} splitAt={operandA} colourA={refuse} colourB={dot}
             ink={ink} paper={paper} size={90} />
@@ -221,7 +213,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
             transition: 'background .18s',
           }}>{input || '?'}</div>
         )}
-      </div>
+      </ExerciseStage>
 
       {/* Input */}
       {stage === 'die-keuze' && (

@@ -4,6 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
@@ -26,7 +27,7 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
   const { operandA, operandB, meta } = question
   const { tierId, total, parts } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, cream, accentText, refuse, dot, pop } = tokens
+  const { ink, accentText, refuse, dot, pop } = tokens
 
   // cut: gap index (1..total-1) = how many dots are in the left group
   const [cut, setCut] = useState<number | null>(null)
@@ -60,17 +61,14 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={tokens}>
         {tierId === 'gericht'
           ? <>Splits {total} in <span style={{ color: refuse }}>{parts[0]}</span> en <span style={{ color: pop }}>{parts[1]}</span></>
           : <>Maak je eigen splitsing van <span style={{ color: accentText }}>{total}</span></>
         }
-      </div>
+      </ExerciseTitle>
 
+      <ExerciseStage tokens={tokens}>
       {/* Dot row with tappable gaps */}
       <div style={{
         position: 'relative',
@@ -139,6 +137,7 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
               : <><span style={{ color: refuse }}>?</span> en <span style={{ color: pop }}>{total - cut}</span></>
         }
       </div>
+      </ExerciseStage>
 
       {/* Open-tier confirm: name the hidden part */}
       {confirmStep && (
