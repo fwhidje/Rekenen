@@ -54,8 +54,7 @@ export function DebugMode({ onClose }: Props) {
   const theme = THEMES[0]
   const { Background } = theme.backgrounds[bgIdx % theme.backgrounds.length]
   const Counter = theme.counters[counterIdx % theme.counters.length]
-  const containerBg = theme.backgrounds[bgIdx % theme.backgrounds.length].containerBg
-  const scene = useMemo(() => ({ Counter, containerBg, tokens: theme.tokens }), [Counter, containerBg, theme])
+  const scene = useMemo(() => ({ Counter, tokens: theme.tokens }), [Counter, theme])
 
   const skill = SKILLS_BY_ID[skillId]
 

@@ -46,9 +46,9 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
 
   const theme = THEMES[themeIdx]
   const ThemeDefs = theme.SharedDefs
-  const { Background, containerBg } = theme.backgrounds[bgIdx % theme.backgrounds.length]
+  const { Background } = theme.backgrounds[bgIdx % theme.backgrounds.length]
   const Counter = theme.counters[counterIdx % theme.counters.length]
-  const scene = useMemo(() => ({ Counter, containerBg, tokens: theme.tokens }), [Counter, containerBg, theme])
+  const scene = useMemo(() => ({ Counter, tokens: theme.tokens }), [Counter, theme])
 
   const nextQuestion = useCallback((updatedProfile: Profile, completed: number, ctx?: SelectionContext) => {
     const next = selectExercise(updatedProfile, SKILLS, getWeights, ctx)
