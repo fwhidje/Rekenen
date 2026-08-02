@@ -4,6 +4,7 @@ import { pickTier } from './tiers'
 import type { CounterProps } from '../presentation/nature/Counters'
 import type { ComponentType } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'twee',     minScore: 0,  label: 'twee groepen',  description: 'Two counter groups, "Welke is meer/minder?" — the comparative between two quantities, no numerals. Counter size and spacing vary per group so row length is not a valid cue.' },
@@ -92,13 +93,9 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={scene?.tokens}>
         {prompt}
-      </div>
+      </ExerciseTitle>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 380 }}>
         {values.map((val, i) => (
           <GroupPanel key={i} val={val} size={sizes[i]} gap={gaps[i]} />

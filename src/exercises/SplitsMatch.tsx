@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { SplitView, SPLIT_REPS } from './SameSplitOrDifferent'
 import type { SplitRepKind } from './SameSplitOrDifferent'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choose', minScore: 0,  label: 'kiezen',   description: 'Target split in one representation (e.g. colour-coded die-pattern 2+3). Four option tiles in different representations (finger pattern split 2-and-3, ten-frame top-2 bottom-3, splitshuisje "2 | 3", one distractor). Kid picks the match.' },
@@ -53,7 +54,7 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
   const { operandA, operandB, meta } = question
   const { tierId, targetRep, target, options, tiles } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream, accent, confirm, refuse } = tokens
+  const { ink, paper, accent, confirm, refuse } = tokens
 
   const [selected, setSelected] = useState<number[]>([])
   const [matched, setMatched] = useState<Set<number>>(new Set())
@@ -99,11 +100,7 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>{tierId === 'pairs' ? 'Zoek de paren' : tierId === 'match' ? 'Welke horen samen?' : 'Welke splitsing past?'}</div>
+      <ExerciseTitle tokens={scene?.tokens}>{tierId === 'pairs' ? 'Zoek de paren' : tierId === 'match' ? 'Welke horen samen?' : 'Welke splitsing past?'}</ExerciseTitle>
 
       {tierId === 'choose' ? (
         <>

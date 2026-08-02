@@ -10,6 +10,7 @@ import { useReveal } from '../presentation/useReveal'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor } from './opDisplay'
 
 // ─── wegnemen-crossed-out ─────────────────────────────────────────────────────
@@ -67,40 +68,37 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
 
-      {/* Prompt */}
-      <div style={{
-        background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-        fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
-      }}>Hoeveel blijven er over?</div>
+      <ExerciseTitle tokens={tokens}>Hoeveel blijven er over?</ExerciseTitle>
 
-      {/* The picture: whole group, removed part crossing out one at a time */}
-      <div style={{ display: 'flex', justifyContent: 'center', ...fade(showA) }}>
-        {meta.style === 'dots'
-          ? <DotGroup n={operandA} color={meta.color} crossed={crossed} />
-          : <SceneGroup n={operandA} scene={legacyScene} Counter={scene?.Counter} crossed={crossed} />}
-      </div>
+      <ExerciseStage tokens={tokens}>
+        {/* The picture: whole group, removed part crossing out one at a time */}
+        <div style={{ display: 'flex', justifyContent: 'center', ...fade(showA) }}>
+          {meta.style === 'dots'
+            ? <DotGroup n={operandA} color={meta.color} crossed={crossed} />
+            : <SceneGroup n={operandA} scene={legacyScene} Counter={scene?.Counter} crossed={crossed} />}
+        </div>
 
-      {/* Equation — built piece by piece; each slot keeps its space (no reflow) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 36 }}>
-        <span style={{ color: tokens.accentText, ...fade(showA) }}>{operandA}</span>
-        <span style={{ color: opColor(op, tokens), ...fade(showMinus) }}>{opGlyph(op)}</span>
-        <span style={{ color: tokens.pop, ...fade(showRest) }}>{operandB}</span>
-        <span style={{ color: tokens.ink, opacity: showRest ? 0.4 : 0, transition: 'opacity .3s', fontSize: 30 }}>=</span>
-        {meta.tierId === 'numpad' ? (
-          <div style={{
-            minWidth: 48, height: 48,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? tokens.accent : tokens.paper,
-            color: input ? 'white' : `${tokens.ink}55`,
-            border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
-            borderRadius: 12, fontSize: 30, fontFamily: 'Fredoka One, cursive',
-            transition: 'background .18s, border-color .18s',
-          }}>{input || '?'}</div>
-        ) : (
-          <span style={{ color: tokens.accentText, ...fade(showRest) }}>?</span>
-        )}
-      </div>
+        {/* Equation — built piece by piece; each slot keeps its space (no reflow) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 36 }}>
+          <span style={{ color: tokens.accentText, ...fade(showA) }}>{operandA}</span>
+          <span style={{ color: opColor(op, tokens), ...fade(showMinus) }}>{opGlyph(op)}</span>
+          <span style={{ color: tokens.pop, ...fade(showRest) }}>{operandB}</span>
+          <span style={{ color: tokens.ink, opacity: showRest ? 0.4 : 0, transition: 'opacity .3s', fontSize: 30 }}>=</span>
+          {meta.tierId === 'numpad' ? (
+            <div style={{
+              minWidth: 48, height: 48,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: input ? tokens.accent : tokens.paper,
+              color: input ? 'white' : `${tokens.ink}55`,
+              border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
+              borderRadius: 12, fontSize: 30, fontFamily: 'Fredoka One, cursive',
+              transition: 'background .18s, border-color .18s',
+            }}>{input || '?'}</div>
+          ) : (
+            <span style={{ color: tokens.accentText, ...fade(showRest) }}>?</span>
+          )}
+        </div>
+      </ExerciseStage>
 
       {meta.tierId === 'numpad'
         ? <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />

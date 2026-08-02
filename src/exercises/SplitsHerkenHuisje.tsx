@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -197,7 +198,7 @@ function DragTile({ value, colour, ink, paper, variant, faded, onPD, onPM, onPU 
 function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsHerkenHuisjeMeta>) {
   const { operandA, operandB, meta } = question
   const { stage, showA, givenRows, options } = meta
-  const { ink, paper, cream, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
   const total = operandA + operandB
   const colourA = refuse, colourB = dot
 
@@ -344,25 +345,16 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={scene?.tokens}>
         {stage === 'num-two'
           ? <>Splits {total}</>
           : stage === 'die-both'
             ? <>{total} is <span style={{ color: colourA }}>?</span> en <span style={{ color: colourB }}>?</span></>
             : <>{total} is <span style={{ color: knownColour }}>{knownVal}</span> en <span style={{ color: unknownColour }}>?</span></>}
-      </div>
+      </ExerciseTitle>
 
-      {/* Puzzle card */}
-      <div style={{
-        background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '20px 24px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
-        boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-      }}>
+      {/* Puzzle stage */}
+      <ExerciseStage tokens={scene?.tokens} style={{ gap: 14 }}>
         {/* House */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Roof total={total} operandA={operandA} colourA={colourA} colourB={colourB} stage={stage} ink={ink} paper={paper} />
@@ -390,7 +382,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
             )
           })}
         </div>
-      </div>
+      </ExerciseStage>
 
       {/* Floating drag ghost */}
       {drag && (

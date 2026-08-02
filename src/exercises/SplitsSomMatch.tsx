@@ -4,7 +4,7 @@ import { pickTier } from './tiers'
 import type { Problem } from '../curriculum/types'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { SplitView, type SplitRepKind } from './SameSplitOrDifferent'
-import { Panel } from '../presentation/components/Panel'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor } from './opDisplay'
 
 // ─── splits-som-match ─────────────────────────────────────────────────────────
@@ -84,17 +84,13 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      {/* Header + target on a shared panel; the options sit outside it */}
-      <Panel bg={scene?.containerBg ?? 'rgba(255,255,255,.5)'}>
-        <div style={{
-          background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
-        }}>{prompt}</div>
+      {/* Prompt in the title band; target on the stage; options sit outside it */}
+      <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
+      <ExerciseStage tokens={tokens}>
         {meta.tierId === 'omgekeerd'
           ? <div style={{ ...tileStyle, cursor: 'default' }}>{somText(meta.som, 40)}</div>
           : <SplitView kind={meta.rep} a={meta.split[0]} b={meta.split[1]} size={110} tokens={tokens} />}
-      </Panel>
+      </ExerciseStage>
 
       {/* The options — 2×2 grid */}
       <div style={grid}>

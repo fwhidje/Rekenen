@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
@@ -75,7 +76,8 @@ function NumberLineStrip({ target, max, ink, paper, accent }: {
 function NumberlineReadComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberlineReadMeta>) {
   const { operandA, meta } = question
   const { max, options, tierId } = meta
-  const { ink, paper, cream, accent, confirm } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, accent, confirm } = tokens
 
   const [input, setInput] = useState('')
   useEffect(() => { setInput('') }, [operandA, tierId])
@@ -89,13 +91,11 @@ function NumberlineReadComponent({ question, onResolve, disabled, scene }: Exerc
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>Welk getal staat hier?</div>
+      <ExerciseTitle tokens={tokens}>Welk getal staat hier?</ExerciseTitle>
 
-      <NumberLineStrip target={operandA} max={max} ink={ink} paper={paper} accent={accent} />
+      <ExerciseStage tokens={tokens} style={{ maxWidth: '100%', overflowX: 'auto' }}>
+        <NumberLineStrip target={operandA} max={max} ink={ink} paper={paper} accent={accent} />
+      </ExerciseStage>
 
       {tierId === 'choice' ? (
         <ChoiceButtons options={options} onPick={v => onResolve(v === operandA, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />

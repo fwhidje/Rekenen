@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
@@ -88,17 +89,15 @@ function SplitsbenenComponent({ question, onResolve, disabled, scene }: Exercise
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-        fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
-      }}>Vul de splitsing aan!</div>
+      <ExerciseTitle tokens={tokens}>Vul de splitsing aan!</ExerciseTitle>
 
-      <Benen total={total}
-        left={meta.givenSide === 'left' ? String(given) : missingDisplay}
-        right={meta.givenSide === 'right' ? String(given) : missingDisplay}
-        activeSide={meta.tierId === 'been-pad' ? (meta.givenSide === 'left' ? 'right' : 'left') : null}
-        tokens={tokens} />
+      <ExerciseStage tokens={tokens}>
+        <Benen total={total}
+          left={meta.givenSide === 'left' ? String(given) : missingDisplay}
+          right={meta.givenSide === 'right' ? String(given) : missingDisplay}
+          activeSide={meta.tierId === 'been-pad' ? (meta.givenSide === 'left' ? 'right' : 'left') : null}
+          tokens={tokens} />
+      </ExerciseStage>
 
       {meta.tierId === 'been-pad'
         ? <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />

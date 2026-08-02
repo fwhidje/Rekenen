@@ -4,6 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 import type { SceneTokens } from '../presentation/tokens'
 
@@ -109,7 +110,7 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
   const { operandA, meta } = question
   const { tierId, targetRep, options, tiles } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream, accent, confirm, refuse } = tokens
+  const { ink, paper, accent, confirm, refuse } = tokens
 
   // ── shared (match + pairs) state ──
   // selected: indices currently face-up awaiting a pair check (length 0–2).
@@ -157,14 +158,10 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={scene?.tokens}>
         {tierId === 'pairs' ? 'Zoek de paren' :
          tierId === 'match' ? 'Koppel de paren' : 'Welke hoort erbij?'}
-      </div>
+      </ExerciseTitle>
 
       {tierId === 'choose' ? (
         <>

@@ -7,6 +7,7 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters one by one (running count shown), then name the total from 4 numerals — the cardinality probe.' },
@@ -71,7 +72,8 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
   const [tapped, setTapped] = useState(new Set<number>())
   const [phase, setPhase] = useState<'tap' | 'howmany'>('tap')
   const legacyScene = pickScene(meta.sceneIndex)
-  const { ink, paper, cream, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, dot, refuse } = tokens
 
   const done = tapped.size === operandA
 
@@ -89,85 +91,29 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
     setTapped(s => new Set([...s, i]))
   }
 
-  const prompt = (
-    <div style={{
-      background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-      padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-      fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-    }}>{phase === 'tap' ? 'Tel maar!' : 'Hoeveel waren er?'}</div>
-  )
+  const Counter = scene?.Counter
 
-  // ── Cardinality question — items gone, chip hidden ────────────────────────
-  if (phase === 'howmany') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
-        {prompt}
-        <div style={{
-          width: 130, height: 130, borderRadius: 16, border: `2px dashed ${ink}55`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Fredoka One, cursive', fontSize: 48, color: `${ink}40`,
-        }}>?</div>
-        <ChoiceButtons
-          options={meta.options}
-          onPick={v => onResolve(v === operandA, { givenAnswer: v, tapCount: operandA })}
-          disabled={disabled}
-          tokens={scene?.tokens}
-        />
-      </div>
-    )
-  }
-
-  // ── Tap phase ──────────────────────────────────────────────────────────────
-  const header = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-      {prompt}
-      <CounterChip count={tapped.size} ink={ink} paper={paper} />
-    </div>
-  )
-
-  if (meta.style === 'emoji') {
-    const row1 = Math.min(operandA, 5)
-    const row2 = operandA - row1
-    const Counter = scene?.Counter
-    const containerBg = scene?.containerBg ?? legacyScene.bg
-
-    const renderItem = (i: number) => {
-      const isTapped = tapped.has(i)
-      const itemStyle: React.CSSProperties = {
-        cursor: 'pointer',
-        opacity: isTapped ? 0 : 1,
-        transform: isTapped ? 'scale(0) rotate(15deg)' : 'scale(1)',
-        transition: 'opacity .2s, transform .25s',
-      }
-      return Counter ? (
-        <div key={i} onClick={() => tap(i)} style={itemStyle}>
-          <Counter size={42} />
-        </div>
-      ) : (
-        <span key={i} onClick={() => tap(i)} style={{ fontSize: 38, display: 'inline-block', ...itemStyle }}>
-          {legacyScene.e}
-        </span>
-      )
+  // Themed counters (emoji tier) — one gentle fade-out per tap.
+  const renderItem = (i: number) => {
+    const isTapped = tapped.has(i)
+    const itemStyle: React.CSSProperties = {
+      cursor: 'pointer',
+      opacity: isTapped ? 0 : 1,
+      transform: isTapped ? 'scale(0) rotate(15deg)' : 'scale(1)',
+      transition: 'opacity .2s, transform .25s',
     }
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        {header}
-        <div style={{ background: containerBg, borderRadius: 16, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {Array.from({ length: row1 }, (_, i) => renderItem(i))}
-          </div>
-          {row2 > 0 && (
-            <div style={{ display: 'flex', gap: 10 }}>
-              {Array.from({ length: row2 }, (_, j) => renderItem(5 + j))}
-            </div>
-          )}
-        </div>
+    return Counter ? (
+      <div key={i} onClick={() => tap(i)} style={itemStyle}>
+        <Counter size={42} />
       </div>
+    ) : (
+      <span key={i} onClick={() => tap(i)} style={{ fontSize: 38, display: 'inline-block', ...itemStyle }}>
+        {legacyScene.e}
+      </span>
     )
   }
 
-  // ── Dots style — subitising patterns ─────────────────────────────────────
+  // Die-pattern group (dots tier) — dots sit directly on the stage.
   const renderDieSquare = (count: number, color: string, indexOffset: number, size: number) => {
     const positions = DOT_POS[count] ?? []
     return (
@@ -184,31 +130,64 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
     )
   }
 
-  if (operandA <= 5) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        {header}
-        <div style={{ position: 'relative', width: 130, height: 130, background: paper, borderRadius: 16, border: `2px solid ${ink}` }}>
-          {renderDieSquare(operandA, dot, 0, 130)}
-        </div>
-      </div>
-    )
-  }
-
-  // 6–10: one shared box with two die-pattern groups side by side
+  const row1 = Math.min(operandA, 5)
+  const row2 = operandA - row1
   const right = operandA - 5
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-      {header}
-      <div style={{
-        background: paper, borderRadius: 16, border: `2px solid ${ink}`,
-        padding: '10px 14px',
-        display: 'flex', gap: 12, alignItems: 'center',
-      }}>
-        {renderDieSquare(5, refuse, 0, 110)}
-        <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
-        {renderDieSquare(right, dot, 5, 110)}
+
+  // One stage across both phases and both tiers; inner tap groups are
+  // transparent so the single stage colour shows throughout.
+  const stageBody = phase === 'howmany' ? (
+    // Cardinality question — items gone, chip hidden.
+    <div style={{
+      width: 130, height: 130, borderRadius: 16, border: `2px dashed ${ink}55`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'Fredoka One, cursive', fontSize: 48, color: `${ink}40`,
+    }}>?</div>
+  ) : meta.style === 'emoji' ? (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 10 }}>
+        {Array.from({ length: row1 }, (_, i) => renderItem(i))}
       </div>
+      {row2 > 0 && (
+        <div style={{ display: 'flex', gap: 10 }}>
+          {Array.from({ length: row2 }, (_, j) => renderItem(5 + j))}
+        </div>
+      )}
+    </div>
+  ) : operandA <= 5 ? (
+    <div style={{ position: 'relative', width: 130, height: 130 }}>
+      {renderDieSquare(operandA, dot, 0, 130)}
+    </div>
+  ) : (
+    // 6–10: two die-pattern groups side by side
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '4px 6px' }}>
+      {renderDieSquare(5, refuse, 0, 110)}
+      <div style={{ width: 2, alignSelf: 'stretch', background: ink, opacity: 0.15, borderRadius: 1 }} />
+      {renderDieSquare(right, dot, 5, 110)}
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}>
+      <ExerciseTitle tokens={tokens}>{phase === 'tap' ? 'Tel maar!' : 'Hoeveel waren er?'}</ExerciseTitle>
+
+      <ExerciseStage tokens={tokens}>
+        {/* Running count chip — only while tapping; reserve height so the
+            visual never shifts */}
+        <div style={{ minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {phase === 'tap' && <CounterChip count={tapped.size} ink={ink} paper={paper} />}
+        </div>
+        {stageBody}
+      </ExerciseStage>
+
+      {phase === 'howmany' && (
+        <ChoiceButtons
+          options={meta.options}
+          onPick={v => onResolve(v === operandA, { givenAnswer: v, tapCount: operandA })}
+          disabled={disabled}
+          tokens={scene?.tokens}
+        />
+      )}
     </div>
   )
 }

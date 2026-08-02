@@ -4,6 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import type { Problem } from '../curriculum/types'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
@@ -113,12 +114,10 @@ function makeComponent(side: 'rechts' | 'links') {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}>
-        <div style={{
-          background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-          padding: '10px 24px 12px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          display: 'flex', alignItems: 'center', gap: 12,
-          fontFamily: 'Fredoka One, cursive',
-        }}>{statement}</div>
+        <ExerciseTitle tokens={tokens}>Vul aan!</ExerciseTitle>
+        <ExerciseStage tokens={tokens}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'Fredoka One, cursive' }}>{statement}</div>
+        </ExerciseStage>
 
         {typed
           ? <NumPad onKey={handleKey} disabled={disabled || solved !== null} tokens={scene?.tokens} />

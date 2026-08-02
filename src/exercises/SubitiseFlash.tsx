@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
@@ -66,7 +67,8 @@ type Phase = 'ready' | 'flash' | 'answer'
 function SubitiseFlashComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SubitiseFlashMeta>) {
   const { operandA, meta } = question
   const { options, tierId } = meta
-  const { ink, paper, cream, accent, confirm, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, accent, confirm, dot, refuse } = tokens
 
   const [phase, setPhase] = useState<Phase>('ready')
   const [retries, setRetries] = useState(0)
@@ -98,14 +100,10 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>{phase === 'answer' ? 'Hoeveel zag je?' : 'Vlug kijken!'}</div>
+      <ExerciseTitle tokens={tokens}>{phase === 'answer' ? 'Hoeveel zag je?' : 'Vlug kijken!'}</ExerciseTitle>
 
-      {/* Stage area — fixed height so layout doesn't jump between phases */}
-      <div style={{ minHeight: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* One stage across all phases — fixed height so layout doesn't jump */}
+      <ExerciseStage tokens={tokens} style={{ minHeight: 150, justifyContent: 'center' }}>
         {phase === 'ready' && (
           <button onClick={startFlash} disabled={disabled}
             style={{
@@ -125,7 +123,7 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
             fontFamily: 'Fredoka One, cursive', fontSize: 48, color: `${ink}40`,
           }}>?</div>
         )}
-      </div>
+      </ExerciseStage>
 
       {phase === 'answer' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>

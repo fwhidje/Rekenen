@@ -2,6 +2,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 
 const TIERS: ExerciseTier[] = [
   { id: 'labelled', minScore: 0,  label: 'met getallen', description: 'Every cell is labelled — the child matches the numeral to its position.' },
@@ -17,7 +18,8 @@ interface NumberlinePlaceMeta {
 function NumberlinePlaceComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberlinePlaceMeta>) {
   const { operandA, answer, meta } = question
   const { showLabels, max } = meta
-  const { ink, paper, cream, accentText } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, cream, accentText } = tokens
 
   const numbers = Array.from({ length: max + 1 }, (_, i) => i)
   const cellW = Math.max(26, Math.min(42, Math.floor(300 / (max + 1))))
@@ -31,14 +33,11 @@ function NumberlinePlaceComponent({ question, onResolve, disabled, scene }: Exer
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
-      }}>
+      <ExerciseTitle tokens={tokens}>
         Waar staat <span style={{ color: accentText }}>{operandA}</span>?
-      </div>
+      </ExerciseTitle>
 
+      <ExerciseStage tokens={tokens} style={{ maxWidth: '100%', overflowX: 'auto' }}>
       <div style={{ display: 'flex' }}>
         {numbers.map((n, idx) => {
           const isFirst = idx === 0
@@ -65,6 +64,7 @@ function NumberlinePlaceComponent({ question, onResolve, disabled, scene }: Exer
           )
         })}
       </div>
+      </ExerciseStage>
     </div>
   )
 }

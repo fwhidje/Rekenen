@@ -3,6 +3,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor } from './opDisplay'
 
 const TIERS: ExerciseTier[] = [
@@ -26,16 +27,19 @@ function TrueFalseComponent({ question, onResolve, disabled, scene }: ExerciseCo
   const tokens = scene?.tokens ?? NATURE_TOKENS
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 48 }}>
-        <span style={{ color: tokens.accentText }}>{meta.displayA}</span>
-        <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
-        <span style={{ color: tokens.pop }}>{meta.displayB}</span>
-        <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 40 }}>=</span>
-        <span style={{
-          background: tokens.cream, borderRadius: 12, padding: '2px 14px',
-          border: `2px solid ${tokens.accent}`, color: tokens.ink,
-        }}>{meta.shownAnswer}</span>
-      </div>
+      <ExerciseTitle tokens={tokens}>Klopt het?</ExerciseTitle>
+      <ExerciseStage tokens={tokens}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 48 }}>
+          <span style={{ color: tokens.accentText }}>{meta.displayA}</span>
+          <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
+          <span style={{ color: tokens.pop }}>{meta.displayB}</span>
+          <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 40 }}>=</span>
+          <span style={{
+            background: tokens.accent, borderRadius: 12, padding: '2px 14px',
+            border: `2px solid ${tokens.accent}`, color: 'white',
+          }}>{meta.shownAnswer}</span>
+        </div>
+      </ExerciseStage>
       <TFButtons onPick={v => onResolve(v === (meta.isCorrect ? 1 : 0))} disabled={disabled} tokens={scene?.tokens} />
     </div>
   )

@@ -4,6 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
 
 // A WHOLE visibly splits: the original row of dots stays in place (greyed once
 // the split starts) while a copy animates apart into two coloured groups below.
@@ -102,7 +103,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
   const { operandA, operandB, meta } = question
   const { tierId, total, finalParts, delta, options } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper, cream, dot, refuse, pop } = tokens
+  const { ink, paper, dot, refuse, pop } = tokens
 
   const [phase, setPhase] = useState<'initial' | 'split'>('initial')
   const [settled, setSettled] = useState(false)
@@ -136,11 +137,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}>
-      <div style={{
-        background: cream, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink, minHeight: 30,
-      }}>{header}</div>
+      <ExerciseTitle tokens={scene?.tokens} style={{ minHeight: 30 }}>{header}</ExerciseTitle>
 
       {/* Stage: greyed original on top, the split animates below it */}
       <div style={{

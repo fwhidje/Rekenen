@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier, ExerciseDidactics } from './types'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor } from './opDisplay'
 
 // ─── collect-counter / collect-counter-down ──────────────────────────────────
@@ -34,20 +35,23 @@ function CollectCounterComponent({ question, onResolve, disabled, scene }: Exerc
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 52 }}>
-        <span style={{ color: tokens.accentText }}>{operandA}</span>
-        <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
-        <span style={{ color: tokens.pop }}>{operandB}</span>
-        <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 44 }}>=</span>
-        <div style={{
-          minWidth: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: touched ? tokens.accent : tokens.paper,
-          color: touched ? 'white' : `${tokens.ink}55`,
-          border: `2px solid ${touched ? tokens.accent : tokens.paperMid}`,
-          borderRadius: 14, fontSize: 44, fontFamily: 'Fredoka One, cursive',
-          transition: 'background .18s, border-color .18s',
-        }}>{count}</div>
-      </div>
+      <ExerciseTitle tokens={tokens}>{op === '-' ? 'Tel terug!' : 'Tel mee!'}</ExerciseTitle>
+      <ExerciseStage tokens={tokens}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 52 }}>
+          <span style={{ color: tokens.accentText }}>{operandA}</span>
+          <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
+          <span style={{ color: tokens.pop }}>{operandB}</span>
+          <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 44 }}>=</span>
+          <div style={{
+            minWidth: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: touched ? tokens.accent : tokens.paper,
+            color: touched ? 'white' : `${tokens.ink}55`,
+            border: `2px solid ${touched ? tokens.accent : tokens.paperMid}`,
+            borderRadius: 14, fontSize: 44, fontFamily: 'Fredoka One, cursive',
+            transition: 'background .18s, border-color .18s',
+          }}>{count}</div>
+        </div>
+      </ExerciseStage>
       <div style={{ display: 'flex', gap: 18 }}>
         {([
           ['−', tokens.refuse, () => { setCount(c => Math.max(0, c - 1)); setTaps(t => t + 1) }],

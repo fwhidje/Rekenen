@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
@@ -162,31 +163,31 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <div style={{
-        background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
-        padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-        fontFamily: 'Fredoka One, cursive', fontSize: 22, color: tokens.ink,
-      }}>{prompt}</div>
+      <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
 
       {meta.tierId === 'twee-huisjes' ? (
         <>
-          <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <House total={total} left={cellVal(0)} right={cellVal(1)}
-              activeCell={activeIdx === 0 ? 'left' : activeIdx === 1 ? 'right' : null}
-              dieAid={false} tokens={tokens} />
-            <House total={total} left={cellVal(2)} right={cellVal(3)}
-              activeCell={activeIdx === 2 ? 'left' : activeIdx === 3 ? 'right' : null}
-              dieAid={false} tokens={tokens} />
-          </div>
+          <ExerciseStage tokens={tokens}>
+            <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <House total={total} left={cellVal(0)} right={cellVal(1)}
+                activeCell={activeIdx === 0 ? 'left' : activeIdx === 1 ? 'right' : null}
+                dieAid={false} tokens={tokens} />
+              <House total={total} left={cellVal(2)} right={cellVal(3)}
+                activeCell={activeIdx === 2 ? 'left' : activeIdx === 3 ? 'right' : null}
+                dieAid={false} tokens={tokens} />
+            </div>
+          </ExerciseStage>
           <NumPad onKey={handleKeyDouble} disabled={disabled || solvedDouble} tokens={scene?.tokens} />
         </>
       ) : (
         <>
-          <House total={total}
-            left={meta.givenSide === 'left' ? String(given) : singleMissingDisplay}
-            right={meta.givenSide === 'right' ? String(given) : singleMissingDisplay}
-            activeCell={solvedAnswer !== null || meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
-            dieAid={meta.tierId === 'één-kamer'} tokens={tokens} />
+          <ExerciseStage tokens={tokens}>
+            <House total={total}
+              left={meta.givenSide === 'left' ? String(given) : singleMissingDisplay}
+              right={meta.givenSide === 'right' ? String(given) : singleMissingDisplay}
+              activeCell={solvedAnswer !== null || meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
+              dieAid={meta.tierId === 'één-kamer'} tokens={tokens} />
+          </ExerciseStage>
           {meta.tierId === 'één-kamer'
             ? <ChoiceButtons options={meta.options} onPick={resolveSingle} disabled={disabled || solvedAnswer !== null} tokens={scene?.tokens} />
             : <NumPad onKey={handleKeySingle} disabled={disabled || solvedAnswer !== null} tokens={scene?.tokens} />}

@@ -250,7 +250,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing (locked feedback constraints) |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
-| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, Panel (shared scene-`containerBg` card) |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |
@@ -260,14 +260,26 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/ui/AdminMode.tsx` | Profile management + read-only per-profile state inspector (📊: scores, statuses, live weight factors) |
 | `src/ui/components/` | NumPad, ChoiceButtons, TFButtons |
 
+## Unified exercise shell (locked)
+
+Every exercise wears the same chrome, from `presentation/components/ExerciseFrame`:
+
+- **`<ExerciseTitle>`** — the prompt in its own cream band above everything. Required in every exercise (a `npm test` tripwire, `exerciseShell.test.ts`, fails any exercise file that doesn't render one).
+- **`<ExerciseStage>`** — one `paper` card holding the exercise proper: visuals, animations, and any drag / tap-the-stage interaction. Single colour throughout — no nested tints; sub-groups inside it are transparent. Pass `style` for width / `overflowX` / `minWidth` / `gap` overrides.
+- **Input goes OUTSIDE the stage** — numpad / choice / true-false buttons are siblings below it. Only stage interactions (drag trays, tap-to-place, tap-the-counter) live inside.
+- **Exception:** pure choose-between-visual-cards exercises (`compare-more-less`, the `match`/`pairs` grids of `quantity-match` / `splits-match`, `compare-pick`'s picture options) have no stage — the option cards are each their own background. They still render an `<ExerciseTitle>`.
+
+`paper` and `cream` are identical across all themes, so the shell colour is constant regardless of scene (never use the theme-varying `containerBg` for a stage). `rekenverhaal`'s multi-line story is its title band (via `ExerciseTitle` with a style override).
+
 ## Adding a new exercise type
 
 1. Create `src/exercises/MyExercise.tsx` with a typed `Meta` interface, a component, and call `registerExercise(...)`.
 2. Declare `const TIERS: ExerciseTier[]` (even a single `minScore: 0` tier). In `generateMeta`, derive the active tier with `pickTier(TIERS, score)` and stamp `meta.tierId = tier.id` — don't reintroduce an inline `pickStage`/threshold function. The component switches on the tier.
-3. Fill `tiers` and `didactics` on the definition (see Blueprint). When the child answers, pass what you cheaply know via the optional `onResolve(correct, { givenAnswer, tapCount })` so diagnostics can classify.
-4. Import it in `src/exercises/index.ts`.
-5. Reference its id in any skill's `applicableExercises` in `skills.ts`.
-6. Add a weight in `src/curriculum/weightMatrix.ts`. An applicable + registered exercise with zero weight everywhere is flagged as dead by `validate.ts` (dev console + `npm test`).
+3. Wear the shell: render an `<ExerciseTitle>` and (unless pure choose-between-cards) an `<ExerciseStage>`, input outside it (see Unified exercise shell above).
+4. Fill `tiers` and `didactics` on the definition (see Blueprint). When the child answers, pass what you cheaply know via the optional `onResolve(correct, { givenAnswer, tapCount })` so diagnostics can classify.
+5. Import it in `src/exercises/index.ts`.
+6. Reference its id in any skill's `applicableExercises` in `skills.ts`.
+7. Add a weight in `src/curriculum/weightMatrix.ts`. An applicable + registered exercise with zero weight everywhere is flagged as dead by `validate.ts` (dev console + `npm test`).
 
 ## Adding a new skill
 
