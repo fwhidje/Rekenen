@@ -88,8 +88,10 @@ export function recordAnswer(profile: Profile, skillId: string, correct: boolean
 }
 
 // Walks unlock then subsume evaluators and applies their effects to the profile.
+// Exported for the admin progress override (src/admin/progressOverride.ts),
+// which runs the same cascade after writing its scores.
 // Done after any score change. Idempotent — safe to call multiple times.
-function applyEvaluations(profile: Profile): Profile {
+export function applyEvaluations(profile: Profile): Profile {
   const now = Date.now()
   let updated = profile
 

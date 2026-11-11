@@ -5,6 +5,7 @@ import { createProfile } from '../state/storage'
 import { diagnostics } from '../engine/diagnostics'
 import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
 import { getAllExerciseIds } from '../exercises/registry'
+import { SkillTreeScreen } from './SkillTreeScreen'
 
 // Ensure the registry is populated even if no exercise screen rendered yet.
 import '../exercises/index'
@@ -19,6 +20,7 @@ interface Props {
 
 export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange, onOpenDebug }: Props) {
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
+  const [treeProfileId, setTreeProfileId] = useState<string | null>(null)
 
   const addProfile = () => {
     const name = prompt('Naam van het kind:')
@@ -39,6 +41,22 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
       ? (remaining[0]?.id ?? null)
       : appState.activeProfileId
     onAppStateChange({ ...appState, profiles: remaining, activeProfileId })
+  }
+
+  // Progress override sub-screen (🌳 on a profile card). Looked up fresh from
+  // appState each render so the tree shows the profile as just saved.
+  const treeProfile = appState.profiles.find(p => p.id === treeProfileId)
+  if (treeProfile) {
+    return (
+      <SkillTreeScreen
+        profile={treeProfile}
+        onClose={() => setTreeProfileId(null)}
+        onApply={updated => onAppStateChange({
+          ...appState,
+          profiles: appState.profiles.map(p => (p.id === updated.id ? updated : p)),
+        })}
+      />
+    )
   }
 
   return (
@@ -68,6 +86,7 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
                 onSelect={() => { onSelectProfile(profile.id); onClose() }}
                 onDelete={() => deleteProfile(profile.id)}
                 onToggleInspect={() => setExpandedProfileId(id => (id === profile.id ? null : profile.id))}
+                onOpenTree={() => setTreeProfileId(profile.id)}
               />
               {profile.id === expandedProfileId && <ProfileInspector profile={profile} />}
             </div>
@@ -94,13 +113,14 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
   )
 }
 
-function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggleInspect }: {
+function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggleInspect, onOpenTree }: {
   profile: Profile
   active: boolean
   inspecting: boolean
   onSelect: () => void
   onDelete: () => void
   onToggleInspect: () => void
+  onOpenTree: () => void
 }) {
   return (
     <div style={{
@@ -122,6 +142,11 @@ function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggle
           padding: '4px 8px', cursor: 'pointer', fontSize: 16,
           lineHeight: 1,
         }}>📊</button>
+        <button onClick={e => { e.stopPropagation(); onOpenTree() }} title="Voortgang instellen" style={{
+          background: 'none', border: '1.5px solid #EEE', borderRadius: 8,
+          padding: '4px 8px', cursor: 'pointer', fontSize: 16,
+          lineHeight: 1,
+        }}>🌳</button>
         <button onClick={e => { e.stopPropagation(); onDelete() }} style={{
           background: 'none', border: '1.5px solid #EEE', borderRadius: 8,
           padding: '4px 8px', cursor: 'pointer', fontSize: 16, color: '#CCC',
@@ -134,7 +159,8 @@ function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggle
 
 // Read-only state inspector: per skill the score (the scaffolding dial + unlock
 // gate) and per exercise the live dynamic weight factor, derived from the
-// profile's persisted answer stream. Manipulation tools stay in DebugMode.
+// profile's persisted answer stream. Exercise manipulation stays in DebugMode;
+// the one write path here is the progress override (🌳 → SkillTreeScreen).
 function ProfileInspector({ profile }: { profile: Profile }) {
   const registered = useMemo(() => new Set(getAllExerciseIds()), [])
   const records = useMemo(() => diagnostics.getAll(profile.id), [profile.id])
