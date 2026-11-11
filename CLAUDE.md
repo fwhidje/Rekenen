@@ -257,7 +257,10 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop |
 | `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
-| `src/ui/AdminMode.tsx` | Profile management + read-only per-profile state inspector (📊: scores, statuses, live weight factors) |
+| `src/ui/AdminMode.tsx` | Profile management + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override |
+| `src/ui/SkillTreeScreen.tsx` | Progress override screen: skill tree for one profile, tap a skill → Open hier / Beheerst → preview diff → Toepassen |
+| `src/admin/progressOverride.ts` | Progress override rules (pure): `planOverride(profile, skillId, mode)` → new profile + per-skill diff; `prerequisites`, `blockedBy`, `canOverride` |
+| `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
 | `src/ui/components/` | NumPad, ChoiceButtons, TFButtons |
 
 ## Unified exercise shell (locked)
@@ -310,6 +313,26 @@ The didactic + diagnostic fields are *required* and exist to make the curriculum
 - Scaffolding thresholds live in `TIERS`, never in an inline `if (score < n)` — and `generateMeta` stamps `tierId`.
 - An exercise reports `givenAnswer` (and `tapCount` for multi-step) via `onResolve` wherever it cheaply can, so answers are classifiable.
 - Every skill has an `EXERCISE_PLAN` entry.
+
+## Progress override (admin)
+
+Parent-facing tool to put a profile at a chosen point in the skill tree: recovery after lost localStorage (no backend yet), or starting a child who is already ahead. Kept after accounts land. Path: ⚙️ Opties → 🌳 on a profile card.
+
+**Kept out of the engine.** `src/admin/` reads the curriculum graph and reuses the storage cascade (`applyEvaluations`, exported from `state/storage.ts` for this); nothing in `engine/` or the play loop imports it.
+
+**Rules** (constants at the top of `progressOverride.ts`), for a chosen skill T:
+
+| Action | T | Direct prereqs (`T.unlockedBy`) | Deeper ancestors |
+|---|---|---|---|
+| **Open hier** | unlocked, score 0, un-archived | 60 (`UNLOCK_THRESHOLD`) | 90 |
+| **Beheerst** | 90 | 90 | 90 |
+
+- Prereq scores are **raise-only** (`max(current, rule)`) — earned progress is never taken away. Only an *Open hier* target can drop; the preview shows drops in red and the confirm dialog repeats them.
+- After writing, the normal unlock + archive cascade runs, so every skill whose prereqs are now met opens at its current score (intended — the engine's own rule). 90 < 100, so nothing archives directly; ancestors finish and archive after ~10 correct answers.
+- Only reachable skills can be picked: T and all its ancestors must be non-`disabled` (`blockedBy`). WIP-gated skills show ⛔.
+- A skill that is both a direct prereq and a deeper ancestor counts as direct (absent from today's graph; a test tripwires it).
+- Restoring a mixed state = several actions in a row (e.g. *Open hier* on the frontier skill, *Beheerst* on a side branch like `getalbegrip-10` that is nobody's active prereq).
+- Not restorable: the answer stream (weight factors restart at ×1).
 
 ## Dev commands
 
