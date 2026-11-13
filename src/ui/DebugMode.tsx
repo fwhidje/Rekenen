@@ -5,8 +5,8 @@ import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { pickTier } from '../exercises/tiers'
 import { computeAnswer, problemOperands } from '../engine/answer'
 import { buildRetry } from '../engine/exerciseSelector'
-import { diagnostics, classifyError } from '../engine/diagnostics'
-import type { AnswerRecord } from '../engine/diagnostics'
+import { diagnostics } from '../engine/diagnostics'
+import { buildAnswerRecord } from '../engine/answerRecord'
 import { exerciseStats, STATS_WINDOW } from '../engine/exerciseStats'
 import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
@@ -101,32 +101,15 @@ export function DebugMode({ onClose }: Props) {
     if (feedback || !question) return
     setFeedback({ ok: correct, message: correct ? 'Goed!' : `Antwoord was ${question.answer}` })
 
-    const skill = SKILLS_BY_ID[question.skillId]
-    const given = detail?.givenAnswer
-    const record: AnswerRecord = {
-      timestamp: Date.now(),
+    const record = buildAnswerRecord({
       profileId: DEBUG_PROFILE_ID,
-      skillId: question.skillId,
-      exerciseId: question.exerciseId,
-      tierId: (question.meta as { tierId?: string }).tierId,
-      variant: (question.meta as { variant?: string }).variant,
-      op: question.op,
-      semanticForm: skill?.semanticForm,
-      operandA: question.operandA,
-      operandB: question.operandB,
-      correctAnswer: question.answer,
-      givenAnswer: given,
+      question,
       correct,
-      isRetry: question.isRetry,
-      errorType: correct ? null : classifyError({
-        skillId: question.skillId, op: question.op, semanticForm: skill?.semanticForm,
-        operandA: question.operandA, operandB: question.operandB,
-        correctAnswer: question.answer, givenAnswer: given,
-      }),
-      responseTimeMs: Date.now() - questionStartRef.current,
-      tapCount: detail?.tapCount,
-      replayCount: detail?.replayCount,
-    }
+      detail,
+      scoreBefore: score,
+      semanticForm: SKILLS_BY_ID[question.skillId]?.semanticForm,
+      startedAt: questionStartRef.current,
+    })
     diagnostics.record(record)
     setLogTick(t => t + 1)
 
@@ -139,7 +122,7 @@ export function DebugMode({ onClose }: Props) {
     } else {
       setTimeout(regenerate, correct ? 1100 : 2000)
     }
-  }, [feedback, question, regenerate])
+  }, [feedback, question, regenerate, score])
 
   const def = exerciseId ? getExercise(exerciseId) : null
   const ExerciseComponent = def ? def.Component : null

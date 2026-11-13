@@ -4,6 +4,33 @@ Dutch math practice app for a young child. Addition + subtraction + splitsen (v2
 
 ---
 
+## ★ Road to AI-driven Rekenen — long-term direction
+
+The long-term plan lives in **`road_to_ai_driven_rekenen.md`** (goal, structure, principles, build order). That file carries no status; status is here.
+
+| Step | Status |
+|---|---|
+| 1. Accounts + evidence store (Supabase) | 🟡 in progress — see below |
+| 2. Registry and releases as data | 🔲 |
+| 3. Agent, read-only | 🔲 |
+| 4. Variant proposals | 🔲 |
+| 5. New templates via PR | 🔲 |
+
+**Step 1 pieces:**
+
+| Piece | Status |
+|---|---|
+| Answer record enriched (event id, build version, session, score before, typed problem, shown meta) via shared `buildAnswerRecord` | ✅ |
+| Schema `supabase/migrations/0001_accounts_and_evidence.sql` | ✅ written, checked against a local Postgres with stubbed Supabase roles — **not yet run on the real project** |
+| Supabase project set up by Filip | 🔲 |
+| Login under Opties (email + password) | 🔲 |
+| Sync: event upload queue, progress pull/push (last write wins per skill), first-link upload, new-device seeding | 🔲 |
+| Keep-alive GitHub Action | 🔲 |
+
+Local play without an account must keep working throughout.
+
+---
+
 ## Long-term backlog
 
 - **Skill / exercise introduction flow** — when a new skill unlocks or a new exercise type is encountered for the first time, show a brief intro so the child knows what to do. Could be a short animation, a "Nieuw!" badge, or a guided first attempt.
@@ -169,12 +196,13 @@ Status rots when it lives in more than one place. The rules:
 
 1. **Code is authoritative** for anything code can express (what's registered, weighted, playable). `src/curriculum/validate.ts` warns in dev when the lists disagree, and `npm test` includes a consistency tripwire.
 2. **Implementation status lives in THIS file only** (the status tables under Round 2 progress). No other doc records what's built/weighted/tested — when a change alters status, update the tables here and nothing else.
-3. **`rekenen_v2_skill_exercise_map.md`** owns curriculum *design rationale* (skill graph, exercise catalog, error taxonomy). It carries no status.
+3. **`rekenen_v2_skill_exercise_map.md`** owns curriculum *design rationale* (skill graph, exercise catalog, error taxonomy). It carries no status. **`road_to_ai_driven_rekenen.md`** owns the long-term direction; it carries no status either.
 4. **`core_logic.md` and `rekenen_v2_app_design.md` are frozen** historical decision records. Never update them; never trust them for current state.
 
 ## Reference docs (in repo root)
 
 - **`rekenen_v2_skill_exercise_map.md`** — authoritative skill graph, exercise type catalog, error taxonomy. **Takes precedence over the frozen docs** when there's any conflict.
+- **`road_to_ai_driven_rekenen.md`** — long-term plan (AI-teacher direction). Carries no status.
 - `rekenen_v2_app_design.md` — *frozen* — original app-level design conversation.
 - `core_logic.md` — *frozen* — original logic model (superseded by the core model below).
 
@@ -191,7 +219,7 @@ Skills are narrow and atomic. Each carries a 0–100 score that is both the **sc
 
 **Dynamic per-exercise weight factor** (`engine/weightFactors.ts`): a wrong answer adds +0.5 to that exercise's selection-weight multiplier, a correct one subtracts 0.25, clamped to [1, 3]. A weak exercise recruits airtime until its errors dominate the score drift — the score cannot cross 60 while a weakness is live. Combined with the −3 dial drop and the retry, failure means "more of this exercise, in an easier form" (CSA move 1, not the more-of-the-same anti-move). The factor is **stored nowhere**: a pure fold over the answer stream per (profile, skill, exercise), window 20, retries excluded; constants are tweakables at the top of the file. A factor pinned at 3 (⚠ in DebugMode and the Admin inspector) is a *look at this exercise* signal, not a drill-harder signal.
 
-**The answer stream is the most important schema in the app.** Every answer becomes an `AnswerRecord` (`engine/diagnostics.ts`), persisted per profile in localStorage (`state/diagnosticsStorage.ts`, capped FIFO). Extend it additively; everything downstream (weight factors, stats, future scheduler/remediation) is a derivation over it.
+**The answer stream is the most important schema in the app.** Every answer becomes an `AnswerRecord` (`engine/diagnostics.ts`), persisted per profile in localStorage (`state/diagnosticsStorage.ts`, capped FIFO, `meta` stripped). Records are assembled in exactly one place, `buildAnswerRecord` (`engine/answerRecord.ts`). Extend it additively; everything downstream (weight factors, stats, future scheduler/remediation) is a derivation over it.
 
 **Failure response:** a wrong answer brings the *same problem* back once, one scaffolding tier lower, scene held stable (didactics: re-scaffold, don't move on). Retries are flagged `isRetry` and excluded from factor and stats computations. The `SelectionContext` parameter of `selectExercise` is the seam where this — and the future scheduler — plugs in.
 
@@ -216,6 +244,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/engine/exerciseStats.ts` | Per-exercise recent attempts / accuracy / median-RT reporting kernel (feeds the DebugMode mix monitor; nothing gates on it) |
 | `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants |
 | `src/engine/diagnostics.ts` | `AnswerRecord` (the long-term schema), `ErrorType`, `classifyError`, `DiagnosticsSink` + persisted singleton `diagnostics` |
+| `src/engine/answerRecord.ts` | `buildAnswerRecord` — the one place an `AnswerRecord` is assembled (KidMode + DebugMode); `APP_VERSION` (build commit via `vite.config.ts`), `SESSION_ID`; test tripwires JSON-safety, size and that the profile name never enters a record |
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator (unlocked + score ≥ UNLOCK_THRESHOLD) |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question; `SelectionContext` (retry one tier down, repeat avoidance); re-draws instead of returning null |
@@ -253,7 +282,8 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
-| `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile |
+| `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile; strips `meta` (upload-only evidence) |
+| `supabase/migrations/` | Database schema for accounts + evidence store, one numbered SQL file per change; run by hand in the Supabase SQL editor |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop |
 | `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
@@ -353,7 +383,7 @@ npm run build     # production build
 
 ## Key decisions (locked)
 
-- Multi-profile from day one, localStorage (storage.ts is the only layer to swap for a backend)
+- Multi-profile from day one. localStorage is the working copy and stays so (local play needs no account); online accounts sync on top of it (road step 1)
 - No audio in v2
 - Subtraction is in scope for v2 (curriculum includes both addition and subtraction skills)
 - No hidden admin — plain ⚙️ Opties button, kids can see it, no harm done
