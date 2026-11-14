@@ -27,6 +27,11 @@ jobs:
           cache: npm
       - run: npm install
       - run: npm run build
+        env:
+          # Account sync backend. Both are public values (see src/sync/client.ts);
+          # when unset the app builds as the local-only app.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

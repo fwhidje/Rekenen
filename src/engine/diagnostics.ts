@@ -1,5 +1,6 @@
 import type { Operation, Problem, SemanticForm } from '../curriculum/types'
 import { LocalStorageDiagnosticsSink } from '../state/diagnosticsStorage'
+import { mergeRecords } from './recordMerge'
 
 // ─── Error taxonomy ───────────────────────────────────────────────────────────
 // Source of truth: rekenen_v2_skill_exercise_map.md. `errorType` is null on a
@@ -101,8 +102,12 @@ export interface DiagnosticsSink {
   record(r: AnswerRecord): void
   getAll(profileId?: string): AnswerRecord[]
   getForSkill(profileId: string, skillId: string): AnswerRecord[]
+  // Merge records fetched from the account (new-device seeding). Records whose
+  // id is already present are skipped; the stream stays in time order.
+  importRecords(records: AnswerRecord[]): void
   clear(): void
 }
+
 
 export class InMemoryDiagnosticsSink implements DiagnosticsSink {
   private records: AnswerRecord[] = []
@@ -116,6 +121,9 @@ export class InMemoryDiagnosticsSink implements DiagnosticsSink {
   }
   getForSkill(profileId: string, skillId: string): AnswerRecord[] {
     return this.records.filter(r => r.profileId === profileId && r.skillId === skillId)
+  }
+  importRecords(records: AnswerRecord[]): void {
+    this.records = mergeRecords(this.records, records)
   }
   clear(): void {
     this.records = []

@@ -1,3 +1,4 @@
+import { mergeRecords } from '../engine/recordMerge'
 import type { AnswerRecord, DiagnosticsSink } from '../engine/diagnostics'
 
 // ─── Persistent diagnostics sink ──────────────────────────────────────────────
@@ -57,6 +58,19 @@ export class LocalStorageDiagnosticsSink implements DiagnosticsSink {
 
   getForSkill(profileId: string, skillId: string): AnswerRecord[] {
     return this.records.filter(r => r.profileId === profileId && r.skillId === skillId)
+  }
+
+  importRecords(incoming: AnswerRecord[]): void {
+    const merged = mergeRecords(this.records, incoming.map(({ meta: _meta, ...r }) => r))
+    if (merged === this.records) return
+    // Re-apply the per-profile cap, dropping each profile's oldest first.
+    const kept = new Map<string, number>()
+    this.records = merged.reverse().filter(r => {
+      const n = (kept.get(r.profileId) ?? 0) + 1
+      kept.set(r.profileId, n)
+      return n <= MAX_RECORDS_PER_PROFILE
+    }).reverse()
+    saveRecords(this.records)
   }
 
   clear(): void {

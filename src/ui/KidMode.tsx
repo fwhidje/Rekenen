@@ -9,6 +9,7 @@ import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
 import { diagnostics } from '../engine/diagnostics'
 import { buildAnswerRecord } from '../engine/answerRecord'
+import { sync } from '../sync/client'
 import { FEEDBACK } from '../presentation/feedback'
 import { THEMES } from '../presentation/themes'
 
@@ -89,6 +90,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       startedAt: questionStartRef.current,
     })
     diagnostics.record(record)
+    sync.onAnswer(record) // queued for the account when this profile is linked
 
     const updatedProfile = recordAnswer(profile, question.skillId, correct)
     onProfileUpdate(updatedProfile)

@@ -5,6 +5,8 @@ import { KidMode } from './KidMode'
 import { AdminMode } from './AdminMode'
 import { DebugMode } from './DebugMode'
 import { SharedDefs } from '../presentation/nature/Defs'
+import { stampState } from '../sync/progressMerge'
+import { useSync } from '../sync/useSync'
 
 type Screen = 'kid' | 'admin' | 'debug'
 
@@ -21,6 +23,14 @@ export function App() {
 
   useEffect(() => { saveAppState(appState) }, [appState])
 
+  // Account sync (optional — inert without a configured backend or a login).
+  const syncControls = useSync(appState, setAppState)
+
+  // The single commit point for changes made on this device: every skill whose
+  // state changed gets its change time, which is what account sync merges on.
+  const commit = (update: (s: AppState) => AppState) =>
+    setAppState(prev => stampState(prev, update(prev), Date.now()))
+
   const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId)
 
   if (screen === 'debug') {
@@ -31,8 +41,9 @@ export function App() {
     return <><SharedDefs /><AdminMode
       appState={appState}
       onSelectProfile={id => setAppState(s => ({ ...s, activeProfileId: id }))}
+      sync={syncControls}
       onClose={() => setScreen('kid')}
-      onAppStateChange={next => { setAppState(next); saveAppState(next) }}
+      onAppStateChange={next => commit(() => next)}
       onOpenDebug={() => setScreen('debug')}
     /></>
   }
@@ -43,7 +54,7 @@ export function App() {
       <KidMode
         profile={activeProfile}
         onProfileUpdate={updated => {
-          setAppState(s => ({
+          commit(s => ({
             ...s,
             profiles: s.profiles.map(p => p.id === updated.id ? updated : p),
           }))

@@ -7,6 +7,7 @@ import {
   DIRECT_PREREQ_SCORE, DEEP_PREREQ_SCORE, MASTERED_SCORE, OPEN_TARGET_SCORE,
   type OverrideMode, type ChangeRole, type SkillChange,
 } from '../admin/progressOverride'
+import { sync } from '../sync/client'
 
 // Admin screen: the skill tree for one profile, with the progress override.
 // Opties → 🌳 on a profile card. Tap a skill, pick 'Open hier' or 'Beheerst',
@@ -74,6 +75,7 @@ export function SkillTreeScreen({ profile, onApply, onClose }: Props) {
       ...drops.map(c => `⚠ ${nameOf(c.skillId)} zakt van ${c.before.score} naar ${c.after.score}`),
     ]
     if (!confirm(lines.join('\n'))) return
+    sync.onOverride(plan) // evidence: a score jump that no answer explains
     onApply(plan.profile)
     setFlash(`✓ ${mode === 'open' ? 'Geopend' : 'Beheerst'}: ${nameOf(plan.skillId)}`)
     setSelected(null)

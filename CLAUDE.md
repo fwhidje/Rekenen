@@ -21,13 +21,23 @@ The long-term plan lives in **`road_to_ai_driven_rekenen.md`** (goal, structure,
 | Piece | Status |
 |---|---|
 | Answer record enriched (event id, build version, session, score before, typed problem, shown meta) via shared `buildAnswerRecord` | ✅ |
-| Schema `supabase/migrations/0001_accounts_and_evidence.sql` | ✅ written, checked against a local Postgres with stubbed Supabase roles — **not yet run on the real project** |
-| Supabase project set up by Filip | 🔲 |
-| Login under Opties (email + password) | 🔲 |
-| Sync: event upload queue, progress pull/push (last write wins per skill), first-link upload, new-device seeding | 🔲 |
-| Keep-alive GitHub Action | 🔲 |
+| Schema `supabase/migrations/0001_accounts_and_evidence.sql` | ✅ run on the real project by Filip (Nov 2026) |
+| Supabase project set up by Filip (project, user, repo variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY`) | ✅ |
+| Login under Opties (email + password; no registration screen — the account is created in the Supabase dashboard) | 🟡 built; verified in a browser against a mocked backend — **first real login still to be done** |
+| Sync: event upload queue, progress pull/push (last write wins per skill), explicit per-profile upload incl. stored history, new-device seeding, admin-override events | 🟡 built, unit-tested with a fake remote + mocked-browser run — **not yet verified against the real project** |
+| Keep-alive GitHub Action (`.github/workflows/keepalive.yml`, every 3 days + manual run) | 🟡 written — runs only once merged to main; first run unverified |
+| School year on a child (column exists) | 🔲 no UI yet |
+| Process traces (taps/drags with timing) | 🔲 later step |
 
 Local play without an account must keep working throughout.
+
+**How account sync behaves** (`src/sync/`):
+- Without the two build variables, or without a login, the app is the local-only app. localStorage stays the working copy in every case.
+- Logging in **pulls** the account's children onto the device. Profiles that exist only on the device are **never uploaded automatically** — each gets a ☁️⬆ button (upload once, from the device with the best progress, to avoid duplicates). A profile created while logged in is uploaded at once.
+- Progress merges **last write wins per skill** on `SkillState.updatedAt`, stamped at the single commit point in `App.tsx`; the server enforces the same rule with a trigger.
+- Answers of linked profiles go to a persisted upload queue (cap 2000) and are sent in batches; rows the server refuses are dropped individually, network failures keep everything queued.
+- Deleting a linked profile while logged in deletes the child and all its evidence from the account.
+- DebugMode answers never upload.
 
 ---
 
@@ -283,11 +293,17 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile; strips `meta` (upload-only evidence) |
+| `src/sync/rows.ts` | Wire row types mirroring the SQL schema; `toEventRow` / `fromEventRow`; stable ids for pre-sync records |
+| `src/sync/progressMerge.ts` | Pure progress sync rules: `stampChanges` / `stampState` / `stampAll`, `progressRows`, `mergeRemoteProgress`, `applySnapshot` |
+| `src/sync/remote.ts` | `Remote` interface (all the engine knows of the backend) + Supabase implementation; `SyncError` (permanent vs transient) |
+| `src/sync/engine.ts` | `SyncEngine` — link set, upload queues, push / pull / upload / deleteChild; serialised, never throws into the play loop |
+| `src/sync/client.ts` | Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY` (null when unset) + the `sync` singleton |
+| `src/sync/useSync.ts` | React binding: session tracking and WHEN sync runs (login, start, online, visibility, debounced push) |
 | `supabase/migrations/` | Database schema for accounts + evidence store, one numbered SQL file per change; run by hand in the Supabase SQL editor |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop |
 | `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
-| `src/ui/AdminMode.tsx` | Profile management + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override |
+| `src/ui/AdminMode.tsx` | Account section (login / sync status) + profile management incl. ☁️ upload + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override |
 | `src/ui/SkillTreeScreen.tsx` | Progress override screen: skill tree for one profile, tap a skill → Open hier / Beheerst → preview diff → Toepassen |
 | `src/admin/progressOverride.ts` | Progress override rules (pure): `planOverride(profile, skillId, mode)` → new profile + per-skill diff; `prerequisites`, `blockedBy`, `canOverride` |
 | `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
