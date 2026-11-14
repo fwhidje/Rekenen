@@ -7,6 +7,7 @@ import {
   applySnapshot, mergeRemoteProgress, progressRows, stampAll, stampChanges, stampState,
 } from './progressMerge'
 import { fromEventRow, legacyEventId, toEventRow, PRE_SYNC_VERSION } from './rows'
+import { isPermanentCode } from './remote'
 import type { AnswerEventRow, ChildRow, ProgressEventRow, ProgressRow } from './rows'
 import { SyncEngine, OUTBOX_CAP } from './engine'
 import type { SyncState, SyncStore } from './engine'
@@ -125,7 +126,8 @@ describe('event rows', () => {
     const row = toEventRow(r)
     expect(row.response_time_ms).toBe(2100)
     expect(row.meta).toEqual({ options: [2, 3, 4, 5] })
-    const { meta: _m, ...lean } = row
+    const { meta: _m, flag: _f, scene_theme: _st, scene_background: _sb, scene_counter: _sc,
+      viewport_w: _vw, viewport_h: _vh, ...lean } = row
     const back = fromEventRow(lean)
     const { meta: _meta, responseTimeMs: _rt, ...expected } = r
     expect(back).toMatchObject(expected)
@@ -148,6 +150,26 @@ describe('event rows', () => {
     expect(a.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
     expect(a.app_version).toBe(PRE_SYNC_VERSION)
     expect(legacyEventId(old.profileId, old.timestamp + 1)).not.toBe(a.id)
+  })
+
+  it('carries the review flag, scene and viewport as their own columns', () => {
+    const row = toEventRow(record('p', {
+      flag: 'flagged',
+      scene: { theme: 'space', background: 1, counter: 4 },
+      viewport: { w: 390.4, h: 844 },
+    }))
+    expect(row.flag).toBe('flagged')
+    expect([row.scene_theme, row.scene_background, row.scene_counter]).toEqual(['space', 1, 4])
+    expect([row.viewport_w, row.viewport_h]).toEqual([390, 844])
+    const plain = toEventRow(record('p'))
+    expect([plain.flag, plain.scene_theme, plain.viewport_w]).toEqual([null, null, null])
+  })
+
+  it('keeps rows queued when the server is behind a migration', () => {
+    expect(isPermanentCode('42703')).toBe(false)    // undefined column
+    expect(isPermanentCode('PGRST204')).toBe(false) // column not in schema cache
+    expect(isPermanentCode('23514')).toBe(true)     // check constraint
+    expect(isPermanentCode('42501')).toBe(true)     // access rule
   })
 
   it('drops oversized meta but keeps the answer', () => {

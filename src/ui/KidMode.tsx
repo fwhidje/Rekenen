@@ -8,7 +8,8 @@ import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
 import { diagnostics } from '../engine/diagnostics'
-import { buildAnswerRecord } from '../engine/answerRecord'
+import { buildAnswerRecord, currentViewport } from '../engine/answerRecord'
+import { loadDeviceSettings } from '../state/deviceSettings'
 import { sync } from '../sync/client'
 import { FEEDBACK } from '../presentation/feedback'
 import { THEMES } from '../presentation/themes'
@@ -44,6 +45,18 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
   const [themeIdx, setThemeIdx] = useState(() => pickIdx(THEMES.length))
   const [bgIdx, setBgIdx] = useState(() => pickIdx(THEMES[0].backgrounds.length))
   const [counterIdx, setCounterIdx] = useState(() => pickIdx(THEMES[0].counters.length))
+  // ⚑ review flag (parent tool, device setting). Marks the question on screen;
+  // it rides on that question's answer record. KidMode remounts after Opties,
+  // so reading the setting once is enough.
+  const [showFlag] = useState(() => loadDeviceSettings().flagButton)
+  const [flagged, setFlagged] = useState(false)
+  // Read through a ref at answer time: exercises may call onResolve from a
+  // closure (timer, animation end) taken before the flag was tapped.
+  const flaggedRef = useRef(false)
+  const toggleFlag = useCallback(() => {
+    flaggedRef.current = !flaggedRef.current
+    setFlagged(flaggedRef.current)
+  }, [])
 
   const theme = THEMES[themeIdx]
   const ThemeDefs = theme.SharedDefs
@@ -55,6 +68,8 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     const next = selectExercise(updatedProfile, SKILLS, getWeights, ctx)
     setQuestion(next)
     setFeedback(null)
+    flaggedRef.current = false
+    setFlagged(false)
     setQKey(k => k + 1)
     setRoundsDone(completed)
     questionStartRef.current = Date.now()
@@ -88,6 +103,13 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       scoreBefore: profile.skills[question.skillId]?.score ?? 0,
       semanticForm: SKILLS_BY_ID[question.skillId]?.semanticForm,
       startedAt: questionStartRef.current,
+      scene: {
+        theme: theme.id,
+        background: bgIdx % theme.backgrounds.length,
+        counter: counterIdx % theme.counters.length,
+      },
+      viewport: currentViewport(),
+      flag: flaggedRef.current ? 'flagged' : undefined,
     })
     diagnostics.record(record)
     sync.onAnswer(record) // queued for the account when this profile is linked
@@ -103,7 +125,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       ? { lastQuestion: question, records }
       : { retry: question, lastQuestion: question, records }
     setTimeout(() => nextQuestion(updatedProfile, completed, ctx), correct ? FEEDBACK.correctMs : FEEDBACK.wrongMs)
-  }, [feedback, question, profile, onProfileUpdate, nextQuestion, roundsDone])
+  }, [feedback, question, profile, onProfileUpdate, nextQuestion, roundsDone, theme, bgIdx, counterIdx])
 
   if (!question) {
     return (
@@ -157,7 +179,22 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
           <div style={{ fontSize: 22, fontFamily: 'Fredoka One, cursive', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,.35)' }}>
             Rekenen 🧮
           </div>
-          <button onClick={onOpenAdmin} style={optiesStyle}>⚙️ Opties</button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {showFlag && (
+              <button
+                onClick={toggleFlag}
+                disabled={!!feedback}
+                aria-pressed={flagged}
+                aria-label={flagged ? 'Markering weghalen' : 'Oefening markeren'}
+                style={{
+                  ...optiesStyle,
+                  ...(flagged ? { background: '#FFB703', borderColor: '#3d2f1e', fontWeight: 700 } : {}),
+                  opacity: feedback ? 0.5 : 1,
+                }}
+              >{flagged ? '⚑ Gemarkeerd' : '⚐'}</button>
+            )}
+            <button onClick={onOpenAdmin} style={optiesStyle}>⚙️ Opties</button>
+          </div>
         </div>
 
         {/* Exercise — no card wrapper */}

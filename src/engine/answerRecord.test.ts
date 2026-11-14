@@ -54,6 +54,18 @@ describe('buildAnswerRecord', () => {
     expect(r.errorType).not.toBeNull()
   })
 
+  it('passes the review flag, scene and viewport through untouched', () => {
+    const question = questionFor(0, SKILLS[0].applicableExercises.find(e => registered.has(e))!, 0)!
+    const base = { profileId: profile.id, question, correct: true, scoreBefore: 0, startedAt: 0 }
+    const r = buildAnswerRecord({
+      ...base, flag: 'flagged', scene: { theme: 'nature', background: 0, counter: 2 }, viewport: { w: 400, h: 800 },
+    })
+    expect(r.flag).toBe('flagged')
+    expect(r.scene).toEqual({ theme: 'nature', background: 0, counter: 2 })
+    expect(r.viewport).toEqual({ w: 400, h: 800 })
+    expect(buildAnswerRecord(base).flag).toBeUndefined()
+  })
+
   it('gives every record its own id', () => {
     const question = questionFor(0, SKILLS[0].applicableExercises.find(e => registered.has(e))!, 0)!
     const mk = () => buildAnswerRecord({ profileId: profile.id, question, correct: true, scoreBefore: 0, startedAt: 0 })

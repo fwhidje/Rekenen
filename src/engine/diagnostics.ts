@@ -48,7 +48,24 @@ export interface AnswerRecord {
                                 // Evidence for the uploaded stream only: the local
                                 // sink strips it (state/diagnosticsStorage.ts) to
                                 // stay inside the localStorage budget.
+  scene?: AnswerScene           // the visual dressing around the exercise (KidMode
+                                // picks it at random) — needed to reconstruct a layout
+  viewport?: { w: number; h: number } // CSS px of the window when answered
+  flag?: AnswerFlag             // a parent marked this question for review while it
+                                // was on screen (⚑ button, toggled under Opties)
 }
+
+// Indices into THEMES[theme].backgrounds / .counters (presentation/themes.ts).
+export interface AnswerScene {
+  theme: string
+  background: number
+  counter: number
+}
+
+// A fixed app token, never text typed by a person (the record's privacy
+// invariant, answerRecord.ts). Today only the bare yes; a prepopulated reason
+// list can add tokens here without a schema change (the column is text).
+export type AnswerFlag = 'flagged'
 
 // Everything the classifier needs to tag a wrong answer.
 export type ClassifierInput = Pick<

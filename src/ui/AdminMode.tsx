@@ -7,6 +7,7 @@ import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
 import { getAllExerciseIds } from '../exercises/registry'
 import { SkillTreeScreen } from './SkillTreeScreen'
 import type { SyncControls } from '../sync/useSync'
+import { loadDeviceSettings, saveDeviceSettings } from '../state/deviceSettings'
 
 // Ensure the registry is populated even if no exercise screen rendered yet.
 import '../exercises/index'
@@ -23,6 +24,12 @@ interface Props {
 export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange, onOpenDebug, sync }: Props) {
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
   const [treeProfileId, setTreeProfileId] = useState<string | null>(null)
+  const [device, setDevice] = useState(loadDeviceSettings)
+  const toggleFlagButton = () => {
+    const next = { ...device, flagButton: !device.flagButton }
+    saveDeviceSettings(next)
+    setDevice(next)
+  }
 
   const addProfile = () => {
     const name = prompt('Naam van het kind:')
@@ -135,6 +142,15 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
 
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontFamily: 'Fredoka One, cursive', fontSize: 18, color: '#666', marginBottom: 12 }}>Ontwikkelaars</h2>
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12,
+            fontFamily: 'Nunito, sans-serif', fontSize: 15, color: '#333', cursor: 'pointer',
+          }}>
+            <input type="checkbox" checked={device.flagButton} onChange={toggleFlagButton}
+              style={{ width: 20, height: 20 }} />
+            <span>⚑ Markeerknop tijdens het spelen <span style={{ color: '#888', fontSize: 13 }}>
+              (op dit toestel — markeert de oefening in de gegevens om later te bekijken)</span></span>
+          </label>
           <button onClick={onOpenDebug} style={{
             width: '100%', padding: '12px',
             fontFamily: 'Fredoka One, cursive', fontSize: 16,

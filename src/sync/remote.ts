@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { AnswerEventRow, ChildRow, ProgressEventRow, ProgressRow } from './rows'
+import type { AnswerEventRow, ChildRow, ProgressEventRow, ProgressRow, SeedEventRow } from './rows'
 import type { RemoteSnapshot } from './progressMerge'
 
 // ─── Remote ───────────────────────────────────────────────────────────────────
@@ -23,16 +23,23 @@ export interface Remote {
   pushProgress(rows: ProgressRow[]): Promise<void>
   pushEvents(rows: AnswerEventRow[]): Promise<void>          // duplicates are no-ops
   pushProgressEvents(rows: ProgressEventRow[]): Promise<void> // duplicates are no-ops
-  recentEvents(childId: string, limit: number): Promise<Omit<AnswerEventRow, 'meta'>[]>
+  recentEvents(childId: string, limit: number): Promise<SeedEventRow[]>
 }
 
 // Postgres error classes that mean "this data will never be accepted":
 // 22 data exception, 23 integrity constraint, 42 access rule / syntax.
 const PERMANENT = /^(22|23|42)/
+// …except a column the server doesn't know yet: the app is ahead of a migration
+// that hasn't been run. Keep those rows queued until it is, never drop them.
+const SCHEMA_BEHIND = /^(42703|PGRST204)$/
+
+export function isPermanentCode(code: string): boolean {
+  return PERMANENT.test(code) && !SCHEMA_BEHIND.test(code)
+}
 
 function check(error: { message: string; code?: string } | null): void {
   if (!error) return
-  throw new SyncError(error.message, PERMANENT.test(error.code ?? ''))
+  throw new SyncError(error.message, isPermanentCode(error.code ?? ''))
 }
 
 const EVENT_COLUMNS =
@@ -97,7 +104,7 @@ export function createSupabaseRemote(client: SupabaseClient): Remote {
         .order('occurred_at', { ascending: false })
         .limit(limit)
       check(res.error)
-      return (res.data ?? []) as unknown as Omit<AnswerEventRow, 'meta'>[]
+      return (res.data ?? []) as unknown as SeedEventRow[]
     },
   }
 }

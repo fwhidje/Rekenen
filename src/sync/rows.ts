@@ -2,7 +2,7 @@ import type { AnswerRecord, ErrorType } from '../engine/diagnostics'
 import type { Operation, Problem, SemanticForm } from '../curriculum/types'
 
 // ─── Wire shapes ──────────────────────────────────────────────────────────────
-// Row types mirror supabase/migrations/0001_accounts_and_evidence.sql. Every
+// Row types mirror supabase/migrations/ (0001 + later ALTERs). Every
 // key is always present (null when unknown): batch inserts need uniform rows.
 
 export interface ChildRow {
@@ -47,7 +47,19 @@ export interface AnswerEventRow {
   tap_count: number | null
   replay_count: number | null
   meta: Record<string, unknown> | null
+  // 0002: review flag + what surrounded the exercise on screen
+  flag: string | null
+  scene_theme: string | null
+  scene_background: number | null
+  scene_counter: number | null
+  viewport_w: number | null
+  viewport_h: number | null
 }
+
+// What new-device seeding reads back (remote.ts EVENT_COLUMNS): the lean
+// record, without what was shown and without the review annotations.
+export type SeedEventRow = Omit<AnswerEventRow,
+  'meta' | 'flag' | 'scene_theme' | 'scene_background' | 'scene_counter' | 'viewport_w' | 'viewport_h'>
 
 export interface ProgressEventRow {
   id: string
@@ -109,12 +121,18 @@ export function toEventRow(r: AnswerRecord): AnswerEventRow {
     tap_count: int(r.tapCount),
     replay_count: int(r.replayCount),
     meta: boundedMeta(r.meta),
+    flag: r.flag ?? null,
+    scene_theme: r.scene?.theme ?? null,
+    scene_background: int(r.scene?.background),
+    scene_counter: int(r.scene?.counter),
+    viewport_w: int(r.viewport?.w),
+    viewport_h: int(r.viewport?.h),
   }
 }
 
 // Back to the local (lean) record — used to seed a new device's history so the
 // weight factors continue instead of restarting at ×1. Meta is not restored.
-export function fromEventRow(row: Omit<AnswerEventRow, 'meta'>): AnswerRecord {
+export function fromEventRow(row: SeedEventRow): AnswerRecord {
   const opt = <T,>(v: T | null): T | undefined => (v === null ? undefined : v)
   return {
     id: row.id,
