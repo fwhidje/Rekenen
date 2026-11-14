@@ -1,4 +1,4 @@
-import type { Operation, SemanticForm } from '../curriculum/types'
+import type { Operation, Problem, SemanticForm } from '../curriculum/types'
 import { LocalStorageDiagnosticsSink } from '../state/diagnosticsStorage'
 
 // ─── Error taxonomy ───────────────────────────────────────────────────────────
@@ -17,8 +17,12 @@ export type ErrorType =
 // future error-driven remediation are all derivations over this stream. Extend
 // it additively; don't repurpose fields.
 export interface AnswerRecord {
+  id?: string                   // device-generated event id — makes uploads idempotent
   timestamp: number
   profileId: string
+  sessionId?: string            // one app load = one sitting
+  appVersion?: string           // build commit — the version stamp for every
+                                // exercise + skill until they carry their own ids
   skillId: string
   exerciseId: string
   tierId?: string
@@ -27,6 +31,7 @@ export interface AnswerRecord {
   isRetry?: boolean             // re-scaffolded retry of the previous problem
   op: Operation
   semanticForm?: SemanticForm
+  problem?: Problem             // the typed problem (named roles)
   operandA: number
   operandB: number
   correctAnswer: number
@@ -36,6 +41,12 @@ export interface AnswerRecord {
   responseTimeMs?: number
   tapCount?: number             // multi-step exercises (counter / collect)
   replayCount?: number          // in-exercise replays (e.g. subitise-flash re-shows)
+  scoreBefore?: number          // the skill's score when the question was served —
+                                // explains which tier / mix the child was given
+  meta?: Record<string, unknown> // what was shown (options, distractors, layout).
+                                // Evidence for the uploaded stream only: the local
+                                // sink strips it (state/diagnosticsStorage.ts) to
+                                // stay inside the localStorage budget.
 }
 
 // Everything the classifier needs to tag a wrong answer.

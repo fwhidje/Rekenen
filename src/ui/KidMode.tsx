@@ -7,8 +7,8 @@ import type { SelectionContext } from '../engine/exerciseSelector'
 import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
-import { diagnostics, classifyError } from '../engine/diagnostics'
-import type { AnswerRecord } from '../engine/diagnostics'
+import { diagnostics } from '../engine/diagnostics'
+import { buildAnswerRecord } from '../engine/answerRecord'
 import { FEEDBACK } from '../presentation/feedback'
 import { THEMES } from '../presentation/themes'
 
@@ -79,32 +79,15 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setHistory(h => [...h, correct])
 
     // Diagnostic capture — persisted per profile via the localStorage sink.
-    const skill = SKILLS_BY_ID[question.skillId]
-    const given = detail?.givenAnswer
-    const record: AnswerRecord = {
-      timestamp: Date.now(),
+    const record = buildAnswerRecord({
       profileId: profile.id,
-      skillId: question.skillId,
-      exerciseId: question.exerciseId,
-      tierId: (question.meta as { tierId?: string }).tierId,
-      variant: (question.meta as { variant?: string }).variant,
-      op: question.op,
-      semanticForm: skill?.semanticForm,
-      operandA: question.operandA,
-      operandB: question.operandB,
-      correctAnswer: question.answer,
-      givenAnswer: given,
+      question,
       correct,
-      isRetry: question.isRetry,
-      errorType: correct ? null : classifyError({
-        skillId: question.skillId, op: question.op, semanticForm: skill?.semanticForm,
-        operandA: question.operandA, operandB: question.operandB,
-        correctAnswer: question.answer, givenAnswer: given,
-      }),
-      responseTimeMs: Date.now() - questionStartRef.current,
-      tapCount: detail?.tapCount,
-      replayCount: detail?.replayCount,
-    }
+      detail,
+      scoreBefore: profile.skills[question.skillId]?.score ?? 0,
+      semanticForm: SKILLS_BY_ID[question.skillId]?.semanticForm,
+      startedAt: questionStartRef.current,
+    })
     diagnostics.record(record)
 
     const updatedProfile = recordAnswer(profile, question.skillId, correct)

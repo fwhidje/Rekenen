@@ -35,7 +35,10 @@ function saveRecords(records: AnswerRecord[]): void {
 export class LocalStorageDiagnosticsSink implements DiagnosticsSink {
   private records: AnswerRecord[] = loadRecords()
 
-  record(r: AnswerRecord): void {
+  record(full: AnswerRecord): void {
+    // `meta` (what was shown) can be large; it is upload evidence, not something
+    // any local derivation reads. Keep the local stream lean.
+    const { meta: _meta, ...r } = full
     this.records.push(r)
     // FIFO trim per profile: drop this profile's oldest record once over cap.
     const mine = this.records.filter(rec => rec.profileId === r.profileId)
