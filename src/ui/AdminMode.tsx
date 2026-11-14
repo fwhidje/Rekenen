@@ -211,6 +211,12 @@ function AccountSection({ sync }: { sync: SyncControls }) {
               <button onClick={() => { void sync.signOut() }}
                 style={{ ...button, background: '#F2F2F2', color: '#666' }}>Uitloggen</button>
             </div>
+            {/* The inspector is a separate page (inspector.html, src/inspector/) —
+                linked, never imported, so its code stays out of the app. */}
+            <a href={`${import.meta.env.BASE_URL}inspector.html`} style={{
+              ...button, display: 'block', marginTop: 8, textAlign: 'center', textDecoration: 'none',
+              background: '#F2F2F2', color: '#333',
+            }}>📖 Gegevens bekijken (fouten, markeringen)</a>
           </>
         ) : (
           <form onSubmit={submit}>

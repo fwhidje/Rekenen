@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -19,4 +20,14 @@ export default defineConfig(({ command }) => ({
   plugins: [react()],
   base: '/Rekenen/',
   define: { __APP_VERSION__: JSON.stringify(buildVersion(command)) },
+  // Two pages: the app, and the parent's data inspector (src/inspector/) — a
+  // separate entry so the app bundle never contains inspector code.
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        inspector: resolve(__dirname, 'inspector.html'),
+      },
+    },
+  },
 }))

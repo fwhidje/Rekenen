@@ -27,6 +27,7 @@ The long-term plan lives in **`road_to_ai_driven_rekenen.md`** (goal, structure,
 | Sync: event upload queue, progress pull/push (last write wins per skill), explicit per-profile upload incl. stored history, new-device seeding, admin-override events | 🟡 live; Filip reports it working on the real project (Nov 2026) — multi-device use under observation, no systematic check of the stored rows yet |
 | Keep-alive GitHub Action (`.github/workflows/keepalive.yml`, every 3 days + manual run) | ✅ manual run green (Nov 2026); scheduled runs follow every 3 days |
 | Review flag ⚑ (device toggle under Opties → Ontwikkelaars; marks the question on screen, rides on its answer record as `flag`) + scene (theme/background/counter) and viewport on every record — schema `supabase/migrations/0002_answer_flag_and_scene.sql` | 🟡 built (Nov 2026) — **0002 must be run before this build is deployed**; until then uploads stay queued (no rows dropped). Inspector to filter flagged rows: not built |
+| Inspector — separate page `inspector.html` (`src/inspector/`): wrong / flagged answers, per-exercise summary, replay as served, copy-for-chat, JSON back-up | 🟡 built (Nov 2026), verified against a mocked backend with app-generated rows — not yet used on the real project |
 | School year on a child (column exists) | 🔲 no UI yet |
 | Process traces (taps/drags with timing) | 🔲 later step |
 
@@ -40,6 +41,7 @@ Local play without an account must keep working throughout.
 - **Migrations go first.** Run a new `supabase/migrations/NNNN_*.sql` in the Supabase SQL editor *before* merging the app change that writes its columns to `main` (which deploys).
 - Deleting a linked profile while logged in deletes the child and all its evidence from the account.
 - DebugMode answers never upload.
+- **Retention:** nothing expires. Answer rows leave the database only when their child is deleted (the profile 🗑 while logged in, cascade) or the account is. The free Supabase plan has no self-service restore (check the plan page), so the inspector's **⬇ Back-up (JSON)** is the backup: everything the login can read, one file, kept by Filip.
 
 ---
 
@@ -302,11 +304,12 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/sync/engine.ts` | `SyncEngine` — link set, upload queues, push / pull / upload / deleteChild; serialised, never throws into the play loop |
 | `src/sync/client.ts` | Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY` (null when unset) + the `sync` singleton |
 | `src/sync/useSync.ts` | React binding: session tracking and WHEN sync runs (login, start, online, visibility, debounced push) |
+| `inspector.html` + `src/inspector/` | Separate inspector page (see Inspector): `main.tsx` entry, `Inspector.tsx` (login, filters, layout, back-up), `EventList.tsx` (summary + list), `EventDetail.tsx` (evidence + copy), `Replay.tsx` (the exercise as served), `model.ts` (pure: filters, retry pairing, summary, `rowToQuestion`, `answerText`; tested), `data.ts` (own read-only Supabase client, paged reads, back-up), `hashState.ts`, `ui.ts` |
 | `supabase/migrations/` | Database schema for accounts + evidence store, one numbered SQL file per change; run by hand in the Supabase SQL editor |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop; stamps scene + viewport on every record; ⚑ review-flag button when the device setting is on |
 | `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
-| `src/ui/AdminMode.tsx` | Account section (login / sync status) + profile management incl. ☁️ upload + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override + ⚑ review-flag toggle (device setting, under Ontwikkelaars) |
+| `src/ui/AdminMode.tsx` | Account section (login / sync status) + profile management incl. ☁️ upload + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override + ⚑ review-flag toggle (device setting, under Ontwikkelaars) + link to the inspector page (logged in) |
 | `src/ui/SkillTreeScreen.tsx` | Progress override screen: skill tree for one profile, tap a skill → Open hier / Beheerst → preview diff → Toepassen |
 | `src/admin/progressOverride.ts` | Progress override rules (pure): `planOverride(profile, skillId, mode)` → new profile + per-skill diff; `prerequisites`, `blockedBy`, `canOverride` |
 | `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
@@ -371,9 +374,9 @@ Parent tool for marking an exercise while the child plays it ("layout is off", "
 
 - **Using it.** The ⚐ button sits next to Opties in KidMode. Tap → *⚑ Gemarkeerd* (tap again to clear). It applies to the question on screen and resets on the next question. It is greyed out during the feedback overlay: the record is already written by then. A wrong answer's retry is a new question — flag that one if the wrong answer revealed the problem.
 - **What gets recorded.** `AnswerRecord.flag = 'flagged'` (column `flag`). It is an app token, never free text — the record's privacy invariant (`answerRecord.ts`) forbids text typed by a person. A prepopulated reason list can add tokens to `AnswerFlag` later without a schema change (the column is text).
-- **Reconstructing a flagged question.** Every record (flagged or not) carries `exerciseId`, `tierId`, `variant`, the typed `problem`, `meta` (what was shown, server-side only), `scene` (theme id + background / counter index into `THEMES`, `presentation/themes.ts`) and `viewport` (window size, CSS px). That is enough to re-render it in DebugMode once a viewer exists.
+- **Reconstructing a flagged question.** Every record (flagged or not) carries `exerciseId`, `tierId`, `variant`, the typed `problem`, `meta` (what was shown, server-side only), `scene` (theme id + background / counter index into `THEMES`, `presentation/themes.ts`) and `viewport` (window size, CSS px). The inspector's replay re-renders it from exactly these.
 - **Where flags exist.** Only answers that upload reach the server: linked profiles, logged in. Locally the record keeps the flag but not `meta` (stripped by the local sink). DebugMode has no flag button and never uploads. A flagged question abandoned before it is answered leaves no record.
-- **Finding them now** (until an inspector exists), in the Supabase SQL editor:
+- **Finding them:** the inspector (below) — *Toon: Gemarkeerd*. Or directly in the Supabase SQL editor:
   ```sql
   select occurred_at, exercise_id, tier_id, variant, problem, meta,
          scene_theme, scene_background, scene_counter, viewport_w, viewport_h,
@@ -381,6 +384,32 @@ Parent tool for marking an exercise while the child plays it ("layout is off", "
   from answer_events where flag is not null order by occurred_at desc;
   ```
 - **Open question (deliberately not decided).** A flagged answer still counts: score ±, weight factor, stats. If a flag means "the exercise was broken", excluding flagged records from the weight-factor fold and stats is cheap (both are derivations over the stream); reverting the score is not. Decide once there is a sense of what flags actually mean in practice.
+
+## Inspector 📖 (admin, separate page)
+
+Parent tool for reading the account's answer stream: find the wrong and flagged answers, see their evidence, and replay the exercise as the child saw it. Path: ⚙️ Opties → Account (logged in) → *📖 Gegevens bekijken*, or open `…/Rekenen/inspector.html` directly on any device (it has its own login form).
+
+**Separate from the app, by construction:**
+- Its own page and Vite entry (`inspector.html` → `src/inspector/main.tsx`; `vite.config.ts` lists both inputs). The app only *links* to it. The app bundle contains no inspector code; the two pages share a chunk with React, the exercises and the Supabase client.
+- `src/inspector/` may import app modules (exercise registry, skills, themes, `sync/rows` types). Nothing outside it may import from it.
+- Its own Supabase client (`inspector/data.ts`), not the app's `sync` singleton: it never queues, pushes or deletes. **Read-only**: only `select`. It shares the login with the app (same origin, same browser storage), so *Uitloggen* there logs the app out in that browser too.
+- `inspectorIsolation.test.ts` tripwires both rules (no app import of the inspector; no insert / upsert / update / delete / rpc in it).
+
+**Who sees what** is decided by the database, not the page: row level security (migration 0001) gives a login only its own children. Not logged in → login form, no data.
+
+**What it does:**
+- **Filters:** child, period (vandaag / 7 / 30 dagen / alles), *Toon* (default *Te bekijken* = fout of gemarkeerd; also Gemarkeerd, Fout, Alles), exercise, skill. State lives in the URL hash (ids only), so a view is bookmarkable; j / k or ↓ / ↑ walk the list.
+- **Per oefening:** first attempts in the period — n, wrong (count and %), ⚑, median response time; sorted flags first, then error rate; tap to filter.
+- **List:** grouped per day; ✓/✗, ⚑, ↻ (retry), tier label, problem, answer, time, and the retry's outcome on the original. Retries are paired to the wrong answer just before them in the same session (`linkRetries`).
+- **Detail:** every column in words (tier label, error type, score before, scene, viewport, app version), links between an answer and its retry, raw row + `meta`. **📋 Kopieer** puts the row on the clipboard as labelled JSON without the child id — for pasting into a chat about a fix.
+- **Replay:** the real exercise component, built from the row (`rowToQuestion`: problem + stored `meta` + `is_retry`), in a frame the size of the recorded window, with the recorded theme / background / counter, KidMode's layout copied around it. Interactive; the result is shown and never saved. Scaled to fit, or 1:1. Rows without `meta` (pre-sync history, meta over the cap) offer an **approximation** — same problem and tier, freshly drawn layout — clearly labelled. Rows from before migration 0002 get a default scene and a 400 × 820 frame, also labelled.
+- **⬇ Back-up (JSON):** children, progress, all answer and progress events of the login, one file.
+
+**Limits worth knowing:**
+- Replay copies KidMode's frame (`Replay.tsx`): if KidMode's chrome changes, update it there. Exercises size from their container (no viewport units), which is why a sized box reproduces their layout.
+- Replay renders with the *current* code; the row's `app_version` says which build served it.
+- For splits the stored correct answer is the *total*; the inspector shows only the given part and the verdict (`answerText`).
+- Large periods are read in pages of 1000 (Supabase's default row cap), stopping at 50 000 rows.
 
 ## Progress override (admin)
 
