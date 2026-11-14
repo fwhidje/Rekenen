@@ -1,7 +1,7 @@
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import type { SemanticForm } from '../curriculum/types'
 import { classifyError } from './diagnostics'
-import type { AnswerRecord } from './diagnostics'
+import type { AnswerFlag, AnswerRecord, AnswerScene } from './diagnostics'
 
 // ─── Answer record builder ────────────────────────────────────────────────────
 // The single place an AnswerRecord is assembled (KidMode and DebugMode both
@@ -28,11 +28,20 @@ export interface AnswerRecordInput {
   scoreBefore: number           // the skill's score when the question was served
   semanticForm?: SemanticForm
   startedAt: number             // when the question was presented (ms epoch)
+  scene?: AnswerScene
+  viewport?: { w: number; h: number }
+  flag?: AnswerFlag
   now?: number
 }
 
+// The window size, rounded to CSS px; undefined outside a browser.
+export function currentViewport(): { w: number; h: number } | undefined {
+  if (typeof window === 'undefined') return undefined
+  return { w: Math.round(window.innerWidth), h: Math.round(window.innerHeight) }
+}
+
 export function buildAnswerRecord(input: AnswerRecordInput): AnswerRecord {
-  const { profileId, question, correct, detail, scoreBefore, semanticForm, startedAt } = input
+  const { profileId, question, correct, detail, scoreBefore, semanticForm, startedAt, scene, viewport, flag } = input
   const now = input.now ?? Date.now()
   const given = detail?.givenAnswer
   const meta = question.meta as { tierId?: string; variant?: string }
@@ -66,5 +75,8 @@ export function buildAnswerRecord(input: AnswerRecordInput): AnswerRecord {
     tapCount: detail?.tapCount,
     replayCount: detail?.replayCount,
     meta: question.meta as Record<string, unknown>,
+    scene,
+    viewport,
+    flag,
   }
 }

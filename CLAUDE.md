@@ -26,6 +26,7 @@ The long-term plan lives in **`road_to_ai_driven_rekenen.md`** (goal, structure,
 | Login under Opties (email + password; no registration screen — the account is created in the Supabase dashboard) | ✅ live; Filip reports it working on the real project (Nov 2026) |
 | Sync: event upload queue, progress pull/push (last write wins per skill), explicit per-profile upload incl. stored history, new-device seeding, admin-override events | 🟡 live; Filip reports it working on the real project (Nov 2026) — multi-device use under observation, no systematic check of the stored rows yet |
 | Keep-alive GitHub Action (`.github/workflows/keepalive.yml`, every 3 days + manual run) | ✅ manual run green (Nov 2026); scheduled runs follow every 3 days |
+| Review flag ⚑ (device toggle under Opties → Ontwikkelaars; marks the question on screen, rides on its answer record as `flag`) + scene (theme/background/counter) and viewport on every record — schema `supabase/migrations/0002_answer_flag_and_scene.sql` | 🟡 built (Nov 2026) — **0002 must be run before this build is deployed**; until then uploads stay queued (no rows dropped). Inspector to filter flagged rows: not built |
 | School year on a child (column exists) | 🔲 no UI yet |
 | Process traces (taps/drags with timing) | 🔲 later step |
 
@@ -292,6 +293,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
+| `src/state/deviceSettings.ts` | Per-device preferences (not per profile, never synced) — today only the ⚑ review-flag button toggle |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile; strips `meta` (upload-only evidence) |
 | `src/sync/rows.ts` | Wire row types mirroring the SQL schema; `toEventRow` / `fromEventRow`; stable ids for pre-sync records |
 | `src/sync/progressMerge.ts` | Pure progress sync rules: `stampChanges` / `stampState` / `stampAll`, `progressRows`, `mergeRemoteProgress`, `applySnapshot` |
