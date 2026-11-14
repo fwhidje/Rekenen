@@ -23,9 +23,9 @@ The long-term plan lives in **`road_to_ai_driven_rekenen.md`** (goal, structure,
 | Answer record enriched (event id, build version, session, score before, typed problem, shown meta) via shared `buildAnswerRecord` | ✅ |
 | Schema `supabase/migrations/0001_accounts_and_evidence.sql` | ✅ run on the real project by Filip (Nov 2026) |
 | Supabase project set up by Filip (project, user, repo variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY`) | ✅ |
-| Login under Opties (email + password; no registration screen — the account is created in the Supabase dashboard) | 🟡 built; verified in a browser against a mocked backend — **first real login still to be done** |
-| Sync: event upload queue, progress pull/push (last write wins per skill), explicit per-profile upload incl. stored history, new-device seeding, admin-override events | 🟡 built, unit-tested with a fake remote + mocked-browser run — **not yet verified against the real project** |
-| Keep-alive GitHub Action (`.github/workflows/keepalive.yml`, every 3 days + manual run) | 🟡 written — runs only once merged to main; first run unverified |
+| Login under Opties (email + password; no registration screen — the account is created in the Supabase dashboard) | ✅ live; Filip reports it working on the real project (Nov 2026) |
+| Sync: event upload queue, progress pull/push (last write wins per skill), explicit per-profile upload incl. stored history, new-device seeding, admin-override events | 🟡 live; Filip reports it working on the real project (Nov 2026) — multi-device use under observation, no systematic check of the stored rows yet |
+| Keep-alive GitHub Action (`.github/workflows/keepalive.yml`, every 3 days + manual run) | ✅ manual run green (Nov 2026); scheduled runs follow every 3 days |
 | School year on a child (column exists) | 🔲 no UI yet |
 | Process traces (taps/drags with timing) | 🔲 later step |
 
