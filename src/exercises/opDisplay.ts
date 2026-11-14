@@ -17,3 +17,14 @@ export function opGlyph(op: Operation): string {
 export function opColor(op: Operation, tokens: SceneTokens): string {
   return op === '-' ? tokens.refuse : tokens.confirm
 }
+
+// The completed equation as text ("3 + 2 = 5", "5 − 2 = 3") — what the wrong
+// overlay shows for the +/− exercises that declare a `correctStatement`.
+export function equationText(op: Operation, a: number, b: number): string {
+  return `${a} ${opGlyph(op)} ${b} = ${op === '-' ? a - b : a + b}`
+}
+
+// A split as the child reads it: "5 is 2 en 3".
+export function splitText(total: number, left: number, right: number): string {
+  return `${total} is ${left} en ${right}`
+}

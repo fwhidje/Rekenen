@@ -4,7 +4,9 @@ import { NumPad } from '../ui/components/NumPad'
 import { useState } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
 
 const TIERS: ExerciseTier[] = [
   { id: 'plain', minScore: 0, label: 'invullen', description: 'Type the answer on the numpad — fully symbolic, no scaffolding. Single tier.' },
@@ -18,12 +20,13 @@ function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseCo
   const [input, setInput] = useState('')
   const { operandA, operandB, answer, op } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, accent, accentText, confirm, pop } = tokens
+  const { ink, accentText, pop } = tokens
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   const handleKey = (key: string) => {
-    if (disabled) return
+    if (disabled || answered) return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
-    if (key === '✓') { if (input) { const given = parseInt(input, 10); onResolve(given === answer, { givenAnswer: given }) } return }
+    if (key === '✓') { if (input) { const given = parseInt(input, 10); resolve(given === answer, { givenAnswer: given }) } return }
     if (input.length < 2) setInput(v => v + key)
   }
 
@@ -37,18 +40,10 @@ function FillPlainComponent({ question, onResolve, disabled, scene }: ExerciseCo
           <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: opColor(op, tokens), lineHeight: 1 }}>{opGlyph(op)}</span>
           <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: pop, lineHeight: 1 }}>{operandB}</span>
           <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 34, color: ink, lineHeight: 1, opacity: 0.5 }}>=</span>
-          <div style={{
-            minWidth: 52, height: 52,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? confirm : accent, color: 'white',
-            borderRadius: 12, border: `2px solid ${ink}`,
-            fontFamily: 'Fredoka One, cursive', fontSize: 34,
-            boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)',
-            transition: 'background .18s',
-          }}>{input || '?'}</div>
+          <AnswerSlot value={input} solved={solved} size={52} tokens={tokens} />
         </div>
       </ExerciseStage>
-      <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
+      <NumPad onKey={handleKey} disabled={disabled || answered} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -63,6 +58,8 @@ const FillPlain: ExerciseDefinition<FillPlainMeta> = {
     pitfalls: ['Off-by-one', 'Reversal (a−b vs b−a)', 'Typing a regurgitated operand'],
     progression: 'Single tier: used at higher scores once a skill no longer needs scaffolding.',
   },
+  retryStable: [],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
   generateMeta: () => ({ tierId: 'plain' }),
   Component: FillPlainComponent,
 }

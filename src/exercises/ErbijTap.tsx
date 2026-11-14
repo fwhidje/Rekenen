@@ -7,9 +7,10 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { CountChip } from '../presentation/components/CountChip'
-import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
-import { opGlyph, opColor } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
+import { opGlyph, opColor, equationText } from './opDisplay'
 
 // ─── erbij-tap ────────────────────────────────────────────────────────────────
 // The erbij action performed by the child: a start group stands in the pen and
@@ -41,9 +42,15 @@ const REVEAL_DELAYS = [500, 750, 600]
 // How long the full pen lingers after the last arrival before the pen is
 // hidden and the "hoeveel nu?" question appears (the child gets to see it).
 const HOWMANY_PAUSE = 1150
-// On a correct answer, hold the filled equation this long BEFORE resolving —
-// otherwise the full-screen "Goed!" overlay covers the completed sum.
-const CLOSURE_MS = 850
+// Fixed geometry (nothing moves): the pen is a 3-wide grid and the waiting box
+// a 2-wide one, and the area's height is reserved for the FINAL group, so an
+// arrival never wraps the pen into a taller stage.
+const ITEM = 40
+const GAP = 8
+const PEN_COLS = 3
+const BOX_COLS = 2
+const gridW = (cols: number) => cols * ITEM + (cols - 1) * GAP
+const gridH = (n: number, cols: number) => { const rows = Math.max(1, Math.ceil(n / cols)); return rows * ITEM + (rows - 1) * GAP }
 
 const fadeStyle = (visible: boolean): React.CSSProperties => ({
   opacity: visible ? 1 : 0,
@@ -65,9 +72,10 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   // voorspel: 'ask' (choice first) → 'confirm' (arrivals animate) → resolve
   const [phase, setPhase] = useState<'tap' | 'howmany' | 'ask' | 'confirm'>(isVoorspel ? 'ask' : 'tap')
   const [arrived, setArrived] = useState(0)
-  const [committed, setCommitted] = useState<number | null>(null)
-  const [resolved, setResolved] = useState(false)
   const given = useRef<number | null>(null)
+  // Closure: on a correct answer the equation's "?" becomes the total and is
+  // held before the overlay; on wrong it resolves at once.
+  const { solved, answered: resolved, resolve: close } = useClosure(question, onResolve)
 
   // Staged opening reveal; the interaction is locked until it completes.
   const { step, complete } = useReveal(REVEAL_DELAYS, question)
@@ -78,26 +86,11 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   useEffect(() => {
     setPhase(isVoorspel ? 'ask' : 'tap')
     setArrived(0)
-    setCommitted(null)
-    setResolved(false)
     given.current = null
   }, [question, isVoorspel])
 
-  // Resolve once the outcome is known. On a correct answer, fill the equation's
-  // "?" with the total and hold it briefly so the completed sum is seen before
-  // the full-screen feedback overlay covers everything. On wrong, resolve at
-  // once (red screen + re-scaffold).
-  const resolve = (givenAnswer: number, tapCount?: number) => {
-    if (resolved) return
-    setResolved(true)
-    const ok = givenAnswer === answer
-    if (ok) {
-      setCommitted(answer)
-      setTimeout(() => onResolve(true, { givenAnswer, tapCount }), CLOSURE_MS)
-    } else {
-      onResolve(false, { givenAnswer, tapCount })
-    }
-  }
+  const resolve = (givenAnswer: number, tapCount?: number) =>
+    close(givenAnswer === answer, { givenAnswer, tapCount })
 
   // doen: after the last arrival, linger on the full pen, then the question.
   useEffect(() => {
@@ -154,7 +147,9 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   const waitingLeft = arrive - arrived
 
   // Equation answer slot: "?" until the child answers correctly, then the total.
-  const tail = committed !== null ? committed : '?'
+  const tail = solved ? answer : '?'
+
+  const areaH = Math.max(96, gridH(start + arrive, PEN_COLS) + 16, gridH(arrive, BOX_COLS) + 24)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
@@ -167,7 +162,7 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
 
       <ExerciseStage tokens={tokens} style={{ minWidth: 300 }}>
         {/* Counting-on chip — reserve height so the equation never shifts */}
-        <div style={{ minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {showChip && <CountChip count={start + arrived} ink={ink} paper={paper} />}
         </div>
 
@@ -180,21 +175,25 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
           <span style={{ color: tokens.accentText, opacity: showEqTail ? 1 : 0, transition: 'opacity .3s' }}>{tail}</span>
         </div>
 
+        {/* One area of fixed size for both states — the pen and its cover — so
+            the stage never changes height during a question. */}
+        <div style={{ height: areaH, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {phase === 'howmany' ? (
           // Pen covered: naming the total has to come from the count-on, not a recount.
           <div style={{
-            width: 130, height: 96, borderRadius: 16, border: `2px dashed ${ink}55`,
+            width: 130, height: 96, boxSizing: 'border-box', borderRadius: 16, border: `2px dashed ${ink}55`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'Fredoka One, cursive', fontSize: 44, color: `${ink}40`,
           }}>?</div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minHeight: 80 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             {/* The pen: start group + arrivals tapped/animated in — transparent
-                so the single stage colour shows through */}
+                so the single stage colour shows through. Fixed width and a
+                height reserved for the final group: an arrival never reflows it. */}
             <div style={{
-              borderRadius: 16, padding: '14px 18px',
-              display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
-              maxWidth: 240, minHeight: 52, alignItems: 'center',
+              width: gridW(PEN_COLS), height: gridH(start + arrive, PEN_COLS),
+              display: 'flex', flexWrap: 'wrap', gap: GAP, justifyContent: 'center',
+              alignContent: 'flex-start',
             }}>
               {/* start group fades in together at reveal step 1 */}
               {Array.from({ length: start }, (_, i) => renderCreature(`a${i}`, fadeStyle(showStart)))}
@@ -212,7 +211,8 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
                 transition: 'opacity .3s ease-out',
                 pointerEvents: showArrivals && waitingLeft > 0 ? 'auto' : 'none',
                 border: `2px dashed ${ink}45`, borderRadius: 14, padding: '10px 12px',
-                display: 'flex', gap: 8, alignItems: 'center',
+                width: gridW(Math.min(arrive, BOX_COLS)),
+                display: 'flex', flexWrap: 'wrap', gap: GAP, alignItems: 'center',
                 cursor: complete && phase === 'tap' && !resolved && waitingLeft > 0 ? 'pointer' : 'default',
               }}>
               {/* Always render `arrive` creatures; tapped ones fade out (fixed width → no reflow) */}
@@ -222,12 +222,14 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
             </div>
           </div>
         )}
+        </div>
       </ExerciseStage>
 
-      {/* Input lives outside the stage */}
-      {((phase === 'howmany') || (phase === 'ask' && complete)) && (
+      {/* Input lives outside the stage. Its space is reserved from the start,
+          so the title and stage don't jump when the buttons appear. */}
+      <Reserve show={phase === 'howmany' || (phase === 'ask' && complete)}>
         <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled || resolved} tokens={scene?.tokens} />
-      )}
+      </Reserve>
     </div>
   )
 }
@@ -246,10 +248,12 @@ const ErbijTap: ExerciseDefinition<ErbijTapMeta> = {
     ],
     progression: 'doen: a staged reveal builds the start group and the arriving chunk, then the child taps the arrivals in while the chip models counting on; the pen lingers, then is hidden for "hoeveel nu?". voorspel: same reveal, but the answer comes BEFORE the arrivals animate in to confirm. Doing → anticipating is the move from acting out addition to performing it.',
   },
-  generateMeta(operandA, operandB, score) {
+  retryStable: ['sceneIndex'],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
     return {
-      sceneIndex: Math.floor(Math.random() * 24),
+      sceneIndex: ctx?.retryOf?.sceneIndex ?? Math.floor(Math.random() * 24),
       options: makeNumeralOptions(operandA + operandB, numeralRangeMax(operandA + operandB)),
       tierId: tier.id,
     }

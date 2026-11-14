@@ -1,10 +1,12 @@
+import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'judge',  minScore: 0,  label: 'waar/niet', description: 'Judge whether a shown equation is correct. False answers are near-misses (off-by-one/two).' },
@@ -25,6 +27,10 @@ interface TrueFalseMeta {
 function TrueFalseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<TrueFalseMeta>) {
   const { op, meta } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { answered, resolve } = useClosure(question, onResolve)
+  // closure: the judgement the child gave stays marked during the hold
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
       <ExerciseTitle tokens={tokens}>Klopt het?</ExerciseTitle>
@@ -40,7 +46,9 @@ function TrueFalseComponent({ question, onResolve, disabled, scene }: ExerciseCo
           }}>{meta.shownAnswer}</span>
         </div>
       </ExerciseStage>
-      <TFButtons onPick={v => onResolve(v === (meta.isCorrect ? 1 : 0))} disabled={disabled} tokens={scene?.tokens} />
+      <TFButtons
+        onPick={v => { setPicked(v); resolve(v === (meta.isCorrect ? 1 : 0)) }}
+        disabled={disabled || answered} picked={picked} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -64,6 +72,13 @@ const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
     pitfalls: ['Saying "waar" without actually evaluating', 'Missing a near-miss (off-by-one) false statement', 'Accepting a reversed − equation ("2 − 5 = 3") because subtraction-as-removal ignores order'],
     progression: 'judge: false statements are magnitude near-misses. strikt (60+): adds operand-echo and order-reversal traps, probing misconceptions rather than computation slips.',
   },
+
+  // Retry: the FACT is kept (same problem), the statement is drawn afresh on
+  // purpose — the overlay has just shown the true equation, so repeating the
+  // identical statement would be answered by flipping the previous answer.
+  retryStable: [],
+  // The true equation, whichever way the statement was wrong.
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
 
   generateMeta(operandA, operandB, score, problem) {
     const tier = pickTier(TIERS, score)

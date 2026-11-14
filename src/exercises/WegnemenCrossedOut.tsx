@@ -11,7 +11,9 @@ import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
 
 // ─── wegnemen-crossed-out ─────────────────────────────────────────────────────
 // The canonical workbook picture: the whole group drawn, the removed part
@@ -50,6 +52,7 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
     ? [350, 450, ...Array.from({ length: operandB }, () => 550), 500]
     : []
   const { step, complete } = useReveal(delays, question)
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   const crossed = complete ? operandB : Math.max(0, Math.min(step - 2, operandB))
   const showA = complete || step >= 1
@@ -57,9 +60,9 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
   const showRest = complete || step >= 3 + operandB
 
   const handleKey = (key: string) => {
-    if (disabled) return
+    if (disabled || answered) return
     if (key === '⌫') { setInput(s => s.slice(0, -1)); return }
-    if (key === '✓') { if (input) { const given = parseInt(input, 10); onResolve(given === answer, { givenAnswer: given }) } return }
+    if (key === '✓') { if (input) { const given = parseInt(input, 10); resolve(given === answer, { givenAnswer: given }) } return }
     if (input.length < 2) setInput(s => s + key)
   }
 
@@ -85,24 +88,17 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
           <span style={{ color: tokens.pop, ...fade(showRest) }}>{operandB}</span>
           <span style={{ color: tokens.ink, opacity: showRest ? 0.4 : 0, transition: 'opacity .3s', fontSize: 30 }}>=</span>
           {meta.tierId === 'numpad' ? (
-            <div style={{
-              minWidth: 48, height: 48,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: input ? tokens.accent : tokens.paper,
-              color: input ? 'white' : `${tokens.ink}55`,
-              border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
-              borderRadius: 12, fontSize: 30, fontFamily: 'Fredoka One, cursive',
-              transition: 'background .18s, border-color .18s',
-            }}>{input || '?'}</div>
+            <AnswerSlot value={input} solved={solved} size={48} tokens={tokens} />
           ) : (
-            <span style={{ color: tokens.accentText, ...fade(showRest) }}>?</span>
+            // closure: the "?" becomes the remainder and is held before the overlay
+            <span style={{ color: tokens.accentText, ...fade(showRest) }}>{solved ? answer : '?'}</span>
           )}
         </div>
       </ExerciseStage>
 
       {meta.tierId === 'numpad'
-        ? <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-        : <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled || !complete} tokens={scene?.tokens} />}
+        ? <NumPad onKey={handleKey} disabled={disabled || answered} tokens={scene?.tokens} />
+        : <ChoiceButtons options={meta.options} onPick={v => resolve(v === answer, { givenAnswer: v })} disabled={disabled || answered || !complete} tokens={scene?.tokens} />}
     </div>
   )
 }
@@ -120,13 +116,17 @@ const WegnemenCrossedOut: ExerciseDefinition<WegnemenCrossedOutMeta> = {
     ],
     progression: 'keuze: the take-away animates — group appears, items cross out one at a time, then the equation completes — so the minus is seen happening before the child picks the remainder. numpad (50+): the same picture shown instantly (no animation), typed answer — the static workbook form she must learn to read cold.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same picture (dots or creatures, same colour), animated.
+  retryStable: ['style', 'sceneIndex', 'color'],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  generateMeta(operandA, operandB, score, _problem, ctx) {
+    const prev = ctx?.retryOf
     const tier = pickTier(TIERS, score)
     const [color] = pickColors()
     return {
-      style: Math.random() < 0.5 ? 'dots' : 'scene',
-      sceneIndex: Math.floor(Math.random() * 24),
-      color,
+      style: prev?.style ?? (Math.random() < 0.5 ? 'dots' : 'scene'),
+      sceneIndex: prev?.sceneIndex ?? Math.floor(Math.random() * 24),
+      color: prev?.color ?? color,
       options: makeNumeralOptions(operandA - operandB, numeralRangeMax(operandA), 0),
       tierId: tier.id,
     }

@@ -9,7 +9,9 @@ import { pickScene, pickColors } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
 
 // ─── Meta ─────────────────────────────────────────────────────────────────────
 
@@ -92,6 +94,7 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
                : []
 
   const { step, complete } = useReveal(delays, question)
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // Visibility flags per element
   const v = meta.revealKind === 'instant' ? {
@@ -135,9 +138,9 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
   const slotSize  = hasVisual ? 54 : 72
 
   const handleKey = (key: string) => {
-    if (disabled || !complete) return
+    if (disabled || answered || !complete) return
     if (key === '⌫') { setInput(s => s.slice(0, -1)); return }
-    if (key === '✓') { if (input) { const given = parseInt(input, 10); onResolve(given === answer, { givenAnswer: given }) } return }
+    if (key === '✓') { if (input) { const given = parseInt(input, 10); resolve(given === answer, { givenAnswer: given }) } return }
     if (input.length < 2) setInput(s => s + key)
   }
 
@@ -201,23 +204,14 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
           ...(v.swap ? { transform: `translateX(${-swapDx}px)`, transition: 'transform .65s cubic-bezier(.45,-.25,.55,1.25)' } : {}),
         }}>{operandB}</span>
         <span style={{ ...fade(v.eq), fontFamily: 'Fredoka One, cursive', fontSize: Math.round(fs * 0.85), color: tokens.ink, opacity: v.eq ? 0.4 : 0 }}>=</span>
-        <div style={{
-          ...fade(v.eq),
-          minWidth: slotSize, height: slotSize,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Fredoka One, cursive', fontSize: Math.round(fs * 0.85),
-          background: input ? tokens.accent : tokens.paper,
-          color: input ? 'white' : `${tokens.ink}55`,
-          border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
-          borderRadius: 14,
-          // override transition to also animate background/shadow
-          transition: 'background .18s, border-color .18s, opacity .3s ease, transform .35s ease',
-        }}>{input || '?'}</div>
+        <div style={fade(v.eq)}>
+          <AnswerSlot value={input} solved={solved} size={slotSize} tokens={tokens} />
+        </div>
       </div>
 
      </ExerciseStage>
 
-      <NumPad onKey={handleKey} disabled={disabled || !complete} tokens={scene?.tokens} />
+      <NumPad onKey={handleKey} disabled={disabled || answered || !complete} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -235,21 +229,31 @@ const FillVisual: ExerciseDefinition<FillVisualMeta> = {
     progression: 'visual (semantic action + full concrete→symbolic reveal) → equation (symbols only; flipped + terms demonstrate the commutativity swap) → instant (no reveal). Support fades as score rises.',
   },
 
-  generateMeta(_operandA, _operandB, score, problem) {
+  // Retry keeps the meaning acted out (variant) and the look (kind of picture,
+  // colours, creature). visualKind is tier-dependent ('none' above the visual
+  // tier), so it is kept only when the original already had a picture.
+  retryStable: ['variant', 'sceneIndex', 'colorA', 'colorB'],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+
+  generateMeta(_operandA, _operandB, score, problem, ctx) {
+    const prev = ctx?.retryOf
     const tier = pickTier(TIERS, score)
     const revealKind = tier.id as RevealKind
     const op = problem?.op ?? '+'
     // One semantic variant per question: '-' is wegnemen; '+' leans erbij
     // (the counting-on action) with samenvoegen mixed in.
-    const variant: SemVariant =
-      op === '-' ? 'wegnemen' : (Math.random() < 0.6 ? 'erbij' : 'samenvoegen')
+    const variant: SemVariant = prev?.variant ??
+      (op === '-' ? 'wegnemen' : (Math.random() < 0.6 ? 'erbij' : 'samenvoegen'))
     const commuteSwap =
       revealKind === 'equation' && op === '+' &&
       problem?.op === '+' && problem.terms[0] < problem.terms[1]
     const visualKind: VisualKind =
-      revealKind === 'visual' ? (Math.random() < 0.5 ? 'dots' : 'scene') : 'none'
-    const [colorA, colorB] = pickColors()
-    return { visualKind, revealKind, variant, commuteSwap, sceneIndex: Math.floor(Math.random() * 24), colorA, colorB, tierId: tier.id }
+      revealKind !== 'visual' ? 'none'
+      : prev && prev.visualKind !== 'none' ? prev.visualKind
+      : (Math.random() < 0.5 ? 'dots' : 'scene')
+    const [colorA, colorB] = prev ? [prev.colorA, prev.colorB] : pickColors()
+    const sceneIndex = prev?.sceneIndex ?? Math.floor(Math.random() * 24)
+    return { visualKind, revealKind, variant, commuteSwap, sceneIndex, colorA, colorB, tierId: tier.id }
   },
 
   Component: FillVisualComponent,

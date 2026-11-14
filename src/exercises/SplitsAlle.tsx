@@ -5,6 +5,7 @@ import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { NumPad } from '../ui/components/NumPad'
+import { useClosure } from '../presentation/useClosure'
 
 // ─── splits-alle ──────────────────────────────────────────────────────────────
 // The full huisje-table of one total: every split, both orders, 0-rows
@@ -16,7 +17,7 @@ import { NumPad } from '../ui/components/NumPad'
 //
 // UX model: free-entry grid. The child taps any unfilled cell, types a digit
 // (auto-commits), then moves to the next cell. Submits with ✓ when the table
-// is full; wrong rows are highlighted before onResolve(false) hands off to
+// is full; wrong rows are highlighted before the wrong answer is handed off to
 // the engine's retry-one-tier-down mechanism.
 //
 // Left-column duplicate guard (tabel-vol only): typing a value already present
@@ -54,6 +55,8 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   const [leftWarning, setLeftWarning] = useState(false)
   const [wrongRows, setWrongRows] = useState<Set<number>>(new Set())
   const [submitting, setSubmitting] = useState(false)
+  // Closure: the completed table is held before the overlay.
+  const { answered, resolve } = useClosure(question, onResolve)
 
   useEffect(() => {
     setCells(Array.from({ length: rows }, (_, r) => [
@@ -99,16 +102,16 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
     })
     const tapCount = currentCells.flat().filter(v => v !== null).length
     if (wrongSet.size === 0) {
-      onResolve(true, { tapCount })
+      resolve(true, { tapCount })
     } else {
       setWrongRows(wrongSet)
       setSubmitting(true)
-      setTimeout(() => onResolve(false, { tapCount }), 800)
+      setTimeout(() => resolve(false, { tapCount }), 800)
     }
   }
 
   const handleKey = (key: string) => {
-    if (disabled || submitting) return
+    if (disabled || submitting || answered) return
     if (key === '⌫') {
       if (!activeCell) return
       const [r, col] = activeCell
@@ -154,9 +157,9 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
     return (
       <div
         key={col}
-        onClick={(!required || submitting || disabled) ? undefined : () => { setActiveCell([r, col]); setLeftWarning(false) }}
+        onClick={(!required || submitting || disabled || answered) ? undefined : () => { setActiveCell([r, col]); setLeftWarning(false) }}
         style={{
-          width: 52, height: 38,
+          width: 52, height: 34, boxSizing: 'border-box',
           background: value !== null ? paperMid : paper,
           border: `2px solid ${wrong ? '#ef4444' : act ? accent : ink}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -171,25 +174,27 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>
       {leftWarning ? (
         <div style={{
           background: '#f97316', border: '2px solid #ea6c0a', borderRadius: 18,
           padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 20, color: 'white',
+          fontFamily: 'Fredoka One, cursive', fontSize: 24, color: 'white',
         }}>Dit getal staat er al!</div>
       ) : (
         <ExerciseTitle tokens={tokens}>Alle splitsingen van <span style={{ color: accentText }}>{total}</span>!</ExerciseTitle>
       )}
 
-      <ExerciseStage tokens={tokens}>
+      {/* Compact stage + compact numpad: the 6-row table of 5 and the pad must
+          fit the viewport together (CLAUDE.md → conventions, "fits the screen"). */}
+      <ExerciseStage tokens={tokens} style={{ padding: '12px 24px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {/* roof header */}
           <div style={{
-            width: 110, height: 40, background: paper, border: `2px solid ${ink}`,
+            width: 108, height: 34, boxSizing: 'border-box', background: paper, border: `2px solid ${ink}`,
             borderBottom: 'none', borderRadius: '14px 14px 0 0',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Fredoka One, cursive', fontSize: 26, color: ink,
+            fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink,
           }}>{total}</div>
           {Array.from({ length: rows }, (_, r) => (
             <div key={r} style={{ display: 'flex', gap: 4, padding: '2px 0' }}>
@@ -200,7 +205,7 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
         </div>
       </ExerciseStage>
 
-      <NumPad onKey={handleKey} disabled={disabled || submitting} tokens={scene?.tokens} />
+      <NumPad compact onKey={handleKey} disabled={disabled || submitting || answered} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -219,9 +224,14 @@ const SplitsAlle: ExerciseDefinition<SplitsAlleMeta> = {
     ],
     progression: 'tabel-aanvullen (65): the left column is pre-printed counting down — the systematic trick is given; the child fills the right column\'s gaps in any order and submits. tabel-vol (85): empty table — the child fills both columns freely; the left-column duplicate guard (orange warning on repeat values) teaches uniqueness; full validation fires on submit and wrong rows are highlighted before the engine retries one tier down.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same pre-printed cells — a retry never gives fewer hints.
+  retryStable: ['prefill'],
+  // A whole table, not one statement → neutral message.
+  correctStatement: () => null,
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
     const total = operandA + operandB
+    if (ctx?.retryOf) return { prefill: ctx.retryOf.prefill, tierId: tier.id }
     // pre-print roughly half the right column, never all, never none
     const prefill = Array.from({ length: total + 1 }, () => Math.random() < 0.5)
     if (prefill.every(Boolean)) prefill[0] = false

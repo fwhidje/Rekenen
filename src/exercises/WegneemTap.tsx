@@ -7,8 +7,9 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { CountChip } from '../presentation/components/CountChip'
-import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { opGlyph, opColor, equationText } from './opDisplay'
 
 // ─── wegneem-tap ──────────────────────────────────────────────────────────────
 // The wegnemen action performed by the child: the whole group stands in the
@@ -43,6 +44,9 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
   const [phase, setPhase] = useState<'tap' | 'howmany' | 'ask' | 'confirm'>(isVoorspel ? 'ask' : 'tap')
   const [gone, setGone] = useState(new Set<number>())
   const given = useRef<number | null>(null)
+  // Closure: on a correct answer the "?" becomes the remainder and is held
+  // before the overlay; on wrong it resolves at once.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   useEffect(() => {
     setPhase(isVoorspel ? 'ask' : 'tap')
@@ -75,10 +79,10 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
       return () => clearTimeout(t)
     }
     const t = setTimeout(() => {
-      onResolve(given.current === answer, { givenAnswer: given.current ?? undefined })
+      resolve(given.current === answer, { givenAnswer: given.current ?? undefined })
     }, 700)
     return () => clearTimeout(t)
-  }, [phase, gone, leave, whole, answer, onResolve])
+  }, [phase, gone, leave, whole, answer, resolve])
 
   const tapCreature = (i: number) => {
     if (disabled || phase !== 'tap' || gone.has(i) || gone.size >= leave) return
@@ -86,9 +90,9 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
   }
 
   const pickAnswer = (v: number) => {
-    if (disabled) return
+    if (disabled || answered) return
     if (phase === 'howmany') {
-      onResolve(v === answer, { givenAnswer: v, tapCount: leave })
+      resolve(v === answer, { givenAnswer: v, tapCount: leave })
     } else if (phase === 'ask') {
       given.current = v
       setPhase('confirm')
@@ -97,10 +101,12 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
 
   const cue = leave === 1 ? 'Doe er 1 weg!' : `Doe er ${leave} weg!`
   const cueAsk = leave === 1 ? 'Er gaat er 1 weg.' : `Er gaan er ${leave} weg.`
+  // The title keeps its size for the whole question (nothing moves): voorspel
+  // holds its two-line question through the confirming animation; doen swaps
+  // one single line for another.
   const prompt =
-    phase === 'howmany' ? 'Hoeveel blijven er over?' :
-    phase === 'ask'     ? `${cueAsk} Hoeveel blijven er over?` :
-    phase === 'confirm' ? 'Kijk maar!' : cue
+    isVoorspel          ? `${cueAsk} Hoeveel blijven er over?` :
+    phase === 'howmany' ? 'Hoeveel blijven er over?' : cue
 
   const renderCreature = (i: number) => {
     const isGone = gone.has(i)
@@ -137,7 +143,7 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
 
       <ExerciseStage tokens={tokens}>
         {/* Counting-back chip — reserve height so nothing shifts */}
-        <div style={{ minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {showChip && <CountChip count={whole - gone.size} ink={ink} paper={paper} />}
         </div>
 
@@ -147,7 +153,7 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
           <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>
           <span style={{ color: tokens.pop }}>{operandB}</span>
           <span style={{ color: ink, opacity: 0.4, fontSize: 27 }}>=</span>
-          <span style={{ color: tokens.accentText }}>?</span>
+          <span style={{ color: tokens.accentText }}>{solved ? answer : '?'}</span>
         </div>
 
         {/* The pen: whole group; leavers fade to crossed ghosts — transparent
@@ -161,9 +167,11 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
         </div>
       </ExerciseStage>
 
-      {(phase === 'howmany' || phase === 'ask') && (
-        <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled} tokens={scene?.tokens} />
-      )}
+      {/* Space reserved from the start: the stage doesn't jump when the
+          buttons appear (doen) or leave (voorspel). */}
+      <Reserve show={phase === 'howmany' || phase === 'ask'}>
+        <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled || answered} tokens={scene?.tokens} />
+      </Reserve>
     </div>
   )
 }
@@ -182,10 +190,12 @@ const WegneemTap: ExerciseDefinition<WegneemTapMeta> = {
     ],
     progression: 'doen: the child physically taps the leavers away while the chip counts back; the ghosts keep the remainder readable, so the entry tier stays fully supported. voorspel: the answer comes BEFORE the action and the animation verifies it — the operation has to happen mentally first.',
   },
-  generateMeta(operandA, operandB, score) {
+  retryStable: ['sceneIndex'],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
     return {
-      sceneIndex: Math.floor(Math.random() * 24),
+      sceneIndex: ctx?.retryOf?.sceneIndex ?? Math.floor(Math.random() * 24),
       options: makeNumeralOptions(operandA - operandB, numeralRangeMax(operandA), 0),
       tierId: tier.id,
     }

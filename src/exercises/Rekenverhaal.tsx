@@ -7,7 +7,9 @@ import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { NumPad } from '../ui/components/NumPad'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
 
 // ─── rekenverhaal ─────────────────────────────────────────────────────────────
 // The mini story problem: short sentences whose WORDS carry the semantics
@@ -17,11 +19,13 @@ import { opGlyph, opColor } from './opDisplay'
 // animation is support. The equation builds piece by piece as the story
 // unfolds (invariant: visible by answer time), so the words introduce each
 // number — but the child reads the operation from the story.
+// (Superseded for the FIRST attempt: the equation is hidden there and shown
+// only on the retry — see the answer area below and CLAUDE.md → invariants.)
 // Weight-controlled, never a gate: a weak reader meets it rarely, and the
 // replay button re-acts the story without text.
 
 const TIERS: ExerciseTier[] = [
-  { id: 'tekst-film', minScore: 60, label: 'tekst + film', description: 'Sentences appear one by one, each acted by the creatures while its number joins the equation. Reading is supported by watching.' },
+  { id: 'tekst-film', minScore: 60, label: 'tekst + film', description: 'Sentences appear one by one, each acted by the creatures. Reading is supported by watching. (The equation joins only on the retry.)' },
   { id: 'tekst',      minScore: 80, label: 'enkel tekst',  description: 'The story stands alone; the animation only plays on the replay tap. The words have to carry the operation.' },
 ]
 
@@ -75,6 +79,7 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
   const [playing, setPlaying] = useState(!isTekst)
   const [replays, setReplays] = useState(0)
   const [input, setInput] = useState('')
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   useEffect(() => {
     setStep(isTekst ? 3 : 0)
@@ -94,19 +99,19 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
   const showAnim = !isTekst || replays > 0
 
   const replay = () => {
-    if (disabled) return
+    if (disabled || answered) return
     setReplays(r => r + 1)
     setStep(0)
     setPlaying(true)
   }
 
   const handleKey = (key: string) => {
-    if (disabled || !complete) return
+    if (disabled || answered || !complete) return
     if (key === '⌫') { setInput(s => s.slice(0, -1)); return }
     if (key === '✓') {
       if (input) {
         const given = parseInt(input, 10)
-        onResolve(given === answer, { givenAnswer: given, replayCount: replays })
+        resolve(given === answer, { givenAnswer: given, replayCount: replays })
       }
       return
     }
@@ -146,12 +151,15 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
       )
     }
     const ghosts = meta.variant === 'wegnemen' && actionDone
-    const extra = meta.variant === 'erbij' && actionDone ? operandB : 0
+    // The arrivals are laid out from the start and only fade in (nothing moves).
+    const extra = meta.variant === 'erbij' ? operandB : 0
     const base = operandA
     return (
       <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 250, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
         {Array.from({ length: base }, (_, i) => creature(`a${i}`, ghosts && i >= base - operandB))}
-        {Array.from({ length: extra }, (_, i) => creature(`x${i}`, false))}
+        {Array.from({ length: extra }, (_, i) => (
+          <div key={`x${i}`} style={{ display: 'inline-block', opacity: actionDone ? 1 : 0, transition: 'opacity .35s' }}>{creature(`x${i}`, false)}</div>
+        ))}
       </div>
     )
   }
@@ -160,7 +168,7 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
     opacity: textStep >= i + 1 ? 1 : 0.06,
     transition: 'opacity .3s',
     fontFamily: 'Fredoka One, cursive', fontSize: 21, color: tokens.ink,
-    lineHeight: 1.45, textAlign: 'center',
+    lineHeight: 1.3, textAlign: 'center',
   })
 
   const eqPiece = (visible: boolean, el: React.ReactNode) => (
@@ -177,10 +185,12 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
         <div style={{ ...lineStyle(2), fontSize: 23 }}>{lines[2]}</div>
       </ExerciseTitle>
 
-      <ExerciseStage tokens={tokens}>
+      <ExerciseStage tokens={tokens} style={{ padding: '14px 24px', gap: 12 }}>
         {/* The acted story + replay */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {showAnim && anim()}
+          {/* Reserved even when hidden (tekst tier before the replay tap), so the
+              stage keeps its size when the film appears. */}
+          <div style={{ visibility: showAnim ? 'visible' : 'hidden' }}>{anim()}</div>
           <button onClick={replay} disabled={disabled}
             style={{
               width: 46, height: 46, borderRadius: '50%', border: `2px solid ${tokens.ink}`,
@@ -202,19 +212,11 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
             {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
             {eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
           </>}
-          <span style={{
-            minWidth: 48, height: 48, padding: '0 6px',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? tokens.accent : tokens.paper,
-            color: input ? 'white' : `${tokens.ink}55`,
-            border: `2px solid ${input ? tokens.accent : tokens.paperMid}`,
-            borderRadius: 12, fontSize: 30,
-            transition: 'background .18s, border-color .18s',
-          }}>{input || '?'}</span>
+          <AnswerSlot value={input} solved={solved} size={48} tokens={tokens} />
         </div>
       </ExerciseStage>
 
-      <NumPad onKey={handleKey} disabled={disabled || !complete} tokens={scene?.tokens} />
+      <NumPad onKey={handleKey} disabled={disabled || answered || !complete} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -232,12 +234,15 @@ const Rekenverhaal: ExerciseDefinition<RekenverhaalMeta> = {
     ],
     progression: 'tekst-film (60): sentences appear one by one, acted by the creatures, the equation building along. tekst (80): the words stand alone; the animation only exists behind the replay tap.',
   },
-  generateMeta(_operandA, _operandB, score, problem?: Problem) {
+  // Retry: the SAME story (variant decides the sentences), now with the equation.
+  retryStable: ['variant', 'sceneIndex'],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  generateMeta(_operandA, _operandB, score, problem?: Problem, ctx?) {
     const tier = pickTier(TIERS, score)
     const op = problem?.op ?? '+'
-    const variant: Variant =
-      op === '-' ? 'wegnemen' : (Math.random() < 0.55 ? 'erbij' : 'samenvoegen')
-    return { variant, sceneIndex: Math.floor(Math.random() * 24), tierId: tier.id }
+    const variant: Variant = ctx?.retryOf?.variant ??
+      (op === '-' ? 'wegnemen' : (Math.random() < 0.55 ? 'erbij' : 'samenvoegen'))
+    return { variant, sceneIndex: ctx?.retryOf?.sceneIndex ?? Math.floor(Math.random() * 24), tierId: tier.id }
   },
   Component: RekenverhaalComponent,
 }

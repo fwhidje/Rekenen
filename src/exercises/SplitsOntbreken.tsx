@@ -8,6 +8,9 @@ import { ExerciseTitle, ExerciseStage } from '../presentation/components/Exercis
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
+import type { ExerciseQuestion } from './types'
 
 // ─── splits-ontbreken-rechts / -links ────────────────────────────────────────
 // Missing-part statements with the total FIRST (splits notation, not the
@@ -37,7 +40,7 @@ interface SplitsOntbrekenMeta {
 }
 
 function makeMeta(tiers: ExerciseTier[]) {
-  return (operandA: number, operandB: number, score: number, problem?: Problem): SplitsOntbrekenMeta => {
+  return (operandA: number, operandB: number, score: number, problem?: Problem, ctx?: { retryOf?: SplitsOntbrekenMeta }): SplitsOntbrekenMeta => {
     const tier = pickTier(tiers, score)
     let total: number, given: number
     if (problem?.op === '-') {
@@ -46,7 +49,8 @@ function makeMeta(tiers: ExerciseTier[]) {
       given = operandB
     } else {
       total = operandA + operandB
-      given = Math.random() < 0.5 ? operandA : operandB
+      // retry: the same part stays given — the missing number must not change
+      given = ctx?.retryOf?.given ?? (Math.random() < 0.5 ? operandA : operandB)
     }
     const missing = total - given
     return {
@@ -57,48 +61,38 @@ function makeMeta(tiers: ExerciseTier[]) {
   }
 }
 
+// The completed statement in the wording of the tier that was shown.
+function statementText(side: 'rechts' | 'links') {
+  return (q: ExerciseQuestion<SplitsOntbrekenMeta>): string => {
+    const { total, given, missing, tierId } = q.meta
+    if (side === 'links') return `${total} = ${missing} + ${given}`
+    return tierId.startsWith('is-en') ? `${total} is ${given} en ${missing}` : `${total} = ${given} + ${missing}`
+  }
+}
+
 function makeComponent(side: 'rechts' | 'links') {
   return function SplitsOntbrekenComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsOntbrekenMeta>) {
     const { meta } = question
     const tokens = scene?.tokens ?? NATURE_TOKENS
     const [input, setInput] = useState('')
-    const [solved, setSolved] = useState<number | null>(null)
-    useEffect(() => { setInput(''); setSolved(null) }, [question])
-
-    useEffect(() => {
-      if (solved === null) return
-      const t = setTimeout(() => onResolve(true, { givenAnswer: solved }), 800)
-      return () => clearTimeout(t)
-    }, [solved, onResolve])
+    useEffect(() => { setInput('') }, [question])
+    // Closure: the slot fills with the missing part and is held before the overlay.
+    const { solved, answered, resolve: close } = useClosure(question, onResolve)
 
     const isEn = meta.tierId.startsWith('is-en')
     const typed = meta.tierId === 'is-en-pad' || meta.tierId === 'vergelijking' || meta.tierId === 'links-pad'
 
-    const resolve = (v: number) => {
-      if (v === meta.missing) setSolved(v)
-      else onResolve(false, { givenAnswer: v })
-    }
+    const resolve = (v: number) => close(v === meta.missing, { givenAnswer: v })
     const handleKey = (key: string) => {
-      if (disabled || solved !== null) return
+      if (disabled || answered) return
       if (key === '⌫') { setInput(''); return }
       if (key === '✓') { if (input) resolve(parseInt(input, 10)); return }
       if (input.length < 1) setInput(key)
     }
 
-    const slotValue = solved !== null ? String(solved) : (typed ? (input || '?') : '?')
-    const slotFilled = solved !== null || !!input
-
     const fs = 44
     const slot = (
-      <span style={{
-        minWidth: 52, height: 52, padding: '0 8px',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        background: slotFilled ? tokens.accent : tokens.paper,
-        color: slotFilled ? 'white' : `${tokens.ink}55`,
-        border: `2px solid ${slotFilled ? tokens.accent : tokens.paperMid}`,
-        borderRadius: 12, fontSize: 36, fontFamily: 'Fredoka One, cursive',
-        transition: 'background .18s, border-color .18s',
-      }}>{slotValue}</span>
+      <AnswerSlot value={solved ? meta.missing : typed ? input : ''} solved={solved} size={54} tokens={tokens} />
     )
     const num = (v: number, color: string) => (
       <span style={{ color, fontSize: fs }}>{v}</span>
@@ -120,8 +114,8 @@ function makeComponent(side: 'rechts' | 'links') {
         </ExerciseStage>
 
         {typed
-          ? <NumPad onKey={handleKey} disabled={disabled || solved !== null} tokens={scene?.tokens} />
-          : <ChoiceButtons options={meta.options} onPick={resolve} disabled={disabled || solved !== null} tokens={scene?.tokens} />}
+          ? <NumPad onKey={handleKey} disabled={disabled || answered} tokens={scene?.tokens} />
+          : <ChoiceButtons options={meta.options} onPick={resolve} disabled={disabled || answered} tokens={scene?.tokens} />}
       </div>
     )
   }
@@ -140,6 +134,8 @@ const SplitsOntbrekenRechts: ExerciseDefinition<SplitsOntbrekenMeta> = {
     ],
     progression: 'is-en-keuze (20): symbol-free wording, choice. is-en-pad (40): typed. vergelijking (55): the "5 = 3 + ?" equation form, once + is familiar from the parallel + track — deliberately the SECOND equation shape the child meets (total-first), protecting the equals sign as a relation.',
   },
+  retryStable: ['total', 'given', 'missing'],
+  correctStatement: statementText('rechts'),
   generateMeta: makeMeta(RECHTS_TIERS),
   Component: makeComponent('rechts'),
 }
@@ -157,6 +153,8 @@ const SplitsOntbrekenLinks: ExerciseDefinition<SplitsOntbrekenMeta> = {
     ],
     progression: 'Post-60 only (the documented harder position is post-unlock depth): links-keuze (60) by choice, links-pad (80) typed.',
   },
+  retryStable: ['total', 'given', 'missing'],
+  correctStatement: statementText('links'),
   generateMeta: makeMeta(LINKS_TIERS),
   Component: makeComponent('links'),
 }
