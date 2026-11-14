@@ -36,7 +36,8 @@ Local play without an account must keep working throughout.
 - Without the two build variables, or without a login, the app is the local-only app. localStorage stays the working copy in every case.
 - Logging in **pulls** the account's children onto the device. Profiles that exist only on the device are **never uploaded automatically** — each gets a ☁️⬆ button (upload once, from the device with the best progress, to avoid duplicates). A profile created while logged in is uploaded at once.
 - Progress merges **last write wins per skill** on `SkillState.updatedAt`, stamped at the single commit point in `App.tsx`; the server enforces the same rule with a trigger.
-- Answers of linked profiles go to a persisted upload queue (cap 2000) and are sent in batches; rows the server refuses are dropped individually, network failures keep everything queued.
+- Answers of linked profiles go to a persisted upload queue (cap 2000) and are sent in batches; rows the server refuses are dropped individually, network failures keep everything queued. An unknown-column error (app deployed before its migration ran) counts as a network failure, not a refusal: rows stay queued until the migration runs.
+- **Migrations go first.** Run a new `supabase/migrations/NNNN_*.sql` in the Supabase SQL editor *before* merging the app change that writes its columns to `main` (which deploys).
 - Deleting a linked profile while logged in deletes the child and all its evidence from the account.
 - DebugMode answers never upload.
 
@@ -254,8 +255,8 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD (dial + unlock gate) |
 | `src/engine/exerciseStats.ts` | Per-exercise recent attempts / accuracy / median-RT reporting kernel (feeds the DebugMode mix monitor; nothing gates on it) |
 | `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants |
-| `src/engine/diagnostics.ts` | `AnswerRecord` (the long-term schema), `ErrorType`, `classifyError`, `DiagnosticsSink` + persisted singleton `diagnostics` |
-| `src/engine/answerRecord.ts` | `buildAnswerRecord` — the one place an `AnswerRecord` is assembled (KidMode + DebugMode); `APP_VERSION` (build commit via `vite.config.ts`), `SESSION_ID`; test tripwires JSON-safety, size and that the profile name never enters a record |
+| `src/engine/diagnostics.ts` | `AnswerRecord` (the long-term schema; incl. `scene`, `viewport`, review `flag`), `AnswerScene`, `AnswerFlag`, `ErrorType`, `classifyError`, `DiagnosticsSink` + persisted singleton `diagnostics` |
+| `src/engine/answerRecord.ts` | `buildAnswerRecord` — the one place an `AnswerRecord` is assembled (KidMode + DebugMode); `APP_VERSION` (build commit via `vite.config.ts`), `SESSION_ID`, `currentViewport()`; scene / viewport / flag are passed in by the caller (KidMode only); test tripwires JSON-safety, size and that the profile name never enters a record |
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator (unlocked + score ≥ UNLOCK_THRESHOLD) |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question; `SelectionContext` (retry one tier down, repeat avoidance); re-draws instead of returning null |
@@ -295,17 +296,17 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/deviceSettings.ts` | Per-device preferences (not per profile, never synced) — today only the ⚑ review-flag button toggle |
 | `src/state/diagnosticsStorage.ts` | `LocalStorageDiagnosticsSink` — persisted answer stream, capped FIFO per profile; strips `meta` (upload-only evidence) |
-| `src/sync/rows.ts` | Wire row types mirroring the SQL schema; `toEventRow` / `fromEventRow`; stable ids for pre-sync records |
+| `src/sync/rows.ts` | Wire row types mirroring the SQL schema; `toEventRow` / `fromEventRow`; `SeedEventRow` (the lean columns new-device seeding reads back — no meta, flag or scene); stable ids for pre-sync records |
 | `src/sync/progressMerge.ts` | Pure progress sync rules: `stampChanges` / `stampState` / `stampAll`, `progressRows`, `mergeRemoteProgress`, `applySnapshot` |
-| `src/sync/remote.ts` | `Remote` interface (all the engine knows of the backend) + Supabase implementation; `SyncError` (permanent vs transient) |
+| `src/sync/remote.ts` | `Remote` interface (all the engine knows of the backend) + Supabase implementation; `SyncError` (permanent vs transient; `isPermanentCode` — an unknown column is transient) |
 | `src/sync/engine.ts` | `SyncEngine` — link set, upload queues, push / pull / upload / deleteChild; serialised, never throws into the play loop |
 | `src/sync/client.ts` | Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY` (null when unset) + the `sync` singleton |
 | `src/sync/useSync.ts` | React binding: session tracking and WHEN sync runs (login, start, online, visibility, debounced push) |
 | `supabase/migrations/` | Database schema for accounts + evidence store, one numbered SQL file per change; run by hand in the Supabase SQL editor |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
-| `src/ui/KidMode.tsx` | Full-screen exercise loop |
+| `src/ui/KidMode.tsx` | Full-screen exercise loop; stamps scene + viewport on every record; ⚑ review-flag button when the device setting is on |
 | `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
-| `src/ui/AdminMode.tsx` | Account section (login / sync status) + profile management incl. ☁️ upload + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override |
+| `src/ui/AdminMode.tsx` | Account section (login / sync status) + profile management incl. ☁️ upload + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override + ⚑ review-flag toggle (device setting, under Ontwikkelaars) |
 | `src/ui/SkillTreeScreen.tsx` | Progress override screen: skill tree for one profile, tap a skill → Open hier / Beheerst → preview diff → Toepassen |
 | `src/admin/progressOverride.ts` | Progress override rules (pure): `planOverride(profile, skillId, mode)` → new profile + per-skill diff; `prerequisites`, `blockedBy`, `canOverride` |
 | `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
@@ -361,6 +362,25 @@ The didactic + diagnostic fields are *required* and exist to make the curriculum
 - Scaffolding thresholds live in `TIERS`, never in an inline `if (score < n)` — and `generateMeta` stamps `tierId`.
 - An exercise reports `givenAnswer` (and `tapCount` for multi-step) via `onResolve` wherever it cheaply can, so answers are classifiable.
 - Every skill has an `EXERCISE_PLAN` entry.
+
+## Review flag ⚑ (admin)
+
+Parent tool for marking an exercise while the child plays it ("layout is off", "badly worded"), to look at later. Path: ⚙️ Opties → Ontwikkelaars → *⚑ Markeerknop tijdens het spelen* (per device, `state/deviceSettings.ts`, off by default).
+
+**No separate store — the flag rides on the answer record.** The flag is just another field of the evidence stream, so an inspector of the data at rest finds flagged answers by filtering, and has everything needed to reconstruct the question next to it.
+
+- **Using it.** The ⚐ button sits next to Opties in KidMode. Tap → *⚑ Gemarkeerd* (tap again to clear). It applies to the question on screen and resets on the next question. It is greyed out during the feedback overlay: the record is already written by then. A wrong answer's retry is a new question — flag that one if the wrong answer revealed the problem.
+- **What gets recorded.** `AnswerRecord.flag = 'flagged'` (column `flag`). It is an app token, never free text — the record's privacy invariant (`answerRecord.ts`) forbids text typed by a person. A prepopulated reason list can add tokens to `AnswerFlag` later without a schema change (the column is text).
+- **Reconstructing a flagged question.** Every record (flagged or not) carries `exerciseId`, `tierId`, `variant`, the typed `problem`, `meta` (what was shown, server-side only), `scene` (theme id + background / counter index into `THEMES`, `presentation/themes.ts`) and `viewport` (window size, CSS px). That is enough to re-render it in DebugMode once a viewer exists.
+- **Where flags exist.** Only answers that upload reach the server: linked profiles, logged in. Locally the record keeps the flag but not `meta` (stripped by the local sink). DebugMode has no flag button and never uploads. A flagged question abandoned before it is answered leaves no record.
+- **Finding them now** (until an inspector exists), in the Supabase SQL editor:
+  ```sql
+  select occurred_at, exercise_id, tier_id, variant, problem, meta,
+         scene_theme, scene_background, scene_counter, viewport_w, viewport_h,
+         given_answer, correct, app_version
+  from answer_events where flag is not null order by occurred_at desc;
+  ```
+- **Open question (deliberately not decided).** A flagged answer still counts: score ±, weight factor, stats. If a flag means "the exercise was broken", excluding flagged records from the weight-factor fold and stats is cheap (both are derivations over the stream); reverting the score is not. Decide once there is a sense of what flags actually mean in practice.
 
 ## Progress override (admin)
 

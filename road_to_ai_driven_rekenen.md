@@ -57,6 +57,10 @@ Four parts. The agent sits **outside** the play loop.
    version, release) and the child's score at that moment. Later it also holds
    process traces — taps, drags, replays, timing — because "how a child
    reasons" is not in a right/wrong record.
+   It also holds Filip's own in-play flags (⚑ on an answer: "something is off
+   with this exercise") — a human signal next to the agent's, and a natural
+   feed for the review queue below. Not to be confused with the *flagged*
+   lifecycle state, which the agent sets.
 3. **Design registry.** Versioned skill nodes with lineage; one design record
    per exercise; Filip's verdict cases.
 4. **Agent.** Runs periodically, reads evidence, writes only proposals.

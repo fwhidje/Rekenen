@@ -10,7 +10,8 @@ import type { AnswerFlag, AnswerRecord, AnswerScene } from './diagnostics'
 // Privacy invariant: a record carries the random profile id and what the app
 // itself generated or the child tapped (numbers / choices). It never carries
 // the profile name or any text typed by a person — `answerRecord.test.ts`
-// tripwires this.
+// tripwires this. The parent's review flag follows the same rule: it is a
+// fixed app token (`AnswerFlag`), never a typed note.
 
 // Build identity of the running app. Until exercises and skills carry their
 // own version ids (see road_to_ai_driven_rekenen.md, step 2), the commit is
