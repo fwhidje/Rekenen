@@ -6,6 +6,8 @@ export interface SkillState {
   archived: boolean      // subsumed by a parent and removed from rotation
   unlockedAt?: number    // timestamp
   archivedAt?: number    // timestamp
+  updatedAt?: number     // when score/unlocked/archived last changed on a device —
+                         // the last-write-wins key for account sync (sync/progressMerge.ts)
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────

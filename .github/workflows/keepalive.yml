@@ -1,0 +1,33 @@
+name: Keep Supabase awake
+
+# Free Supabase projects pause after a week without activity. This makes one
+# tiny database call every three days (public.keepalive() returns 1 and reads
+# no data). A failed run means the project is unreachable or paused — GitHub
+# emails the repository owner.
+
+on:
+  schedule:
+    - cron: '23 5 */3 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call keepalive()
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "VITE_SUPABASE_URL / VITE_SUPABASE_KEY repository variables are not set"; exit 1
+          fi
+          body=$(curl --silent --show-error --fail-with-body --max-time 30 \
+            -X POST "${SUPABASE_URL%/}/rest/v1/rpc/keepalive" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "keepalive returned: $body"
+          [ "$body" = "1" ]

@@ -6,6 +6,7 @@ import { diagnostics } from '../engine/diagnostics'
 import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
 import { getAllExerciseIds } from '../exercises/registry'
 import { SkillTreeScreen } from './SkillTreeScreen'
+import type { SyncControls } from '../sync/useSync'
 
 // Ensure the registry is populated even if no exercise screen rendered yet.
 import '../exercises/index'
@@ -16,9 +17,10 @@ interface Props {
   onClose: () => void
   onAppStateChange: (next: AppState) => void
   onOpenDebug: () => void
+  sync: SyncControls
 }
 
-export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange, onOpenDebug }: Props) {
+export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange, onOpenDebug, sync }: Props) {
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
   const [treeProfileId, setTreeProfileId] = useState<string | null>(null)
 
@@ -31,11 +33,33 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
       profiles: [...appState.profiles, profile],
       activeProfileId: appState.activeProfileId ?? profile.id,
     })
+    // Logged in: a new profile belongs to the account from the start.
+    if (sync.view.signedIn) void uploadProfile(profile)
   }
 
-  const deleteProfile = (id: string) => {
+  const uploadProfile = async (profile: Profile) => {
+    const error = await sync.upload(profile)
+    if (error) alert(`Uploaden mislukt: ${error}`)
+  }
+
+  const deleteProfile = async (id: string) => {
     const profile = appState.profiles.find(p => p.id === id)
-    if (!confirm(`Profiel "${profile?.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return
+    const linked = sync.view.linked.includes(id)
+    if (linked && sync.view.signedIn) {
+      // In the account: deleting means deleting everywhere, history included.
+      if (!confirm(
+        `Profiel "${profile?.name}" verwijderen?\n\n` +
+        'Dit wist ook alle online gegevens van dit kind (voortgang en antwoorden), op alle toestellen. ' +
+        'Dit kan niet ongedaan worden gemaakt.',
+      )) return
+      const error = await sync.deleteChild(id)
+      if (error) { alert(`Verwijderen mislukt: ${error}`); return }
+    } else if (linked) {
+      if (!confirm(
+        `Profiel "${profile?.name}" van dit toestel verwijderen?\n\n` +
+        'Je bent niet ingelogd: het profiel blijft in het account bewaard en komt terug bij de volgende login.',
+      )) return
+    } else if (!confirm(`Profiel "${profile?.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return
     const remaining = appState.profiles.filter(p => p.id !== id)
     const activeProfileId = appState.activeProfileId === id
       ? (remaining[0]?.id ?? null)
@@ -84,9 +108,17 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
                 active={profile.id === appState.activeProfileId}
                 inspecting={profile.id === expandedProfileId}
                 onSelect={() => { onSelectProfile(profile.id); onClose() }}
-                onDelete={() => deleteProfile(profile.id)}
+                onDelete={() => { void deleteProfile(profile.id) }}
                 onToggleInspect={() => setExpandedProfileId(id => (id === profile.id ? null : profile.id))}
                 onOpenTree={() => setTreeProfileId(profile.id)}
+                cloud={!sync.view.signedIn ? null : sync.view.linked.includes(profile.id) ? 'linked' : 'local'}
+                onUpload={() => {
+                  if (confirm(
+                    `"${profile.name}" naar je account uploaden?\n\n` +
+                    'Doe dit op één toestel per kind (dat met de beste voortgang). ' +
+                    'Upload je hetzelfde kind ook vanaf een ander toestel, dan staat het er dubbel in.',
+                  )) void uploadProfile(profile)
+                }}
               />
               {profile.id === expandedProfileId && <ProfileInspector profile={profile} />}
             </div>
@@ -98,6 +130,8 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
             color: '#999', cursor: 'pointer',
           }}>+ Nieuw profiel</button>
         </section>
+
+        {sync.available && <AccountSection sync={sync} />}
 
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontFamily: 'Fredoka One, cursive', fontSize: 18, color: '#666', marginBottom: 12 }}>Ontwikkelaars</h2>
@@ -113,7 +147,80 @@ export function AdminMode({ appState, onSelectProfile, onClose, onAppStateChange
   )
 }
 
-function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggleInspect, onOpenTree }: {
+// Account: log in to keep progress in the parent's account (other devices,
+// lost browser storage). Without a login the app is the local-only app.
+function AccountSection({ sync }: { sync: SyncControls }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { view } = sync
+
+  const input = {
+    width: '100%', padding: '10px 12px', marginBottom: 8, boxSizing: 'border-box' as const,
+    border: '2px solid #EEE', borderRadius: 12, fontFamily: 'Nunito, sans-serif', fontSize: 15,
+  }
+  const button = {
+    padding: '10px 16px', border: 'none', borderRadius: 12, cursor: 'pointer',
+    fontFamily: 'Fredoka One, cursive', fontSize: 15,
+  }
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setError(await sync.signIn(email, password))
+    setBusy(false)
+    setPassword('')
+  }
+
+  return (
+    <section style={{ marginBottom: 28 }}>
+      <h2 style={{ fontFamily: 'Fredoka One, cursive', fontSize: 18, color: '#666', marginBottom: 12 }}>Account</h2>
+      <div style={{ background: 'white', border: '2px solid #EEE', borderRadius: 16, padding: '14px 16px' }}>
+        {view.signedIn ? (
+          <>
+            <div style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>
+              Ingelogd als <b>{sync.email ?? '…'}</b>
+            </div>
+            <div style={{ fontSize: 12, color: view.phase === 'error' ? '#b3431f' : '#999', marginBottom: 12 }}>
+              {view.phase === 'syncing' ? 'Bezig met synchroniseren…'
+                : view.phase === 'error' ? `Synchroniseren mislukt, wordt opnieuw geprobeerd (${view.error})`
+                : view.lastSyncAt ? `Laatst gesynchroniseerd om ${new Date(view.lastSyncAt).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Nog niet gesynchroniseerd'}
+              {view.pending > 0 && ` · ${view.pending} ${view.pending === 1 ? 'antwoord wacht' : 'antwoorden wachten'} op upload`}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { void sync.syncNow() }} disabled={view.phase === 'syncing'}
+                style={{ ...button, background: '#4CC9F0', color: 'white', flex: 1 }}>Nu synchroniseren</button>
+              <button onClick={() => { void sync.signOut() }}
+                style={{ ...button, background: '#F2F2F2', color: '#666' }}>Uitloggen</button>
+            </div>
+          </>
+        ) : (
+          <form onSubmit={submit}>
+            <div style={{ fontSize: 12, color: '#999', marginBottom: 10 }}>
+              Log in om de voortgang in je account te bewaren en op andere toestellen te gebruiken.
+              Zonder login blijft alles alleen op dit toestel.
+            </div>
+            <input type="email" autoComplete="username" placeholder="E-mailadres" required
+              value={email} onChange={e => setEmail(e.target.value)} style={input} />
+            <input type="password" autoComplete="current-password" placeholder="Wachtwoord" required
+              value={password} onChange={e => setPassword(e.target.value)} style={input} />
+            {error && <div style={{ fontSize: 12, color: '#b3431f', marginBottom: 8 }}>Inloggen mislukt: {error}</div>}
+            <button type="submit" disabled={busy}
+              style={{ ...button, background: '#FF6B35', color: 'white', width: '100%' }}>
+              {busy ? 'Bezig…' : 'Inloggen'}
+            </button>
+          </form>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggleInspect, onOpenTree, cloud, onUpload }: {
+  cloud: 'linked' | 'local' | null   // null = not logged in, no account state shown
+  onUpload: () => void
   profile: Profile
   active: boolean
   inspecting: boolean
@@ -133,10 +240,18 @@ function ProfileCard({ profile, active, inspecting, onSelect, onDelete, onToggle
         <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 18, color: '#333' }}>{profile.name}</div>
         <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>
           {SKILLS.filter(s => profile.skills[s.id]?.unlocked).length} / {SKILLS.length} vaardigheden ontgrendeld
+          {cloud === 'linked' && ' · ☁️ in account'}
+          {cloud === 'local' && ' · alleen op dit toestel'}
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {active && <span style={{ fontFamily: 'Fredoka One, cursive', color: '#FF6B35', fontSize: 14 }}>Actief</span>}
+        {cloud === 'local' && (
+          <button onClick={e => { e.stopPropagation(); onUpload() }} title="Naar account uploaden" style={{
+            background: 'none', border: '1.5px solid #4CC9F0', borderRadius: 8,
+            padding: '4px 8px', cursor: 'pointer', fontSize: 16, lineHeight: 1,
+          }}>☁️⬆</button>
+        )}
         <button onClick={e => { e.stopPropagation(); onToggleInspect() }} style={{
           background: inspecting ? '#EEE' : 'none', border: '1.5px solid #EEE', borderRadius: 8,
           padding: '4px 8px', cursor: 'pointer', fontSize: 16,
