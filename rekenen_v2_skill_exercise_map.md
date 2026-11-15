@@ -10,7 +10,9 @@
 
 Working draft for the v2 curriculum data. Covers everything up to and including **splitsen tot 10** and **+/- tot 10** (end of L1 Period 2 in the Flemish progression). Out of scope here: getalbegrip tot 20, +/- tot 20 zonder brug, brug van 10. They extend the same shape and will be added later.
 
-This is meant as input for Claude Code. All open questions from earlier drafts have been resolved (see *Resolved decisions* at the bottom).
+This is meant as input for Claude Code. All open questions from earlier drafts have been resolved (see *Resolved decisions* at the bottom); the questions raised since are listed under *Didactic frame → Open questions for the exercise round*.
+
+**Flemish, not Dutch.** The progression, terms and notations here follow Flemish goal documents and teacher-training material. Extracts of the sources consulted are kept in `reference/flemish-curriculum/`. Dutch material (TAL, SLO, Dutch methods) is organised differently and is not a reference for this curriculum.
 
 ---
 
@@ -100,7 +102,7 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 
 **Splitsen-tot-5 split (decided)**: `splitsen-tot-5` is split into two skills — `splitsen-herken-5` (recognition / perceptual) and `splitsen-noteren-5` (notation / production). Recognition unlocks the +/- track; notation is parallel, not a prereq for arithmetic.
 
-**Open question — splitsen-tot-10**: does the same herken/noteren split apply at the tot-10 level? If yes, which side does `splitsen-tot-10`'s current downstream (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) depend on? And which side does it connect to from tot-5 (`splitsen-noteren-5` → `splitsen-noteren-10`, or `splitsen-herken-5` → `splitsen-herken-10`, or cross-links)? TBD.
+**Open question — splitsen-tot-10**: does the same herken/noteren split apply at the tot-10 level? If yes, which side does `splitsen-tot-10`'s current downstream (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) depend on? And which side does it connect to from tot-5 (`splitsen-noteren-5` → `splitsen-noteren-10`, or `splitsen-herken-5` → `splitsen-herken-10`, or cross-links)? Still open — *Didactic frame §7* argues against mirroring the split and for dividing the skill by total instead.
 
 ---
 
@@ -150,16 +152,18 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 > **TBD**: should this also split into `splitsen-herken-10` / `splitsen-noteren-10`? If so, which side does each downstream skill (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) hang off, and how does it connect upstream to the tot-5 herken / noteren pair? Entry below describes the current pre-split form.
 
 - **Name**: Splitsen tot 10
-- **Intent**: same for 6, 7, 8, 9, 10. The "boss splitgetal" is 10 — its 11 splits get drilled to recall, not calculation.
+- **Intent**: the part-whole spine extended to 6–10: every split of 6, 7, 8, 9 and 10 known paraat — the fact base that sums and differences to 10 are read from (getalfamilie), and that the brug over 10 later leans on.
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) the missing part named at once, not counted — paraat knowledge of the splits to 10 is a Flemish minimum goal and, per the UCLL line, first-year work; (2) the splits organised, not 35 loose facts — anchors, turn-around, neighbour step, and the full table per total; (3) the split usable as a getalfamilie, so that it can answer a sum or a difference later. Why: *Didactic frame §1, §2, §7*.
 - **`unlocked_by`**: `splitsen-herken-5`, `getalbegrip-10` *(was `splitsen-tot-5`)*
 - **`unlocks`**: `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`
 - **`subsumed_by`**: `null` (would be `splitsen-tot-20`)
 - **Generator**: total ∈ [6, 10]; a ≥ 1, b ≥ 1
-- **Applicable exercise types**: as `splitsen-herken-5` + `splitsen-noteren-5`; rekenrek presentations especially natural here because of the 5-structure
+- **Applicable exercise types**: as `splitsen-herken-5` + `splitsen-noteren-5`; rekenrek presentations especially natural here because of the 5-structure *(which structured picture carries 6–10 is an open question — Didactic frame §6)*
 
 #### `tienvrienden`
 - **Name**: Tienvrienden / vrienden van 10
-- **Intent**: instant recall of the 5 pairs that make 10 (1+9, 2+8, 3+7, 4+6, 5+5) in both orders
+- **Intent**: instant recall of the 5 pairs that make 10 (1+9, 2+8, 3+7, 4+6, 5+5) in both orders — the splits of 10, practised until no thinking time is needed
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) speed — the partner comes without counting, fingers or a picture; (2) from both sides and in every form (split, `7 + . = 10`, `10 − 7`); (3) its purpose is the brug over 10, where the second term is split without attention being spent on it. This is the one skill whose goal a right/wrong score does not measure — *Didactic frame §1*.
 - **`unlocked_by`**: `splitsen-tot-10`
 - **`unlocks`**: future `brug-van-10` (out of scope)
 - **`subsumed_by`**: `null` — fact-recall drill, kept in rotation through brug van 10
@@ -177,7 +181,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **Applicable exercise types**: `erbij-tap`, `fill-vis` (erbij/samenvoegen variants with canonical cue phrases), `numberline-jump`, `doosje`, `choice`, `tf`, `fill-plain`. The erbij action dominates at low score; symbolic forms take over toward 100. Post-60 width pair: `splits-som-match` (relation probe) and `rekenverhaal` (semantics by words alone).
 
 #### `optellen-tot-5`
-- **Intent**: any optelling within 5 (a + b ≤ 5)
+- **Intent**: any optelling within 5 (a + b ≤ 5) — the sums are no longer counted but read from the splits (getalfamilie), in either order
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: the skill adds **no new facts** — its three sums beyond `+1-2-tot-5` (1 + 3, 1 + 4, 2 + 3) are turn-arounds that skill already serves post-60. Its content is a change of method: (1) the sum known from the split, not counted on; (2) van plaats wisselen as a property the child uses; (3) one sum for both meanings, erbij and samen. *Didactic frame §1, §2.*
 - **`unlocked_by`**: `+1-2-tot-5`
 - **`unlocks`**: `+1-2-tot-10`
 - **`subsumed_by`**: `optellen-tot-10`
@@ -235,7 +240,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **Applicable exercise types**: `wegneem-tap`, `wegnemen-crossed-out` (low flat share throughout — the werkboek form), `fill-vis` (wegnemen reveal grammar: the leave IS the − sign's meaning), `numberline-jump-back`, `doosje`, `choice` (crossed-dots aid), `tf` (reversal traps "2 − 5 = 3" at the strikt tier — the only place order-sensitivity is tested), `fill-plain`. Entry more concrete-heavy than the + mirror: backward counting is weaker than forward. Post-60 width pair: `splits-som-match` (relation probe) and `rekenverhaal` (semantics by words alone).
 
 #### `aftrekken-wegnemen-5`
-- **Intent**: take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?"
+- **Intent**: take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?" — answered from the getalfamilie rather than counted back
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: six facts are new over `-1-2-tot-5` (3 − 3, 4 − 3, 5 − 3, 4 − 4, 5 − 4, 5 − 5), exactly where counting back gets long and fragile. So: (1) the difference known from the getalfamilie; (2) + and − as each other's omgekeerde bewerking — the four familieopgaven of one family; (3) the sign read, now that + and − rotate together. *Didactic frame §1, §2, §3.*
 - **`unlocked_by`**: `-1-2-tot-5`, `optellen-tot-5`
 - **`unlocks`**: `aftrekken-verschil-5`, `aftrekken-aanvullen-5`, `-1-2-tot-10`
 - **`subsumed_by`**: `aftrekken-wegnemen-10`
@@ -243,7 +249,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **Applicable exercise types**: `wegnemen-crossed-out` (heavy at low score), `doosje`, `numberline-jump-back`, `fill-plain`, `choice`, `tf`
 
 #### `aftrekken-verschil-5`
-- **Intent**: difference meaning — "Anna heeft 5, Tom heeft 2, hoeveel meer Anna?" Both groups still exist; nothing is removed.
+- **Intent**: difference meaning — "Anna heeft 5, Tom heeft 2, hoeveel meer Anna?" Both groups still exist; nothing is removed. The Flemish goal documents call this aftrekken als *vergelijking*.
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: the arithmetic is already known — the work is (1) the relational question "hoeveel meer / hoeveel minder" (terms the minimum goals already list for kleuters), (2) pairing off as the action that makes a difference visible, (3) seeing that a − sum fits although nothing leaves, larger number first. *Didactic frame §3.*
 - **`unlocked_by`**: `aftrekken-wegnemen-5`
 - **`unlocks`**: `aftrekken-verschil-10`
 - **`subsumed_by`**: `aftrekken-verschil-10`
@@ -251,7 +258,8 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **Applicable exercise types**: `verschil-two-groups` (heavy at low score), `verschil-rekenrek`, `fill-plain` (with verbal phrasing "hoeveel meer / hoeveel minder"), `choice`
 
 #### `aftrekken-aanvullen-5`
-- **Intent**: missing-part meaning — "Tom heeft 2 en wil 5. Hoeveel erbij?" Operationally same as `splits-ontbreken-rechts` framed as subtraction.
+- **Intent**: missing-part meaning — "Tom heeft 2 en wil 5. Hoeveel erbij?" Operationally same as `splits-ontbreken-rechts` framed as subtraction. In Flemish terms: the puntoefening `2 + . = 5`, and aftrekken worded as aanvullen (indirect optellen).
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) the puntoefening solved from the getalfamilie, not by trying or counting up; (2) split, sum and difference recognised as one fact in three notations; (3) the = sign read as a relation — this is the first sum whose unknown is not at the end. *Didactic frame §2, §3, §4.*
 - **`unlocked_by`**: `aftrekken-wegnemen-5`
 - **`unlocks`**: `aftrekken-aanvullen-10`
 - **`subsumed_by`**: `aftrekken-aanvullen-10`
@@ -297,6 +305,102 @@ Decision recap: **splitsen-tot-10 only gates the *full* tot-10 arithmetic skills
 - **`subsumed_by`**: `null`
 - **Generator**: a ∈ [2, 10], b ∈ [1, a]; aanvullen presentations
 - **Applicable exercise types**: as `aftrekken-aanvullen-5` extended
+
+---
+
+## Didactic frame — tot-5 arithmetic, splitsen tot 10, tienvrienden
+
+Scope: `optellen-tot-5`, `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5`, `splitsen-tot-10`, `tienvrienden`. The goal and the pitfalls of each skill are in `skills.ts` (`didactics`); this section holds the reasoning behind them and the questions they raise. It was written before any exercise for these skills was designed, and is meant to be revised when they are.
+
+### Sources and how far they carry
+
+| Claim rests on | What | Confidence |
+|---|---|---|
+| Read (extracts in `reference/flemish-curriculum/`) | Flemish minimumdoelen wiskunde (reading version); GO! doelenset bewerkingen, goals WI.265–WI.281; four UCLL documents (leerlijn hoofdrekenen, leerlijn getallenkennis, overzicht bewerkingen, vakdidactisch kader) | Quoted directly. The minimumdoelen give milestones (end of kleuterschool, 4th year), not years; the GO! age grid was lost in extraction; the UCLL lines are the only source here that says "first year" |
+| Not read | ZILL leerplan, OVSG leerplan, the teacher's guide of any Flemish method | Unknown — in particular which method the child's school uses, and what it does differently |
+| Not sourced | Which splits and pairs are the hard ones; how the counting habit shows in response times; how hard "hoeveel meer" is at this age | Reasoned from the structure of the facts and general didactic background, not checked against a Flemish source. Marked "expected" where they appear in `skills.ts`; to be checked against play data |
+
+### 1. The common goal: from counting to knowing
+
+`+1-2-tot-5` and `-1-2-tot-5` rest on counting on and counting back, and rightly: the UCLL overview lists doortellen ("4. Twee erbij, 5, 6.") and terugtellen ("8. Drie eraf, 7, 6, 5.") among the standaardmethoden. The skills in this set are where that method is replaced:
+
+- UCLL, first year: "Standaardmethode gebruiken om som en verschil te vinden — < 10: op basis van splitsen … en deze resultaten automatiseren."
+- GO!: "Tellen op door parate kennis van de getalfamilies te gebruiken" (WI.274), "Trekken af door parate kennis van de getalfamilies te gebruiken" (WI.278).
+- Minimumdoelen: "paraat de splitsingen tot en met 10" and "paraat de optellingen en aftrekkingen tot en met 20"; and on how a fact becomes known: "Feitelijke kennis bereik je niet door te memoriseren, maar door te automatiseren. Daarbij maakt een leerling zich een strategie eigen, die hij steeds opnieuw oefent en verkort."
+
+What follows for the skills:
+
+- **`optellen-tot-5` has no new facts.** It has 10 sums (a, b ≥ 1). Seven are the `+1-2-tot-5` facts; the other three (1 + 3, 1 + 4, 2 + 3) are the turn-arounds that skill's generator already serves above score 60. The skill's content is the method: the sum read from the split.
+- **`aftrekken-wegnemen-5` has six new facts** (3 − 3, 4 − 3, 5 − 3, 4 − 4, 5 − 4, 5 − 5) — those where counting back takes three or four steps. That is the natural place for the getalfamilie to take over.
+- **The score cannot see the difference.** A child who counts every sum correctly climbs to 100. The one observable is response time, which answer records carry and nothing uses. This matters most for `tienvrienden`, whose whole goal is speed. No gate is proposed here — a fluency gate was built and removed (`CLAUDE.md` → Score model rationale) — but the exercise round has to say how these skills will tell knowing from counting (open question 1).
+
+### 2. The getalfamilie is the unit
+
+The GO! goals treat one family as one piece of knowledge: fill the missing part ("5 bestaat uit 3 en ? … Dat is 2", WI.270), add from it, subtract from it, solve a puntoefening from it (WI.275), give its four familieopgaven ("2 + 3 = 5, 5 – 3 = 2, 3 + 2 = 5, 5 – 2 = 3", WI.280), give all families of a number (WI.281).
+
+In this curriculum the facts of one family are spread over up to five skills (herken, noteren, optellen, wegnemen, aanvullen), each with its own score. Only `splits-som-match` crosses between them (and `splits-ontbreken-rechts`, which the aanvullen skills share with noteren). Mastering the skills one by one does not guarantee the connection — and the connection is the goal. Where it gets exercised is open question 2.
+
+### 3. Meanings: the Flemish taxonomy against the three subtraction skills
+
+The minimumdoelen (kleuters, with concrete material, to 10; again for the 4th year) and GO! use the same three situation types for **both** optellen and aftrekken: **oorzaak-verandering**, **combinatie** (GO!: "deel-geheel") and **vergelijking**. UCLL uses the same terms. This curriculum's wegnemen / verschil / aanvullen came from a different cut. How they line up:
+
+| Here | Flemish type | Fit |
+|---|---|---|
+| `fill-vis` erbij variant | optellen als oorzaak-verandering ("Hij krijgt er 3 bij") | same |
+| `fill-vis` samenvoegen variant | optellen als combinatie ("2 rode en 6 blauwe … samen?") | same |
+| — | optellen als vergelijking ("Sara heeft er 3 meer dan Soetkin. Hoeveel boeken heeft Sara?") | **absent** |
+| `aftrekken-wegnemen-*` | aftrekken als oorzaak-verandering ("Hij eet er 3 op") | same |
+| `aftrekken-verschil-*` | aftrekken als vergelijking | partly — see below |
+| `aftrekken-aanvullen-*` | not a situation type | see below |
+| — | aftrekken als combinatie ("9 kleurpotloden. 6 zijn blauwe, de rest zijn rode. Hoeveel rode?") | **absent** |
+
+- **Verschil.** The sources show two comparison questions. The difference unknown ("hoeveel heeft Filip er minder?") is the kleuter example, with concrete material. The compared amount unknown ("Sara heeft er 3 minder dan Soetkin. Hoeveel boeken heeft Sara?") is the example for the written aftrekking. The verschil skill as defined covers only the first.
+- **Aanvullen.** In these sources aanvullen is not a meaning of aftrekken next to the others. It appears as the puntoefening solved from the getalfamilie (WI.275; UCLL: "Verband tussen + en – (dit gebruiken in o.a. puntoefeningen …)"), as a way of wording a subtraction ("de aftrekking als het aanvullen van de tweede term om het verschil te vinden (indirect optellen)", WI.277), and as the term "aanvullen tot". The story "Tom heeft 2 en wil 5" is an oorzaak-verandering with the change unknown.
+- **Combinatie with a part unknown** has no home. It is the static twin of aanvullen — a whole and one part are known, the other part is asked — and the meaning closest to splitsen itself.
+- The UCLL first-year line names oorzaak-verandering and vergelijking for aftrekken, all three for optellen.
+
+Recommendation, not a decision: keep three subtraction skills, but define `aftrekken-aanvullen-*` as the **missing-part** skill — combinatie with a part unknown and aanvullen tot, with the puntoefening as its notation. That covers the gap without a fourth skill. Whether the comparison with the compared amount unknown, and optellen als vergelijking, belong in this range at all is open question 3.
+
+### 4. The = sign
+
+Minimumdoel 2.2.5, with its own comment: "het gelijkheidsteken wordt vaak uitsluitend als signaal gezien om iets uit te rekenen, terwijl het slaat op een gelijkheid tussen beide zijden". UCLL asks for "speciale aandacht voor de betekenis van het gelijkheidsteken" in the first year. The puntoefening is the first place this bites: with the unknown before the =, "work out what stands there" gives 2 + . = 5 → 7. `splitsen-noteren-5` already prepares it ("5 = 3 + ?" as the second equation shape the child meets); the aanvullen skill is where it is tested.
+
+### 5. Nul
+
+UCLL, first year: "commutativiteit en neutraal element voor de optelling en aftrekking onderzoeken". Here a − a = 0 exists (`-1-2-tot-5`, `aftrekken-wegnemen-5`) and 0-splits exist (`splitsen-noteren-5`), but a + 0, 0 + a and a − 0 are generated by no skill. Open question 4.
+
+### 6. Which picture carries 6–10
+
+Totals above 5 cannot be taken in at a glance; a split of 8 is read from a structured picture or known. This curriculum has built on the **5-structure** so far (5-row, tienveld, fingers; `getalbegrip-10` reads 6–10 as 5 + n). The UCLL framework chooses the **kwadraatbeeld** — quantities built from a square of four — and says it "heeft heel wat voordelen ten opzichte van andere getalbeelden, voornamelijk wat betreft het automatiseren van o.a. de splitsingen". It also draws a split as one picture cut by a dividing line, and warns against the picture where the parts are drawn again under the whole.
+
+These are different anchors: with a 5-structure, 7 is 5 en 2 comes for free and 4 en 3 does not; with squares of four it should be the other way round (inferred from how the picture is built — only the kwadraatbeelden of 5 and 6 were seen). One teacher-training source is not "the Flemish way", and methods differ. What matters is what the child sees at school. Open question 5 — and the parked rekenrek question (`CLAUDE.md` → Parked) is the same question.
+
+### 7. `splitsen-tot-10`: size, and the herken / noteren question
+
+**Against mirroring the tot-5 split.** `splitsen-tot-5` was split because recognition had to gate the + / − track while notation ran alongside. At tot 10 that reason is gone: every downstream skill (`tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10`) needs splits that are *known*, which is the production side. A `herken-10` could not be their gate, and as a non-gate it would be the low-score phase of `noteren-10` — which the score dial already provides inside one skill. The notations are no longer new either.
+
+**The real problem is size.** Totals 2–5 have 10 ordered splits; totals 6–10 have 35 (19 if order is ignored), under one score. Eleven of the 19 have an anchor in a 5-structure — a part of 1, a part of 5, or a dubbel. The other eight (2 + 4, 3 + 4, 2 + 6, 2 + 7, 3 + 6, 2 + 8, 3 + 7, 4 + 6) have none, and a child can cross 60 on the anchored ones while these are still counted. The dynamic weight factor protects against a weak *exercise*, not a weak *fact*. Three ways out:
+
+| Option | For | Against |
+|---|---|---|
+| A. One skill, plus per-fact sampling from the answer stream (`GenerateContext.recentRecords`) | no graph change; the seam exists | per-fact sampling is deliberately deferred; the score still averages over 35 facts |
+| B. Split by total, e.g. `splitsen-6-7` → `splitsen-8-9`, with the splits of 10 taught and drilled in `tienvrienden` | skills stay narrow, as everywhere else in the graph; totals are met in turn; ends the double coverage of the splits of 10 | graph change; `tienvrienden` must then teach, not only drill; what gates `optellen-tot-10` needs redeciding |
+| C. One skill per total | closest to "one number at a time" | five small skills; most rotation overhead |
+
+Lean: B. It is the same move as `+1-2` / `+3-4` before `optellen-tot-10`. Open question 6.
+
+Whatever is chosen: the splits of 10 are today both 9 of the 35 facts of `splitsen-tot-10` and the whole of `tienvrienden`, and neither skill is ever archived.
+
+### Open questions for the exercise round
+
+1. **Knowing versus counting.** How do these skills tell a known answer from a counted one, given that the score is right/wrong only? At least for `tienvrienden`.
+2. **Getalfamilie.** Where is the connection between split, sums and differences exercised — a familieopgaven exercise type, and under which skill?
+3. **Comparison.** Do "3 meer dan / 3 minder dan" with the compared amount unknown, and optellen als vergelijking, belong in the tot-5 range, or later?
+4. **Nul as a term.** Do a + 0, 0 + a and a − 0 enter `optellen-tot-5` / `aftrekken-wegnemen-5`, and from which score?
+5. **Getalbeeld for 6–10.** Which structured pictures does the child's school method use (kwadraatbeeld, 5-structure, both)? Decide before any tot-10 exercise is drawn.
+6. **Shape of `splitsen-tot-10`.** Options A / B / C above, and with it what `tienvrienden` is.
+7. **Missing-part skill.** Redefine `aftrekken-aanvullen-*` as proposed in §3?
+8. **Verschil of 0.** The generator allows a = b; "hoeveel meer?" with answer 0 is an evenveel question — keep, reword, or exclude?
 
 ---
 
@@ -501,6 +605,7 @@ Notes on the rule set:
 - `reversal` and `semantic-narrow` overlap on the rule `given == a + b` for verschil/aanvullen. Tag as `semantic-narrow` (it's the more informative diagnosis) — `reversal` is reserved for the wegnemen case where the kid took smaller from larger.
 - For splitsen, a "swapped parts" reversal is only meaningful when the exercise type pins which slot is which (`splits-ontbreken-rechts` vs `-links`). For `splits-vrij` and `splits-alle` order doesn't matter, so reversal doesn't apply — these only fire `unclassified` or `near-miss`.
 - Response time is optional but cheap to capture; useful later for distinguishing "knew it" from "worked it out."
+- The aanvullen rule `given == a − b` cannot fire as written: with a = whole and b = part, a − b is the correct answer, and only wrong answers are classified. Rework it together with the aanvullen skill (*Didactic frame §3*) — the likely errors there are the sum of the two numbers shown and the target echoed.
 
 ---
 
