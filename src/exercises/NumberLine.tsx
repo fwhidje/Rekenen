@@ -7,7 +7,8 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
 
 // ─── numberline-jump ──────────────────────────────────────────────────────────
 // +1/+2 as sprongetjes: counting on (or back, for '−') made spatial. The line
@@ -32,8 +33,10 @@ interface NumberLineMeta {
 const REVEAL_DELAYS = [450, 550, 500, 500]
 const HOP_START_DELAY = 600
 const HOP_STEP_MS = 480
-// Hold the filled equation before the feedback overlay (see ErbijTap).
-const CLOSURE_MS = 850
+// The line fills the stage: cells grow to MAX_CELL (a comfortable tap target
+// on the tot-5 line) and shrink evenly on the tot-10 line or a narrow screen.
+const MAX_CELL = 50
+const CELL_GAP = 4
 
 function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberLineMeta>) {
   const { operandA, operandB, answer, op, meta } = question
@@ -54,11 +57,12 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
 
   // sprong-zien: hop = jumps taken so far (0..jumpN), starting after the reveal.
   const [hop, setHop] = useState(0)
-  const [committed, setCommitted] = useState<number | null>(null)
-  const [resolved, setResolved] = useState(false)
+  // Closure: on a correct answer the equation fills in and the landing cell is
+  // marked, held before the overlay; on wrong it resolves at once.
+  const { solved, answered: resolved, resolve: close } = useClosure(question, onResolve)
   const animDone = !isZien || hop >= jumpN
 
-  useEffect(() => { setHop(0); setCommitted(null); setResolved(false) }, [question])
+  useEffect(() => { setHop(0) }, [question])
   useEffect(() => {
     if (!isZien || !revealDone || hop >= jumpN) return
     const t = setTimeout(() => setHop(h => h + 1), hop === 0 ? HOP_START_DELAY : HOP_STEP_MS)
@@ -68,39 +72,28 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   const tappable = !isZien
   const sparse = tier === 'kale-sprong'
 
-  // On a correct answer, fill the equation and hold it briefly so the completed
-  // sum is seen before the full-screen feedback overlay covers it.
-  const resolve = (v: number) => {
-    if (resolved) return
-    setResolved(true)
-    const ok = v === answer
-    if (ok) {
-      setCommitted(answer)
-      setTimeout(() => onResolve(true, { givenAnswer: v }), CLOSURE_MS)
-    } else {
-      onResolve(false, { givenAnswer: v })
-    }
-  }
+  const resolve = (v: number) => close(v === answer, { givenAnswer: v })
 
   const tapCell = (i: number) => {
     if (!tappable || disabled || resolved) return
     resolve(i)
   }
 
-  const cellW = Math.max(24, Math.min(34, Math.floor(320 / (range + 1))))
-  const gap = 3
-  const startOffset = start * (cellW + gap)
+  const cells = range + 1
+  const big = range <= 5               // tot-5 line: large cells and labels
+  const startCentre = `${((start + 0.5) / cells) * 100}%`
 
   const glyphColor = opColor(op, tokens)
-  const current = start + dir * hop
-  const tail = committed !== null ? committed : '?'
+  // the tap tiers show the completed jump once solved (trail + landing)
+  const current = solved ? answer : start + dir * hop
+  const tail = solved ? answer : '?'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
 
       <ExerciseTitle tokens={tokens}>{op === '-' ? 'Spring terug' : 'Spring naar het antwoord'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ width: '100%', maxWidth: 380 }}>
+      <ExerciseStage tokens={tokens} style={{ width: '100%', maxWidth: 380, boxSizing: 'border-box' }}>
         {/* Equation — built by the reveal, then always visible */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38, minHeight: 46 }}>
           <span style={{ color: tokens.accentText, opacity: showA ? 1 : 0, transition: 'opacity .3s' }}>{operandA}</span>
@@ -110,26 +103,27 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
           <span style={{ color: tokens.accentText, opacity: showTail ? 1 : 0, transition: 'opacity .3s' }}>{tail}</span>
         </div>
 
-        <div style={{ width: '100%', padding: '8px 4px 4px', overflowX: 'auto', opacity: showLine ? 1 : 0, transition: 'opacity .4s' }}>
+        <div style={{ width: '100%', maxWidth: cells * MAX_CELL + (cells - 1) * CELL_GAP, opacity: showLine ? 1 : 0, transition: 'opacity .4s' }}>
           {/* Jump chip above the start cell, pointing the direction */}
-          <div style={{ height: 28, position: 'relative', marginBottom: 4 }}>
+          <div style={{ height: 34, position: 'relative', marginBottom: 6 }}>
             <div style={{
               position: 'absolute',
-              left: dir === 1 ? startOffset + cellW / 2 : undefined,
-              right: dir === -1 ? `calc(100% - ${startOffset + cellW / 2}px)` : undefined,
+              left: dir === 1 ? startCentre : undefined,
+              right: dir === -1 ? `calc(100% - ${startCentre})` : undefined,
               background: tokens.cream, color: glyphColor, border: `2px solid ${glyphColor}`,
-              borderRadius: 8, padding: '2px 9px',
-              fontFamily: 'Fredoka One, cursive', fontSize: 13, whiteSpace: 'nowrap',
+              borderRadius: 10, padding: '3px 10px',
+              fontFamily: 'Fredoka One, cursive', fontSize: 16, whiteSpace: 'nowrap',
             }}>
               {dir === 1 ? `${opGlyph(op)} ${jumpN} →` : `← ${opGlyph(op)} ${jumpN}`}
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap, alignItems: 'flex-end' }}>
-            {Array.from({ length: range + 1 }, (_, i) => {
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cells}, 1fr)`, gap: CELL_GAP }}>
+            {Array.from({ length: cells }, (_, i) => {
               const isStart = i === start
-              const isLanding = isZien && animDone && i === answer
-              const isTrail = isZien && hop > 0 &&
+              const moved = isZien ? hop > 0 : solved
+              const isLanding = (isZien ? animDone : solved) && i === answer && !isStart
+              const isTrail = moved &&
                 (dir === 1 ? i > start && i <= current : i < start && i >= current)
               const isCurrent = isZien && hop > 0 && i === current && !animDone
               const showLabel = !sparse || i === 0 || i === range
@@ -138,22 +132,22 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
                        : isTrail ? `${tokens.accent}55`
                        : tokens.paper
               return (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <div
                     onClick={() => tapCell(i)}
                     style={{
-                      width: cellW, height: cellW, borderRadius: 7, background: bg,
+                      width: '100%', aspectRatio: '1', boxSizing: 'border-box', borderRadius: big ? 10 : 7, background: bg,
                       border: isStart ? `2.5px solid ${tokens.ink}` : isLanding ? `2.5px solid ${tokens.pop}` : `2px solid ${tokens.paperMid}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Fredoka One, cursive', fontSize: Math.floor(cellW * .48),
+                      fontFamily: 'Fredoka One, cursive', fontSize: big ? 22 : 13,
                       color: isStart ? tokens.ink : isLanding ? 'white' : `${tokens.ink}88`,
                       cursor: tappable && !disabled ? 'pointer' : 'default',
-                      transform: isCurrent || isTrail && i === current ? 'scale(1.18)' : 'scale(1)',
+                      transform: isCurrent || isTrail && i === current ? 'scale(1.12)' : 'scale(1)',
                       transition: 'transform .2s ease, background .25s',
                     }}>
-                    {isStart ? start : isLanding ? '?' : ''}
+                    {isStart ? start : isLanding ? (solved ? answer : '?') : ''}
                   </div>
-                  <span style={{ fontSize: 10, color: `${tokens.ink}66`, fontFamily: 'Fredoka One, cursive', minHeight: 12 }}>
+                  <span style={{ fontSize: big ? 15 : 11, color: `${tokens.ink}99`, fontFamily: 'Fredoka One, cursive', minHeight: big ? 18 : 13, lineHeight: 1.1 }}>
                     {showLabel ? i : ''}
                   </span>
                 </div>
@@ -194,6 +188,8 @@ const NumberLine: ExerciseDefinition<NumberLineMeta> = {
     pitfalls: ['Off-by-one from counting the start cell as the first jump', 'Tapping the start instead of the landing', 'Reading cell labels instead of using the structure (probed by the sparse tier)'],
     progression: 'sprong-zien: the sum builds, the line appears, and the jump animates from the first operand to the landing the child reads. sprong-zelf: the child makes the jump by tapping the landing. kale-sprong: same, on a line with only the ends labelled — the structure has to carry it. Watching → doing → doing without labels.',
   },
+  retryStable: [],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
   generateMeta(operandA, operandB, score, problem) {
     return makeMeta(operandA, operandB, score, problem?.op ?? '+')
   },
@@ -216,6 +212,8 @@ const NumberLineBack: ExerciseDefinition<NumberLineMeta> = {
     pitfalls: ['Off-by-one from counting the start cell as the first backward step', 'Jumping forward out of habit', 'Tapping the start instead of the landing'],
     progression: 'Same ladder as the forward twin: watch the backward jump → tap the landing yourself → sparse labels.',
   },
+  retryStable: [],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
   generateMeta(operandA, operandB, score, problem) {
     return makeMeta(operandA, operandB, score, problem?.op ?? '-')
   },

@@ -71,7 +71,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'which time + is familiar from the parallel + track — deliberately the second equation shape ' +
     'the child meets, protecting the equals sign as a relation. Post-60 is depth: ' +
     'splits-ontbreken-links (the documented harder position), splits-vrij with the nog-een ' +
-    'variety round (anti one-split bias: a repeat, even order-flipped, is wrong), and ' +
+    'variety round (anti one-split bias: a repeat, even order-flipped, is refused with a warning), and ' +
     'splits-alle (65+), the full descending table incl. 0-rows — systematicity as the capstone. ' +
     'The generator brings 0-splits into the fact space from score 30. Weights are initial ' +
     'guesses pending playtesting.',

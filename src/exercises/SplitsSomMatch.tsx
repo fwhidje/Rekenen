@@ -5,7 +5,9 @@ import type { Problem } from '../curriculum/types'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { SplitView, type SplitRepKind } from './SameSplitOrDifferent'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { useEffect, useState } from 'react'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
 
 // ─── splits-som-match ─────────────────────────────────────────────────────────
 // The relation probe (one fact, three faces): a split representation next to
@@ -72,7 +74,20 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
     boxShadow: '2px 3px 0 rgba(61,47,30,.12)',
   }
 
-  const pick = (i: number) => !disabled && onResolve(i === meta.correctIdx)
+  // Closure: the chosen card stays marked (confirm border) during the hold.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
+  const pick = (i: number) => {
+    if (disabled || answered) return
+    setPicked(i)
+    resolve(i === meta.correctIdx)
+  }
+  const optionStyle = (i: number): React.CSSProperties => ({
+    ...tileStyle,
+    cursor: disabled || answered ? 'default' : 'pointer',
+    ...(solved && picked === i ? { borderColor: tokens.confirm, boxShadow: `0 0 0 3px ${tokens.confirm}` } : {}),
+  })
 
   const prompt = meta.tierId === 'omgekeerd' ? 'Welke splitsing hoort erbij?' : 'Welke som hoort erbij?'
 
@@ -96,12 +111,12 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
       <div style={grid}>
         {meta.tierId === 'omgekeerd'
           ? meta.tiles.map(([p, q], i) => (
-              <div key={i} style={tileStyle} onClick={() => pick(i)}>
+              <div key={i} style={optionStyle(i)} onClick={() => pick(i)}>
                 <SplitView kind={meta.rep} a={p} b={q} size={72} tokens={tokens} />
               </div>
             ))
           : meta.options.map((som, i) => (
-              <div key={i} style={tileStyle} onClick={() => pick(i)}>
+              <div key={i} style={optionStyle(i)} onClick={() => pick(i)}>
                 {somText(som, 30, showResult)}
               </div>
             ))}
@@ -123,9 +138,26 @@ const SplitsSomMatch: ExerciseDefinition<SplitsSomMatchMeta> = {
     ],
     progression: 'som-vol (40): split shown, pick the FULL som with its uitkomst (5 − 1 = 4) — all three numbers visible to match, the gentle entry. som-kiezen (60): same direction but the bare som (5 − 1), so the relation must be reasoned, not digit-matched. omgekeerd (80): som shown, pick the split — the same relation read in the other direction.',
   },
-  generateMeta(operandA, operandB, score, problem?: Problem) {
+  // Retry: the same split picture and the same four options, one tier down
+  // (e.g. the bare soms now shown with their uitkomst). Only the tier — and
+  // with it which list is the option list — changes.
+  retryStable: ['rep', 'split', 'som', 'options', 'tiles'],
+  // The som that belongs to the split, in full.
+  correctStatement: q => equationText(q.op, q.meta.som[0], q.meta.som[1]),
+  generateMeta(operandA, operandB, score, problem?: Problem, ctx?) {
     const tier = pickTier(TIERS, score)
     const op = problem?.op ?? '+'
+    const prev = ctx?.retryOf
+    if (prev) {
+      const same = (x: [number, number], y: [number, number]) => x[0] === y[0] && x[1] === y[1]
+      return {
+        rep: prev.rep, split: prev.split, som: prev.som, options: prev.options, tiles: prev.tiles,
+        correctIdx: tier.id === 'omgekeerd'
+          ? prev.tiles.findIndex(t => same(t, prev.split))
+          : prev.options.findIndex(o => same(o, prev.som)),
+        tierId: tier.id,
+      }
+    }
 
     // The fact's split and its som, per op.
     let split: [number, number]

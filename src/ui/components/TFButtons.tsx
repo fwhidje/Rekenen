@@ -4,10 +4,13 @@ import type { SceneTokens } from '../../presentation/tokens'
 interface Props {
   onPick:   (value: number) => void
   disabled: boolean
+  // The button the child chose; it stays fully visible while the other dims
+  // (the held state before the feedback overlay).
+  picked?:  number | null
   tokens?:  SceneTokens
 }
 
-export function TFButtons({ onPick, disabled, tokens = NATURE_TOKENS }: Props) {
+export function TFButtons({ onPick, disabled, picked = null, tokens = NATURE_TOKENS }: Props) {
   const { ink, confirm, refuse } = tokens
   const buttons = [
     { value: 1, symbol: '✓', bg: confirm, label: 'WAAR' },
@@ -27,7 +30,7 @@ export function TFButtons({ onPick, disabled, tokens = NATURE_TOKENS }: Props) {
             border: `2px solid ${ink}`, borderRadius: 20,
             boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
             cursor: disabled ? 'default' : 'pointer',
-            opacity: disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
+            opacity: picked === value ? 1 : disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
           }}>
           <span style={{ fontSize: 32 }}>{symbol}</span>
           <span style={{ fontSize: 12, letterSpacing: 0.4 }}>{label}</span>

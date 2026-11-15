@@ -49,6 +49,22 @@ export function ExerciseStage({ children, tokens = NATURE_TOKENS, style }: Piece
   )
 }
 
+// Reserved space: content that only becomes relevant later in a question (the
+// answer buttons of a two-phase exercise, a second row) is laid out from the
+// start and merely hidden, so nothing on screen moves when it appears
+// (CLAUDE.md → Exercise behaviour conventions, "nothing moves"). Hidden content
+// is not tappable and not read by assistive tech.
+export function Reserve({ show, children, style }: { show: boolean; children: ReactNode; style?: CSSProperties }) {
+  return (
+    <div aria-hidden={!show} style={{
+      width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center',
+      visibility: show ? 'visible' : 'hidden',
+      pointerEvents: show ? 'auto' : 'none',
+      ...style,
+    }}>{children}</div>
+  )
+}
+
 interface FrameProps {
   title: ReactNode
   children: ReactNode

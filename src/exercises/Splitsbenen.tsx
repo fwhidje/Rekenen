@@ -7,6 +7,8 @@ import { ExerciseTitle, ExerciseStage } from '../presentation/components/Exercis
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
+import { useClosure } from '../presentation/useClosure'
+import { splitText } from './opDisplay'
 
 // ─── splitsbenen (production) ─────────────────────────────────────────────────
 // The compact second notation: the total with two "legs" down to the parts.
@@ -76,16 +78,18 @@ function SplitsbenenComponent({ question, onResolve, disabled, scene }: Exercise
 
   useEffect(() => { setInput('') }, [question])
 
-  const resolve = (v: number) => onResolve(v === missing, { givenAnswer: v })
+  // Closure: the missing leg fills in and is held before the overlay.
+  const { solved, answered, resolve: close } = useClosure(question, onResolve)
+  const resolve = (v: number) => close(v === missing, { givenAnswer: v })
 
   const handleKey = (key: string) => {
-    if (disabled) return
+    if (disabled || answered) return
     if (key === '⌫') { setInput(''); return }
     if (key === '✓') { if (input) resolve(parseInt(input, 10)); return }
     if (input.length < 1) setInput(key)
   }
 
-  const missingDisplay = meta.tierId === 'been-pad' ? (input || '?') : '?'
+  const missingDisplay = solved ? String(missing) : meta.tierId === 'been-pad' ? (input || '?') : '?'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
@@ -95,13 +99,13 @@ function SplitsbenenComponent({ question, onResolve, disabled, scene }: Exercise
         <Benen total={total}
           left={meta.givenSide === 'left' ? String(given) : missingDisplay}
           right={meta.givenSide === 'right' ? String(given) : missingDisplay}
-          activeSide={meta.tierId === 'been-pad' ? (meta.givenSide === 'left' ? 'right' : 'left') : null}
+          activeSide={meta.tierId === 'been-pad' && !solved ? (meta.givenSide === 'left' ? 'right' : 'left') : null}
           tokens={tokens} />
       </ExerciseStage>
 
       {meta.tierId === 'been-pad'
-        ? <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-        : <ChoiceButtons options={meta.options} onPick={resolve} disabled={disabled} tokens={scene?.tokens} />}
+        ? <NumPad onKey={handleKey} disabled={disabled || answered} tokens={scene?.tokens} />
+        : <ChoiceButtons options={meta.options} onPick={resolve} disabled={disabled || answered} tokens={scene?.tokens} />}
     </div>
   )
 }
@@ -119,9 +123,14 @@ const Splitsbenen: ExerciseDefinition<SplitsbenenMeta> = {
     ],
     progression: 'been-keuze (25): the shape is the new content, answer by choice. been-pad (55): typed production. Weight stays silent until 25 so the huisje lands first.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same leg is given — otherwise the missing number changes and it
+  // is a different question.
+  retryStable: ['givenSide'],
+  // The legs hold (partA, partB) left to right, whichever one was given.
+  correctStatement: q => splitText(q.operandA + q.operandB, q.operandA, q.operandB),
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
-    const givenSide = Math.random() < 0.5 ? 'left' : 'right'
+    const givenSide = ctx?.retryOf?.givenSide ?? (Math.random() < 0.5 ? 'left' : 'right')
     const total = operandA + operandB
     const missing = givenSide === 'left' ? operandB : operandA
     return {

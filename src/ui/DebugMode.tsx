@@ -11,6 +11,7 @@ import { exerciseStats, STATS_WINDOW } from '../engine/exerciseStats'
 import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
 import type { AnswerDetail, ExerciseQuestion } from '../exercises/types'
 import { THEMES } from '../presentation/themes'
+import { wrongFeedbackText } from '../presentation/feedback'
 import { SkillBalance } from './SkillBalance'
 
 import '../exercises/index'
@@ -99,7 +100,7 @@ export function DebugMode({ onClose }: Props) {
 
   const handleResolve = useCallback((correct: boolean, detail?: AnswerDetail) => {
     if (feedback || !question) return
-    setFeedback({ ok: correct, message: correct ? 'Goed!' : `Antwoord was ${question.answer}` })
+    setFeedback({ ok: correct, message: correct ? 'Goed!' : wrongFeedbackText(question, getExercise(question.exerciseId)) })
 
     const record = buildAnswerRecord({
       profileId: DEBUG_PROFILE_ID,
@@ -160,7 +161,7 @@ export function DebugMode({ onClose }: Props) {
 
       <div style={{
         position: 'relative', zIndex: 3,
-        minHeight: '100dvh',
+        minHeight: '100dvh', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
       }}>

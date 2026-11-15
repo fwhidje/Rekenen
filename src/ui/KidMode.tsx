@@ -11,7 +11,7 @@ import { diagnostics } from '../engine/diagnostics'
 import { buildAnswerRecord, currentViewport } from '../engine/answerRecord'
 import { loadDeviceSettings } from '../state/deviceSettings'
 import { sync } from '../sync/client'
-import { FEEDBACK } from '../presentation/feedback'
+import { FEEDBACK, wrongFeedbackText } from '../presentation/feedback'
 import { THEMES } from '../presentation/themes'
 
 // Import exercises to register them
@@ -89,7 +89,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
 
     const msg = correct
       ? pick(FEEDBACK.positive)
-      : FEEDBACK.wrongMessage(question.answer)
+      : wrongFeedbackText(question, getExercise(question.exerciseId))
 
     setFeedback({ ok: correct, message: msg })
     setHistory(h => [...h, correct])
@@ -133,7 +133,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
         <ThemeDefs />
         <Background style={{ position: 'absolute', inset: 0 }} />
         <div style={{
-          position: 'relative', zIndex: 3, minHeight: '100dvh',
+          position: 'relative', zIndex: 3, minHeight: '100dvh', boxSizing: 'border-box',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '18px 14px 40px', fontFamily: 'Nunito, sans-serif',
         }}>
@@ -170,7 +170,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
       {/* Main content — exercise directly on background */}
       <div style={{
         position: 'relative', zIndex: 3,
-        minHeight: '100dvh',
+        minHeight: '100dvh', boxSizing: 'border-box',  // padding inside the viewport height — no stray scroll
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: '18px 14px 24px', fontFamily: 'Nunito, sans-serif',
       }}>

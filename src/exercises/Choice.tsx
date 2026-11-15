@@ -7,7 +7,8 @@ import { DotGroup } from '../presentation/components/DotGroup'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'visual', minScore: 0,  label: 'met stippen', description: 'Dots illustrate the operation alongside the equation as a counting aid — two groups for +, a crossed-out group for −.' },
@@ -28,6 +29,7 @@ function ChoiceComponent({ question, onResolve, disabled, scene }: ExerciseCompo
   const fs = meta.showVisual ? 38 : 48
   const glyph = opGlyph(op)
   const glyphColor = opColor(op, tokens)
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -58,11 +60,12 @@ function ChoiceComponent({ question, onResolve, disabled, scene }: ExerciseCompo
           <span style={{ color: glyphColor }}>{glyph}</span>
           <span style={{ color: tokens.pop }}>{operandB}</span>
           <span style={{ color: tokens.ink, opacity: 0.4, fontSize: Math.round(fs * 0.85) }}>=</span>
-          <span style={{ color: tokens.accentText }}>?</span>
+          {/* closure: the "?" becomes the answer and is held before the overlay */}
+          <span style={{ color: tokens.accentText }}>{solved ? answer : '?'}</span>
         </div>
       </ExerciseStage>
 
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
+      <ChoiceButtons options={meta.options} onPick={v => resolve(v === answer, { givenAnswer: v })} disabled={disabled || answered} tokens={scene?.tokens} />
     </div>
   )
 }
@@ -78,8 +81,12 @@ const Choice: ExerciseDefinition<ChoiceMeta> = {
     progression: 'Below score 50 supporting dots accompany the equation (combining groups for +, crossed-out group for −); from 50 the dots drop and only the symbols remain.',
   },
 
-  generateMeta(operandA, operandB, score, problem) {
-    const [colorA, colorB] = pickColors()
+  retryStable: ['colorA', 'colorB'],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+
+  generateMeta(operandA, operandB, score, problem, ctx) {
+    // retry: same dot colours — the picture stays the same picture
+    const [colorA, colorB] = ctx?.retryOf ? [ctx.retryOf.colorA, ctx.retryOf.colorB] : pickColors()
     const tier = pickTier(TIERS, score)
     const op = problem?.op ?? '+'
     // Distractors stay within the plausible range of the problem: for '+' near

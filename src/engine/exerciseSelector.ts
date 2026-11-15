@@ -43,7 +43,9 @@ export function buildRetry(original: ExerciseQuestion): ExerciseQuestion {
   const idx = tiers.findIndex(t => t.id === tierId)
   // One tier below the original; at the lowest tier (or unknown), stay there.
   const target = idx > 0 ? tiers[idx - 1] : tiers[0]
-  const meta = def.generateMeta(original.operandA, original.operandB, target?.minScore ?? 0, original.problem)
+  // The original meta rides along (ctx.retryOf) so the exercise can keep what
+  // defines the question — the retry is the same question with more help.
+  const meta = def.generateMeta(original.operandA, original.operandB, target?.minScore ?? 0, original.problem, { retryOf: original.meta })
   return { ...original, meta, isRetry: true }
 }
 

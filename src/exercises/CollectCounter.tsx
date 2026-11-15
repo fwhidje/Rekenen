@@ -3,7 +3,8 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier, ExerciseDidactics } from './types'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor } from './opDisplay'
+import { opGlyph, opColor, equationText } from './opDisplay'
+import { useClosure } from '../presentation/useClosure'
 
 // ─── collect-counter / collect-counter-down ──────────────────────────────────
 // One component, two registered ids. The counter starts at the given number
@@ -32,6 +33,9 @@ function CollectCounterComponent({ question, onResolve, disabled, scene }: Exerc
   useEffect(() => { setCount(startCount); setTaps(0) }, [question, startCount])
 
   const touched = taps > 0
+  // closure: on a correct ✓ the counter (now the answer) is held, inputs locked
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const locked = disabled || answered
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
@@ -44,9 +48,9 @@ function CollectCounterComponent({ question, onResolve, disabled, scene }: Exerc
           <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 44 }}>=</span>
           <div style={{
             minWidth: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: touched ? tokens.accent : tokens.paper,
+            background: solved ? tokens.confirm : touched ? tokens.accent : tokens.paper,
             color: touched ? 'white' : `${tokens.ink}55`,
-            border: `2px solid ${touched ? tokens.accent : tokens.paperMid}`,
+            border: `2px solid ${solved ? tokens.confirm : touched ? tokens.accent : tokens.paperMid}`,
             borderRadius: 14, fontSize: 44, fontFamily: 'Fredoka One, cursive',
             transition: 'background .18s, border-color .18s',
           }}>{count}</div>
@@ -57,19 +61,19 @@ function CollectCounterComponent({ question, onResolve, disabled, scene }: Exerc
           ['−', tokens.refuse, () => { setCount(c => Math.max(0, c - 1)); setTaps(t => t + 1) }],
           ['+', tokens.confirm, () => { setCount(c => Math.min(10, c + 1)); setTaps(t => t + 1) }],
         ] as const).map(([label, color, fn]) => (
-          <button key={label} onClick={() => !disabled && fn()}
-            style={{ width: 72, height: 72, fontSize: 44, fontFamily: 'Fredoka One, cursive', background: color, color: 'white', border: 'none', borderRadius: 18, cursor: disabled ? 'not-allowed' : 'pointer', boxShadow: `0 5px 16px ${color}55` }}>{label}</button>
+          <button key={label} onClick={() => !locked && fn()}
+            style={{ width: 72, height: 72, fontSize: 44, fontFamily: 'Fredoka One, cursive', background: color, color: 'white', border: 'none', borderRadius: 18, cursor: locked ? 'not-allowed' : 'pointer', boxShadow: `0 5px 16px ${color}55` }}>{label}</button>
         ))}
       </div>
       {/* Confirm unlocks after the first tap — an answer of 0 (1 − 1, "alles
           weg") must be confirmable, so the guard is on touched, not count. */}
-      <button onClick={() => !disabled && touched && onResolve(count === answer, { givenAnswer: count, tapCount: taps })}
-        disabled={disabled || !touched}
+      <button onClick={() => !locked && touched && resolve(count === answer, { givenAnswer: count, tapCount: taps })}
+        disabled={locked || !touched}
         style={{
           padding: '14px 44px', fontSize: 22, fontFamily: 'Fredoka One, cursive',
           background: touched ? tokens.confirm : tokens.paperMid, color: 'white',
           border: 'none', borderRadius: 50,
-          cursor: touched && !disabled ? 'pointer' : 'not-allowed',
+          cursor: touched && !locked ? 'pointer' : 'not-allowed',
           boxShadow: touched ? '0 5px 16px rgba(0,0,0,.18)' : 'none',
           transition: 'background .2s',
         }}>
@@ -91,6 +95,8 @@ const CollectCounter: ExerciseDefinition<CollectCounterMeta> = {
   supportsReveal: false,
   tiers: TIERS,
   didactics: DIDACTICS_UP,
+  retryStable: [],
+  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
   generateMeta: () => ({ tierId: 'counter' }),
   Component: CollectCounterComponent,
 }

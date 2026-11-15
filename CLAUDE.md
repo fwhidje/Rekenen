@@ -175,12 +175,12 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
 | `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
 | `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
-| `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; written order — jump departs from operandA; tier-0 staged reveal: sum builds → line → start → jump → target; Panel + completed-equation closure; full-range line; direction seam for `numberline-jump-back`) |
-| `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60) |
+| `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; written order — jump departs from operandA; tier-0 staged reveal: sum builds → line → start → jump → target; Panel + completed-equation closure; full-range line that fills the stage (50 px cells on the tot-5 line, completed jump drawn on a correct tap); direction seam for `numberline-jump-back`) |
+| `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60, the two houses side by side) |
 | `splitsbenen` | `Splitsbenen.tsx` | ✅ done (second notation; tiers been-keuze 25 / been-pad 55; weight silent until 25 so the huisje lands first) |
 | `splits-ontbreken-rechts` | `SplitsOntbreken.tsx` | ✅ done (tiers is-en-keuze 20 / is-en-pad 40 / vergelijking "5 = 3 + ?" 55; also serves the aanvullen skills via op `-`) |
 | `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
-| `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent) |
+| `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent — both rows on the stage from the start; a repeat gets a warning and another try, it is not counted wrong) |
 | `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; free-entry grid, end validation; left-column duplicate guard in tabel-vol — orange warning teaches uniqueness; for splitsen-10 the guard should likely be dropped) |
 | `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid + Panel; tiers som-vol 40 (full som incl. = uitkomst — gentle entry) / som-kiezen 60 (bare som) / omgekeerd 80; entry lowered to ~40 in the +/− weight tables; distractors are other facts, never the relation's twin) |
 | `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; equation HIDDEN on first attempt, revealed as scaffold on the wrong-answer retry — the sanctioned invariant exception; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
@@ -194,7 +194,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 2. Add its id to `src/exercises/index.ts`
 3. Add or update the skill's weight table in `src/curriculum/weightMatrix.ts`
 4. Run `npm run typecheck` and `npm test` — fix any errors (the test suite includes the curriculum-consistency tripwire; a forgotten weight or registration fails there)
-5. Test in DebugMode
+5. Test in DebugMode — right, and wrong-then-retry; check the conventions (W / R / C / L), L at 375 × 667 and 390 × 844
 6. Update the status tables in this file (status lives here only)
 7. Commit: `feat: add <exercise-id> exercise`
 
@@ -235,7 +235,7 @@ Skills are narrow and atomic. Each carries a 0–100 score that is both the **sc
 
 **The answer stream is the most important schema in the app.** Every answer becomes an `AnswerRecord` (`engine/diagnostics.ts`), persisted per profile in localStorage (`state/diagnosticsStorage.ts`, capped FIFO, `meta` stripped). Records are assembled in exactly one place, `buildAnswerRecord` (`engine/answerRecord.ts`). Extend it additively; everything downstream (weight factors, stats, future scheduler/remediation) is a derivation over it.
 
-**Failure response:** a wrong answer brings the *same problem* back once, one scaffolding tier lower, scene held stable (didactics: re-scaffold, don't move on). Retries are flagged `isRetry` and excluded from factor and stats computations. The `SelectionContext` parameter of `selectExercise` is the seam where this — and the future scheduler — plugs in.
+**Failure response:** a wrong answer brings the *same question* back once, one scaffolding tier lower, scene held stable (didactics: re-scaffold, don't move on). "Same question" is a rule the exercises implement (convention R, below): the retry keeps which part is given, which variant is acted out, etc. Retries are flagged `isRetry` and excluded from factor and stats computations. The `SelectionContext` parameter of `selectExercise` is the seam where this — and the future scheduler — plugs in.
 
 Three independent skill relationships:
 - **`unlockedBy`** — list of prereq skill ids; ALL must be unlocked AND at score ≥ `UNLOCK_THRESHOLD` before this skill becomes available. Archived prereqs satisfy implicitly (archival requires the capped score).
@@ -264,6 +264,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question; `SelectionContext` (retry one tier down, repeat avoidance); re-draws instead of returning null |
 | `src/engine/answer.ts` | `computeAnswer(problem)` + `problemOperands(problem)` (legacy a/b view) |
 | `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Carries `tiers` (declared scaffolding levels) and `didactics`; optional `isCompatible(a, b)` guard. Also `ExerciseTier`, `ExerciseDidactics`, `AnswerDetail` (the optional `onResolve` payload). |
+| `src/exercises/conventions.test.ts` | Tripwire for the behaviour conventions (W wrong text, R retry stability, C closure) + `PENDING_AUDIT`, the list of exercises not yet checked against them |
 | `src/exercises/tiers.ts` | Shared `pickTier(tiers, score)` — picks the active scaffolding tier (highest `minScore <= score`) |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
 | `src/exercises/choiceOptions.ts` | Shared range-clamped numeral-distractor builder (`makeNumeralOptions`) — tot-5 never shows a numeral above 5 |
@@ -291,9 +292,10 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
-| `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing (locked feedback constraints) |
+| `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing incl. `closureMs` (locked feedback constraints); `wrongFeedbackText` — the one place the wrong overlay's text is decided |
+| `src/presentation/useClosure.ts` | `useClosure(question, onResolve)` — how every exercise hands in its answer: correct → completed state held `closureMs`, wrong → at once |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
-| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below) |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/deviceSettings.ts` | Per-device preferences (not per profile, never synced) — today only the ⚑ review-flag button toggle |
@@ -313,7 +315,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/ui/SkillTreeScreen.tsx` | Progress override screen: skill tree for one profile, tap a skill → Open hier / Beheerst → preview diff → Toepassen |
 | `src/admin/progressOverride.ts` | Progress override rules (pure): `planOverride(profile, skillId, mode)` → new profile + per-skill diff; `prerequisites`, `blockedBy`, `canOverride` |
 | `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
-| `src/ui/components/` | NumPad, ChoiceButtons, TFButtons |
+| `src/ui/components/` | NumPad (`compact` for tall stages), ChoiceButtons, TFButtons (`picked` stays lit during the closure) |
 
 ## Unified exercise shell (locked)
 
@@ -326,12 +328,51 @@ Every exercise wears the same chrome, from `presentation/components/ExerciseFram
 
 `paper` and `cream` are identical across all themes, so the shell colour is constant regardless of scene (never use the theme-varying `containerBg` for a stage). `rekenverhaal`'s multi-line story is its title band (via `ExerciseTitle` with a style override).
 
+## Exercise behaviour conventions (locked)
+
+Four rules every exercise follows, so the child meets the same behaviour everywhere. W, R and C are enforced by `src/exercises/conventions.test.ts`; L needs a browser.
+
+**W — wrong answer: the overlay shows the correct fact, as the child should read it.**
+- Decided in one place: `wrongFeedbackText(question, def)` (`presentation/feedback.ts`), used by KidMode and DebugMode.
+- An exercise declares `correctStatement(question)` on its definition and returns the completed statement in the wording that was on screen: `"3 + 2 = 5"` (`equationText`), `"5 is 2 en 3"` (`splitText`), `"5 = 2 + 3"`.
+- It returns `null` when no single statement is the answer (open production: `splits-vrij`, `splits-alle`, twee-huisjes) → the neutral `FEEDBACK.wrongNeutral` ("Dat klopt nog niet").
+- Never show a number that was not asked for. `question.answer` is the *total* for a split, so the default (no declaration) is neutral for split problems and "Het antwoord is N" only for the other operations.
+- Judgement / matching exercises (`tf`, `splits-som-match`) show the true equation, not a bare number.
+
+**R — retry: the same question, one tier down.**
+- `buildRetry` regenerates meta at the lower tier and passes the original meta as `ctx.retryOf` (5th argument of `generateMeta`).
+- Every random choice that defines *what is asked* is copied from `ctx.retryOf`: which part is given (`givenSide`, `given`), the semantic variant (erbij / samenvoegen story), the pre-printed cells, the option set of a matching exercise. Also the look, where it is cheap (dots vs creatures, colours) — the retry must read as the same problem with more help.
+- Only tier-dependent fields change (`tierId`, reveal kind, choice vs numpad, whether an aid is shown).
+- A retry never gives *less* help than the original.
+- The definition lists these fields in `retryStable` (possibly `[]`); the test draws questions at every tier and checks `buildRetry` preserves them.
+- Sanctioned exception — `tf`: the fact is kept, the statement is drawn afresh (the overlay has just shown the true equation; the identical statement would be answered by flipping the previous answer).
+
+**C — correct answer: show the completed state, hold it, then resolve.**
+- Exercises never call `onResolve` themselves. They call `resolve(correct, detail)` from `useClosure(question, onResolve)` (`presentation/useClosure.ts`).
+- Correct → `solved` turns true: the exercise fills its "?" with the answer (boxed slots use `AnswerSlot`, which turns to the confirm colour; inline "?" becomes the number), or marks the chosen card / button. That state is held `FEEDBACK.closureMs` (800 ms) before the overlay.
+- Wrong → resolves at once (the overlay names the correct fact; the retry follows).
+- `answered` locks the exercise's own inputs during the hold. A second `resolve` for the same question is ignored.
+- A typed-but-unconfirmed entry uses the accent colour; the confirm colour is reserved for `solved`.
+
+**L — layout: nothing moves, and the question fits the screen.**
+- From the moment a question is on screen until it is answered, the title band, the stage and the input area keep their position and height. Things appear, fade and change *in place*.
+- Anything that appears later reserves its space from the start: answer buttons of a two-phase exercise go in `<Reserve show={…}>` (`ExerciseFrame`); later items are laid out from the start and faded in (opacity), never inserted.
+- Groups that grow use a fixed grid sized for the final count (`erbij-tap`'s pen), so a new item never wraps the stage taller.
+- A title that changes during a question keeps the same number of lines; a warning that replaces the title has the title band's height (same font size and padding, one line).
+- The whole question fits **375 × 667** without scrolling, measured at **390 × 844** too. Tall stages make room: two houses side by side at a smaller size, `NumPad compact`, tighter stage padding.
+- The exercise column is `border-box` inside `100dvh` (KidMode / DebugMode / the inspector's replay frame): the page itself never scrolls.
+- Stages that set a width use `boxSizing: 'border-box'` — a `width: 100%` stage with padding otherwise sticks out of the screen and is clipped.
+- Tap targets on the stage are at least ~44 px where the range allows (the tot-5 number line: 50 px cells).
+- **How to check** (no test can — jsdom has no layout): play the exercise right and wrong-then-retry at both sizes and confirm nothing shifts; when automating, sample `offsetTop` / `offsetHeight` of the title, stage and input (not `getBoundingClientRect`, which a button's press animation distorts) and `document.documentElement.scrollHeight` / `scrollWidth`.
+
+**Audit status.** The exercises of `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` follow W / R / C / L (Nov 2026; L measured in a browser at both sizes). The others — the getalbegrip and splitsen-herken exercises — predate the conventions and are **not yet checked**: they are listed in `PENDING_AUDIT` in `conventions.test.ts`, which is the to-do list (code is authoritative; no copy here). **A later run must go through that list**: bring each exercise in line, declare `retryStable` + `correctStatement`, route answers through `useClosure`, verify L in a browser, remove its id from the list. Until then they only get the safe default of W. A new exercise never goes on the list.
+
 ## Adding a new exercise type
 
 1. Create `src/exercises/MyExercise.tsx` with a typed `Meta` interface, a component, and call `registerExercise(...)`.
 2. Declare `const TIERS: ExerciseTier[]` (even a single `minScore: 0` tier). In `generateMeta`, derive the active tier with `pickTier(TIERS, score)` and stamp `meta.tierId = tier.id` — don't reintroduce an inline `pickStage`/threshold function. The component switches on the tier.
 3. Wear the shell: render an `<ExerciseTitle>` and (unless pure choose-between-cards) an `<ExerciseStage>`, input outside it (see Unified exercise shell above).
-4. Fill `tiers` and `didactics` on the definition (see Blueprint). When the child answers, pass what you cheaply know via the optional `onResolve(correct, { givenAnswer, tapCount })` so diagnostics can classify.
+4. Fill `tiers` and `didactics` on the definition (see Blueprint). Follow the behaviour conventions (W / R / C / L, above): answer through `useClosure`'s `resolve(correct, { givenAnswer, tapCount })` — pass what you cheaply know so diagnostics can classify — declare `retryStable` and `correctStatement`, keep what is asked stable via `ctx.retryOf`, and check in a browser that nothing moves and the question fits.
 5. Import it in `src/exercises/index.ts`.
 6. Reference its id in any skill's `applicableExercises` in `skills.ts`.
 7. Add a weight in `src/curriculum/weightMatrix.ts`. An applicable + registered exercise with zero weight everywhere is flagged as dead by `validate.ts` (dev console + `npm test`).
@@ -363,7 +404,8 @@ The didactic + diagnostic fields are *required* and exist to make the curriculum
 - A skill states its starting point, its goal, and its top pitfalls — no empty `goal`/`startingPoint` once done.
 - An exercise documents every tier's scaffolding intent and the concrete→abstract logic of their order.
 - Scaffolding thresholds live in `TIERS`, never in an inline `if (score < n)` — and `generateMeta` stamps `tierId`.
-- An exercise reports `givenAnswer` (and `tapCount` for multi-step) via `onResolve` wherever it cheaply can, so answers are classifiable.
+- An exercise reports `givenAnswer` (and `tapCount` for multi-step) via `useClosure`'s `resolve` wherever it cheaply can, so answers are classifiable.
+- An exercise follows the behaviour conventions (W / R / C / L) and declares `retryStable` + `correctStatement`.
 - Every skill has an `EXERCISE_PLAN` entry.
 
 ## Review flag ⚑ (admin)

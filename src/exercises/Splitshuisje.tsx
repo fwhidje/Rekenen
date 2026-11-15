@@ -8,6 +8,8 @@ import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
+import { useClosure } from '../presentation/useClosure'
+import { splitText } from './opDisplay'
 
 // ─── splitshuisje (production) ────────────────────────────────────────────────
 // The house the child knows from splitsen-herken, but now WRITTEN: the roof
@@ -16,9 +18,11 @@ import { NumPad } from '../ui/components/NumPad'
 // UNSPLIT, single-colour pattern (a colour-split roof would collapse this
 // back into herken), and at most one part appears as a bare numeral.
 
+// One house fills the stage; the two houses of twee-huisjes stand side by side
+// at a smaller size, so the numpad stays on screen (the question must fit the
+// viewport — CLAUDE.md → Exercise behaviour conventions).
 const ROOM = 76
-const HOUSE_W = ROOM * 2 + 6
-const ROOF_H = 58
+const ROOM_PAIR = 60
 
 const TIERS: ExerciseTier[] = [
   { id: 'één-kamer',      minScore: 0,  label: 'één kamer',      description: 'One room prefilled, unsplit die-aid in the roof; the missing part is generated mentally and picked from four numerals.' },
@@ -51,7 +55,8 @@ function PlainDie({ n, colour, size }: { n: number; colour: string; size: number
   )
 }
 
-function House({ total, left, right, activeCell, dieAid, tokens }: {
+function House({ total, left, right, activeCell, dieAid, tokens, room: ROOM_SIZE = ROOM }: {
+  room?: number
   total: number
   left: string; right: string
   activeCell: 'left' | 'right' | null
@@ -59,12 +64,14 @@ function House({ total, left, right, activeCell, dieAid, tokens }: {
   tokens: typeof NATURE_TOKENS
 }) {
   const { ink, paper, dot, accent } = tokens
+  const HOUSE_W = ROOM_SIZE * 2 + 6
+  const ROOF_H = Math.round(ROOM_SIZE * 0.76)
   const room = (val: string, active: boolean, key: string) => (
     <div key={key} style={{
-      width: ROOM, height: ROOM, background: paper,
+      width: ROOM_SIZE, height: ROOM_SIZE, boxSizing: 'border-box', background: paper,
       border: `2px solid ${active ? accent : ink}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Fredoka One, cursive', fontSize: 40,
+      fontFamily: 'Fredoka One, cursive', fontSize: Math.round(ROOM_SIZE * 0.53),
       color: val === '?' ? `${ink}55` : ink,
       boxShadow: active ? `inset 0 0 0 2px ${accent}` : 'none',
     }}>{val}</div>
@@ -78,7 +85,7 @@ function House({ total, left, right, activeCell, dieAid, tokens }: {
             fill="none" stroke={ink} strokeWidth={2} strokeLinejoin="round" />
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 6, paddingBottom: 4 }}>
-          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: ink, lineHeight: 1 }}>{total}</span>
+          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: Math.round(ROOM_SIZE * 0.37), color: ink, lineHeight: 1 }}>{total}</span>
           {dieAid && <PlainDie n={total} colour={dot} size={30} />}
         </div>
       </div>
@@ -103,50 +110,33 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
   const [cells, setCells] = useState<number[]>([])
   // single-house numpad input
   const [input, setInput] = useState('')
-  // linger state: show completed house before handing off to onResolve
-  const [solvedAnswer, setSolvedAnswer] = useState<number | null>(null)
-  const [solvedDouble, setSolvedDouble] = useState(false)
+  // Closure: the completed house(s) are held before the overlay.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
-  useEffect(() => { setCells([]); setInput(''); setSolvedAnswer(null); setSolvedDouble(false) }, [question])
-
-  useEffect(() => {
-    if (solvedAnswer === null) return
-    const t = setTimeout(() => onResolve(true, { givenAnswer: solvedAnswer }), 800)
-    return () => clearTimeout(t)
-  }, [solvedAnswer, onResolve])
-
-  useEffect(() => {
-    if (!solvedDouble) return
-    const t = setTimeout(() => onResolve(true), 800)
-    return () => clearTimeout(t)
-  }, [solvedDouble, onResolve])
+  useEffect(() => { setCells([]); setInput('') }, [question])
 
   const prompt = meta.tierId === 'twee-huisjes'
     ? 'Maak twee verschillende splitsingen!'
     : 'Vul het huisje in!'
 
-  const resolveSingle = (v: number) => {
-    if (v === missing) setSolvedAnswer(v)
-    else onResolve(false, { givenAnswer: v })
-  }
+  const resolveSingle = (v: number) => resolve(v === missing, { givenAnswer: v })
 
   const handleKeySingle = (key: string) => {
-    if (disabled || solvedAnswer !== null) return
+    if (disabled || answered) return
     if (key === '⌫') { setInput(''); return }
     if (key === '✓') { if (input) resolveSingle(parseInt(input, 10)); return }
     if (input.length < 1) setInput(key)
   }
 
   const handleKeyDouble = (key: string) => {
-    if (disabled || solvedDouble) return
+    if (disabled || answered) return
     if (key === '⌫') { setCells(c => c.slice(0, -1)); return }
     if (key === '✓') {
       if (cells.length === 4) {
         const [a1, b1, a2, b2] = cells
         const valid = a1 + b1 === total && a2 + b2 === total
         const different = !splitEq(a1, b1, a2, b2)
-        if (valid && different) setSolvedDouble(true)
-        else onResolve(false)
+        resolve(valid && different)
       }
       return
     }
@@ -154,11 +144,11 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
   }
 
   const cellVal = (i: number) => (cells.length > i ? String(cells[i]) : '?')
-  const activeIdx = solvedDouble ? null : cells.length
+  const activeIdx = solved ? null : cells.length
 
   // When solved, show the missing room filled with the correct answer
-  const singleMissingDisplay = solvedAnswer !== null
-    ? String(solvedAnswer)
+  const singleMissingDisplay = solved
+    ? String(missing)
     : (meta.tierId === 'één-kamer' ? '?' : (input || '?'))
 
   return (
@@ -168,16 +158,16 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
       {meta.tierId === 'twee-huisjes' ? (
         <>
           <ExerciseStage tokens={tokens}>
-            <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <House total={total} left={cellVal(0)} right={cellVal(1)}
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+              <House room={ROOM_PAIR} total={total} left={cellVal(0)} right={cellVal(1)}
                 activeCell={activeIdx === 0 ? 'left' : activeIdx === 1 ? 'right' : null}
                 dieAid={false} tokens={tokens} />
-              <House total={total} left={cellVal(2)} right={cellVal(3)}
+              <House room={ROOM_PAIR} total={total} left={cellVal(2)} right={cellVal(3)}
                 activeCell={activeIdx === 2 ? 'left' : activeIdx === 3 ? 'right' : null}
                 dieAid={false} tokens={tokens} />
             </div>
           </ExerciseStage>
-          <NumPad onKey={handleKeyDouble} disabled={disabled || solvedDouble} tokens={scene?.tokens} />
+          <NumPad onKey={handleKeyDouble} disabled={disabled || answered} tokens={scene?.tokens} />
         </>
       ) : (
         <>
@@ -185,12 +175,12 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
             <House total={total}
               left={meta.givenSide === 'left' ? String(given) : singleMissingDisplay}
               right={meta.givenSide === 'right' ? String(given) : singleMissingDisplay}
-              activeCell={solvedAnswer !== null || meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
+              activeCell={solved || meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
               dieAid={meta.tierId === 'één-kamer'} tokens={tokens} />
           </ExerciseStage>
           {meta.tierId === 'één-kamer'
-            ? <ChoiceButtons options={meta.options} onPick={resolveSingle} disabled={disabled || solvedAnswer !== null} tokens={scene?.tokens} />
-            : <NumPad onKey={handleKeySingle} disabled={disabled || solvedAnswer !== null} tokens={scene?.tokens} />}
+            ? <ChoiceButtons options={meta.options} onPick={resolveSingle} disabled={disabled || answered} tokens={scene?.tokens} />
+            : <NumPad onKey={handleKeySingle} disabled={disabled || answered} tokens={scene?.tokens} />}
         </>
       )}
     </div>
@@ -210,9 +200,17 @@ const Splitshuisje: ExerciseDefinition<SplitshuisjeMeta> = {
     ],
     progression: 'één-kamer: one room prefilled, unsplit die-aid in the roof, choice entry. één-kamer-kaal (30): aid gone, numpad — production from the numeral alone. twee-huisjes (60): two different splits of the same roof, pushing variety.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same room stays given — otherwise the missing number changes
+  // and it is a different question.
+  retryStable: ['givenSide'],
+  // The rooms hold (partA, partB) left to right, whichever one was given.
+  // twee-huisjes has no single answer (any two different splits) → neutral.
+  correctStatement: q => q.meta.tierId === 'twee-huisjes'
+    ? null
+    : splitText(q.operandA + q.operandB, q.operandA, q.operandB),
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
-    const givenSide = Math.random() < 0.5 ? 'left' : 'right'
+    const givenSide = ctx?.retryOf?.givenSide ?? (Math.random() < 0.5 ? 'left' : 'right')
     const total = operandA + operandB
     const missing = givenSide === 'left' ? operandB : operandA
     return {
