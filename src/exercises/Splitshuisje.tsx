@@ -110,10 +110,13 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
   const [cells, setCells] = useState<number[]>([])
   // single-house numpad input
   const [input, setInput] = useState('')
+  // twee-huisjes: the second house repeats the first (order-flipped counts) —
+  // a hint and another try, not a wrong answer (same as splits-vrij).
+  const [sameWarning, setSameWarning] = useState(false)
   // Closure: the completed house(s) are held before the overlay.
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
-  useEffect(() => { setCells([]); setInput('') }, [question])
+  useEffect(() => { setCells([]); setInput(''); setSameWarning(false) }, [question])
 
   const prompt = meta.tierId === 'twee-huisjes'
     ? 'Maak twee verschillende splitsingen!'
@@ -130,13 +133,20 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
 
   const handleKeyDouble = (key: string) => {
     if (disabled || answered) return
+    if (sameWarning) setSameWarning(false)
     if (key === '⌫') { setCells(c => c.slice(0, -1)); return }
     if (key === '✓') {
       if (cells.length === 4) {
         const [a1, b1, a2, b2] = cells
         const valid = a1 + b1 === total && a2 + b2 === total
         const different = !splitEq(a1, b1, a2, b2)
-        resolve(valid && different)
+        if (valid && !different) {
+          // both houses are right, but the same: empty the second and ask again
+          setSameWarning(true)
+          setCells(c => c.slice(0, 2))
+        } else {
+          resolve(valid && different)
+        }
       }
       return
     }
@@ -153,7 +163,7 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
+      <ExerciseTitle tokens={tokens} warning={sameWarning ? 'Dat is dezelfde!' : undefined}>{prompt}</ExerciseTitle>
 
       {meta.tierId === 'twee-huisjes' ? (
         <>
@@ -196,7 +206,7 @@ const Splitshuisje: ExerciseDefinition<SplitshuisjeMeta> = {
     goal: 'Produce splits in the canonical splitshuisje notation: the roof gives the whole, the child writes the parts. The parts are never shown — the missing room comes out of part-whole knowledge, not off the screen.',
     pitfalls: [
       'Echoing the roof or the given room instead of the complement.',
-      'At twee-huisjes: producing the same split twice, possibly order-flipped (one-split bias — order-equivalent counts as the same).',
+      'At twee-huisjes: producing the same split twice, possibly order-flipped (one-split bias — order-equivalent counts as the same). Refused with a hint and another try; totals 2 and 3 need a 0-split for the second house.',
     ],
     progression: 'één-kamer: one room prefilled, unsplit die-aid in the roof, choice entry. één-kamer-kaal (30): aid gone, numpad — production from the numeral alone. twee-huisjes (60): two different splits of the same roof, pushing variety.',
   },

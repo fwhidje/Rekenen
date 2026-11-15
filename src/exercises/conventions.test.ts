@@ -14,6 +14,8 @@ import type { ExerciseQuestion } from './types'
 //   W  wrong-answer text   — declared (`correctStatement`), never a split's total
 //   R  retry               — declared (`retryStable`) and really preserved
 //   C  closure             — answers go through useClosure, never onResolve directly
+//   Q  quantities          — groups come from the shared 5-row / die components,
+//                            never from a free-wrapping container
 // (L, "nothing moves / fits the screen", needs a real browser — see CLAUDE.md.)
 //
 // PENDING_AUDIT is the to-do list: exercises that have NOT yet been checked
@@ -132,5 +134,14 @@ describe('C — closure', () => {
   it.each(convertedFiles)('%s resolves through useClosure only', (path, src) => {
     expect(src.includes('useClosure('), `${path} must use useClosure`).toBe(true)
     expect(/\bonResolve\(/.test(src), `${path} calls onResolve directly — go through useClosure's resolve`).toBe(false)
+  })
+})
+
+// Q — a converted file draws its groups with the shared components (FiveRow via
+// DotGroup / SceneGroup, or the die patterns). A wrapping flex container is how
+// "4 as 3-over-1" gets on screen, so none may remain.
+describe('Q — quantities are structured', () => {
+  it.each(convertedFiles)('%s has no free-wrapping layout', (path, src) => {
+    expect(/flexWrap/.test(src), `${path}: use FiveRow (or a die pattern) instead of a wrapping flex container`).toBe(false)
   })
 })

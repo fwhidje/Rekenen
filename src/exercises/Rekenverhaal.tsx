@@ -10,23 +10,32 @@ import { ExerciseTitle, ExerciseStage } from '../presentation/components/Exercis
 import { opGlyph, opColor, equationText } from './opDisplay'
 import { useClosure } from '../presentation/useClosure'
 import { AnswerSlot } from '../presentation/components/AnswerSlot'
+import { FiveRow } from '../presentation/components/FiveRow'
 
 // ─── rekenverhaal ─────────────────────────────────────────────────────────────
 // The mini story problem: short sentences whose WORDS carry the semantics
-// (erbij / samenvoegen / wegnemen), acted out by the scene creatures. This is
-// the post-60 semantic-width probe of the language gradient: sub-60 exercises
-// pair a cue phrase with an animation; here the sentence comes first and the
-// animation is support. The equation builds piece by piece as the story
-// unfolds (invariant: visible by answer time), so the words introduce each
-// number — but the child reads the operation from the story.
-// (Superseded for the FIRST attempt: the equation is hidden there and shown
-// only on the retry — see the answer area below and CLAUDE.md → invariants.)
-// Weight-controlled, never a gate: a weak reader meets it rarely, and the
-// replay button re-acts the story without text.
+// (erbij / samenvoegen / wegnemen). This is the post-60 semantic-width probe of
+// the language gradient: sub-60 exercises pair a cue phrase with an animation;
+// here the sentence comes first.
+//
+// A child this age may not read fluently and there is no audio, so the story
+// has three levels of help — two tiers and the retry:
+//   tekst      (80): the sentences only. The operation has to come out of the
+//                    words; nothing else on screen gives it away.
+//   tekst-som  (60): the sentences, and the sum forms alongside them
+//                    ("3" with the first sentence, "+ 2" with the second,
+//                    "= ?" with the question) — the fallback rung in between.
+//   retry          : the film plays by itself, the creatures STAY, and the sum
+//                    is shown — the fully pictured version.
+// On a first attempt the film never plays by itself: the ▶ button acts the
+// story out on request (each tap is recorded as a replay), and the creatures
+// leave again when the question comes — a picture that stayed would turn the
+// story into "count what you see".
+// Weight-controlled, never a gate.
 
 const TIERS: ExerciseTier[] = [
-  { id: 'tekst-film', minScore: 60, label: 'tekst + film', description: 'Sentences appear one by one, each acted by the creatures. Reading is supported by watching. (The equation joins only on the retry.)' },
-  { id: 'tekst',      minScore: 80, label: 'enkel tekst',  description: 'The story stands alone; the animation only plays on the replay tap. The words have to carry the operation.' },
+  { id: 'tekst-som', minScore: 60, label: 'tekst + som', description: 'The sentences appear one by one and the sum forms alongside them. The film plays only on the ▶ tap and the creatures leave when the question comes.' },
+  { id: 'tekst',     minScore: 80, label: 'enkel tekst', description: 'The story stands alone — no sum. The film exists only behind the ▶ tap. The words have to carry the operation.' },
 ]
 
 type Variant = 'erbij' | 'samenvoegen' | 'wegnemen'
@@ -71,38 +80,51 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
   const legacyScene = pickScene(meta.sceneIndex)
   const Counter = scene?.Counter
 
-  const isTekst = meta.tierId === 'tekst'
-  // film: step drives text + equation + animation together (input at step 3).
-  // tekst: text + equation complete from the start; step only drives the
-  // animation, which is hidden until the first replay.
-  const [step, setStep] = useState(isTekst ? 3 : 0)
-  const [playing, setPlaying] = useState(!isTekst)
+  const isRetry = !!question.isRetry
+  // The sum is hidden only at the top tier's first attempt (the sanctioned
+  // exception to "the equation is always visible").
+  const showSum = isRetry || meta.tierId !== 'tekst'
+
+  // textStep: how many sentences are on screen (0..3); input unlocks at 3.
+  const [textStep, setTextStep] = useState(0)
+  // film: the acted story's step (0..3), or null when no film is on screen.
+  // Retry: runs with the text and stays. First attempt: only after a ▶ tap,
+  // and it leaves again at the question.
+  const [film, setFilm] = useState<number | null>(isRetry ? 0 : null)
   const [replays, setReplays] = useState(0)
   const [input, setInput] = useState('')
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   useEffect(() => {
-    setStep(isTekst ? 3 : 0)
-    setPlaying(!isTekst)
+    setTextStep(0)
+    setFilm(isRetry ? 0 : null)
     setReplays(0)
     setInput('')
-  }, [question, isTekst])
+  }, [question, isRetry])
 
   useEffect(() => {
-    if (!playing || step >= 3) { setPlaying(p => (step >= 3 ? false : p)); return }
-    const t = setTimeout(() => setStep(s => s + 1), STEP_DELAYS[step])
+    if (textStep >= 3) return
+    const t = setTimeout(() => setTextStep(s => s + 1), STEP_DELAYS[textStep])
     return () => clearTimeout(t)
-  }, [playing, step])
+  }, [textStep])
 
-  const textStep = isTekst ? 3 : step
-  const complete = textStep >= 3 && (isTekst || step >= 3)
-  const showAnim = !isTekst || replays > 0
+  useEffect(() => {
+    if (film === null) return
+    if (film < 3) {
+      const t = setTimeout(() => setFilm(f => (f === null ? null : f + 1)), STEP_DELAYS[film])
+      return () => clearTimeout(t)
+    }
+    // the question has come: on a first attempt the creatures leave
+    if (!isRetry) setFilm(null)
+  }, [film, isRetry])
+
+  const complete = textStep >= 3
+  const step = film ?? 0
 
   const replay = () => {
-    if (disabled || answered) return
+    if (disabled || answered || !complete) return
     setReplays(r => r + 1)
-    setStep(0)
-    setPlaying(true)
+    setFilm(0)
   }
 
   const handleKey = (key: string) => {
@@ -120,12 +142,12 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
 
   const lines = sentences(meta.variant, operandA, operandB)
 
-  const creature = (key: string, ghost: boolean) => (
-    <div key={key} style={{
+  const creature = (ghost: boolean, shown = true) => (
+    <div style={{
       position: 'relative', display: 'inline-block',
-      opacity: ghost ? 0.35 : 1, transition: 'opacity .35s',
+      opacity: !shown ? 0 : ghost ? 0.35 : 1, transition: 'opacity .35s',
     }}>
-      {Counter ? <Counter size={34} /> : <span style={{ fontSize: 30 }}>{legacyScene.e}</span>}
+      {Counter ? <Counter size={32} /> : <span style={{ fontSize: 28 }}>{legacyScene.e}</span>}
       {ghost && (
         <span style={{
           position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -135,31 +157,31 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
     </div>
   )
 
-  // Animation per variant, driven by `step`.
+  // The acted story, driven by `step`. Groups are 5-rows (convention Q) laid
+  // out for their final size, so nothing moves while the film runs.
   const anim = () => {
     const actionDone = step >= 2
+    const group = (n: number, total: number, render: (i: number) => React.ReactNode) =>
+      <FiveRow n={n} total={total} item={32} gap={6} renderItem={render} />
     if (meta.variant === 'samenvoegen') {
       return (
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', gap: 6, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
-            {Array.from({ length: operandA }, (_, i) => creature(`a${i}`, false))}
-          </div>
-          <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', gap: 6, opacity: actionDone ? 1 : 0, transition: 'opacity .3s' }}>
-            {Array.from({ length: operandB }, (_, i) => creature(`b${i}`, false))}
-          </div>
+        <div style={{ display: 'flex', gap: 18 }}>
+          <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>{group(operandA, operandA, () => creature(false))}</div>
+          <div style={{ opacity: actionDone ? 1 : 0, transition: 'opacity .3s' }}>{group(operandB, operandB, () => creature(false))}</div>
         </div>
       )
     }
-    const ghosts = meta.variant === 'wegnemen' && actionDone
-    // The arrivals are laid out from the start and only fade in (nothing moves).
-    const extra = meta.variant === 'erbij' ? operandB : 0
-    const base = operandA
+    if (meta.variant === 'wegnemen') {
+      return (
+        <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+          {group(operandA, operandA, i => creature(actionDone && i >= operandA - operandB))}
+        </div>
+      )
+    }
+    // erbij: one row; the arrivals fade in at their places
     return (
-      <div style={{ background: 'transparent', borderRadius: 14, padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 250, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
-        {Array.from({ length: base }, (_, i) => creature(`a${i}`, ghosts && i >= base - operandB))}
-        {Array.from({ length: extra }, (_, i) => (
-          <div key={`x${i}`} style={{ display: 'inline-block', opacity: actionDone ? 1 : 0, transition: 'opacity .35s' }}>{creature(`x${i}`, false)}</div>
-        ))}
+      <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+        {group(operandA + operandB, operandA + operandB, i => creature(false, i < operandA || actionDone))}
       </div>
     )
   }
@@ -186,27 +208,25 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
       </ExerciseTitle>
 
       <ExerciseStage tokens={tokens} style={{ padding: '14px 24px', gap: 12 }}>
-        {/* The acted story + replay */}
+        {/* The acted story + its ▶ button. The film's place is reserved even
+            when no film is on screen, so the stage keeps its size. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Reserved even when hidden (tekst tier before the replay tap), so the
-              stage keeps its size when the film appears. */}
-          <div style={{ visibility: showAnim ? 'visible' : 'hidden' }}>{anim()}</div>
-          <button onClick={replay} disabled={disabled}
+          <div style={{ visibility: film !== null ? 'visible' : 'hidden' }}>{anim()}</div>
+          <button onClick={replay} disabled={disabled || !complete}
             style={{
               width: 46, height: 46, borderRadius: '50%', border: `2px solid ${tokens.ink}`,
-              background: tokens.paper, fontSize: 20, cursor: disabled ? 'default' : 'pointer',
-              boxShadow: '2px 3px 0 rgba(61,47,30,.12)',
+              background: tokens.paper, fontSize: 20, cursor: disabled || !complete ? 'default' : 'pointer',
+              boxShadow: '2px 3px 0 rgba(61,47,30,.12)', opacity: complete ? 1 : 0.45,
             }}
-            aria-label="speel het verhaal opnieuw">▶</button>
+            aria-label="speel het verhaal">▶</button>
         </div>
 
-        {/* Answer area. On the first attempt only the answer box shows — the
-            story has to be read to know what to type. On the re-scaffolded retry
-            (question.isRetry) the equation is revealed as a scaffold. This is a
-            deliberate exception to the "equation always visible" invariant: the
-            capstone's whole job is to force reading the words. */}
+        {/* Answer area. With showSum the sum forms alongside the sentences; at
+            the top tier's first attempt only the answer box shows — the story
+            has to be read to know what to type (the one sanctioned exception to
+            "the equation is always visible"). */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38 }}>
-          {question.isRetry && <>
+          {showSum && <>
             {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{operandA}</span>)}
             {eqPiece(textStep >= 2, <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>)}
             {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
@@ -230,9 +250,9 @@ const Rekenverhaal: ExerciseDefinition<RekenverhaalMeta> = {
     goal: 'Read the operation out of WORDS: the canonical cue phrases of erbij / samenvoegen / wegnemen, now as a story instead of a label. The semantic-width probe — by here the child has met every phrase bound to its animation; the story asks them to run that binding in reverse.',
     pitfalls: [
       'Picking the operation from a single word ("bij" → always plus) without reading the situation.',
-      'Reading failure masquerading as math failure — mitigated by the replay tap (re-acts the story) and by weight-only exposure (never a gate).',
+      'Reading failure masquerading as math failure — mitigated by the ▶ tap (acts the story out; taps are recorded), the sum-showing tier, the pictured retry, and by weight-only exposure (never a gate).',
     ],
-    progression: 'tekst-film (60): sentences appear one by one, acted by the creatures, the equation building along. tekst (80): the words stand alone; the animation only exists behind the replay tap.',
+    progression: 'tekst-som (60): the sentences, with the sum forming alongside — the rung in between. tekst (80): the words stand alone. In both, the film plays only on the ▶ tap and the creatures leave at the question. Retry: the film plays by itself, the creatures stay, the sum is shown.',
   },
   // Retry: the SAME story (variant decides the sentences), now with the equation.
   retryStable: ['variant', 'sceneIndex'],

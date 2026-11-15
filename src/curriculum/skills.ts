@@ -25,7 +25,7 @@ const EX = {
   choice:         'choice',
   tf:             'tf',
   erbijTap:       'erbij-tap',
-  collectCounter: 'collect-counter',
+  doosje: 'doosje',
   numberlineJump: 'numberline-jump',
 
   // Number sense / pre-arithmetic
@@ -80,7 +80,6 @@ const EX = {
   aanvullenTarget:       'aanvullen-target',
   numberlineJumpBack:    'numberline-jump-back',
   numberlineJumpUpFromB: 'numberline-jump-up-from-b',
-  collectCounterDown:    'collect-counter-down',
 } as const
 
 // ─── Skills ───────────────────────────────────────────────────────────────────
@@ -269,7 +268,7 @@ export const SKILLS: SkillDefinition[] = [
       startingPoint: 'Secure with splitsen-herken-5 — sees a quantity 1–5 as a whole that can contain parts, subitises structured patterns, and reads the numerals. Has not yet met the + sign or the equation form.',
       goal: 'Given any a + 1 or a + 2 within 5, in equation form or acted out (erbij / samenvoegen), answers reliably without recounting the start group from 1: +1 is the buurgetal, +2 is one move of two. Post-60: the bare equation is fast, and a flipped form (1 + 4) is recognised as the same sum, started from the larger number.',
       pitfalls: [
-        'Counting all — rebuilds the start group from 1 instead of counting on from it (the dead-end strategy; erbij-tap and the counter expose it via tap counts).',
+        'Counting all — rebuilds the start group from 1 instead of counting on from it (the dead-end strategy; doosje hides the start group so it cannot be done, erbij-tap covers the row at the question).',
         '+2 as two separate +1 steps — the 2 hasn\'t become a unit (visible as slow, serial answers on +2 while +1 is instant).',
         'Off-by-one at the step over the start group — says the start number again for the first arrival.',
       ],
@@ -279,7 +278,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['optellen-tot-5'],
     subsumedBy: 'optellen-tot-5',
     applicableExercises: [
-      EX.erbijTap, EX.fillVis, EX.numberlineJump, EX.collectCounter,
+      EX.erbijTap, EX.fillVis, EX.numberlineJump, EX.doosje,
       EX.choice, EX.tf, EX.fillPlain,
       EX.splitsSomMatch, EX.rekenverhaal,
     ],
@@ -312,7 +311,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.erbijTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.doosje, EX.numberlineJump,
     ],
     generate: () => {
       const a = rnd(1, 4)
@@ -336,7 +335,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.erbijTap, EX.collectCounter, EX.numberlineJump,
+      EX.erbijTap, EX.doosje, EX.numberlineJump,
     ],
     generate: () => {
       const b = pickFrom([1, 2])
@@ -360,7 +359,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectCounter, EX.numberlineJump, EX.rekenrekAdd,
+      EX.doosje, EX.numberlineJump, EX.rekenrekAdd,
     ],
     generate: () => {
       const b = pickFrom([3, 4])
@@ -384,7 +383,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: null,
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.collectCounter, EX.numberlineJump, EX.rekenrekAdd,
+      EX.doosje, EX.numberlineJump, EX.rekenrekAdd,
     ],
     generate: () => {
       const a = rnd(1, 9)
@@ -456,7 +455,7 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'aftrekken-wegnemen-5',
     applicableExercises: [
       EX.wegneemTap, EX.wegnemenCrossedOut, EX.fillVis,
-      EX.numberlineJumpBack, EX.collectCounterDown,
+      EX.numberlineJumpBack, EX.doosje,
       EX.choice, EX.tf, EX.fillPlain,
       EX.splitsSomMatch, EX.rekenverhaal,
     ],
@@ -490,7 +489,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-verschil-5', 'aftrekken-aanvullen-5', '-1-2-tot-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.collectCounterDown,
+      EX.wegnemenCrossedOut, EX.doosje,
       EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
     ],
     generate: () => {
@@ -573,7 +572,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['-3-4-tot-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.collectCounterDown,
+      EX.wegnemenCrossedOut, EX.doosje,
       EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
     ],
     generate: () => {
@@ -598,7 +597,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-wegnemen-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.collectCounterDown,
+      EX.wegnemenCrossedOut, EX.doosje,
       EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
     ],
     generate: () => {
@@ -623,7 +622,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-verschil-10', 'aftrekken-aanvullen-10'],
     subsumedBy: null,
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.collectCounterDown,
+      EX.wegnemenCrossedOut, EX.doosje,
       EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
     ],
     generate: () => {

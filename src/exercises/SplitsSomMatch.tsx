@@ -18,12 +18,29 @@ import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'som-vol',    minScore: 40, label: 'volledige som', description: 'A split representation is shown; pick the FULL som (incl. = uitkomst) that says the same thing — all three numbers visible to match.' },
-  { id: 'som-kiezen', minScore: 60, label: 'som kiezen',    description: 'A split representation is shown; pick the bare som (no uitkomst) that says the same thing, among soms of OTHER facts.' },
+  { id: 'som-kiezen', minScore: 60, label: 'som kiezen',    description: 'A split representation is shown; pick the som that says the same thing, among soms of OTHER facts. For + with a dice picture the som is bare (no uitkomst); for − and for the mini-huisje it stays in full.' },
   { id: 'omgekeerd',  minScore: 80, label: 'omgekeerd',     description: 'The som is shown; pick the split representation that matches — the same relation read in the other direction.' },
 ]
 
 // Visual reps only — the 'notation' rep would duplicate the som side.
-const REPS: SplitRepKind[] = ['split-die', 'twin-dice', 'mini-huisje']
+// For '−' the picture must SHOW THE WHOLE (one die in two colours, or the
+// huisje with its roof): two separate dice give no whole to subtract from, and
+// reading "4 − 1 = 3" off a 1-die and a 3-die is too big a leap.
+const REPS_PLUS: SplitRepKind[] = ['split-die', 'twin-dice', 'mini-huisje']
+const REPS_MINUS: SplitRepKind[] = ['split-die', 'mini-huisje']
+
+// When is the som written in full ("3 + 2 = 5") rather than bare ("3 + 2")?
+//   • the entry tier (som-vol), always;
+//   • '−', always — the uitkomst is the other part of the split, so the full
+//     sum is what makes the picture and the sum line up;
+//   • the mini-huisje, always — it already prints three numerals (roof + rooms),
+//     so a bare sum would only withhold the one that matches the roof.
+// The same picture means the same fact in the + and the − skill (5 split in
+// 3 and 2 ↔ 3 + 2 = 5 ↔ 5 − 2 = 3); only the dice pictures of '+' ever get the
+// bare som.
+function showsFullSom(tierId: string, op: string, rep: SplitRepKind): boolean {
+  return tierId === 'som-vol' || op === '-' || rep === 'mini-huisje'
+}
 
 // A som as displayed: [first operand, second operand] under the question's op.
 type Som = [number, number]
@@ -54,7 +71,7 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
   const { op, meta } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
 
-  const showResult = meta.tierId === 'som-vol'
+  const showResult = showsFullSom(meta.tierId, op, meta.rep)
   const somText = ([x, y]: Som, fs: number, withResult = false) => (
     <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: fs, display: 'inline-flex', gap: 8, alignItems: 'center' }}>
       <span style={{ color: tokens.accentText }}>{x}</span>
@@ -103,7 +120,7 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
       <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
       <ExerciseStage tokens={tokens}>
         {meta.tierId === 'omgekeerd'
-          ? <div style={{ ...tileStyle, cursor: 'default' }}>{somText(meta.som, 40)}</div>
+          ? <div style={{ ...tileStyle, cursor: 'default' }}>{somText(meta.som, showResult ? 34 : 40, showResult)}</div>
           : <SplitView kind={meta.rep} a={meta.split[0]} b={meta.split[1]} size={110} tokens={tokens} />}
       </ExerciseStage>
 
@@ -198,7 +215,7 @@ const SplitsSomMatch: ExerciseDefinition<SplitsSomMatchMeta> = {
     const omgekeerd = tier.id === 'omgekeerd'
 
     return {
-      rep: REPS[Math.floor(Math.random() * REPS.length)],
+      rep: (op === '-' ? REPS_MINUS : REPS_PLUS)[Math.floor(Math.random() * (op === '-' ? REPS_MINUS : REPS_PLUS).length)],
       split,
       som,
       options: somsShuffled.items,

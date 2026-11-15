@@ -34,8 +34,22 @@ const TIERS: ExerciseTier[] = [
 interface SplitsAlleMeta {
   // per-row: is the right cell pre-printed? (tabel-aanvullen only)
   prefill: boolean[]
+  // Retry only — per-row: is the right cell printed on the retry? When present
+  // it REPLACES `prefill`: a row is printed if it was printed before or the
+  // child had it right; a row the child had wrong is always open. So a retry
+  // keeps correct work, asks again only for what was wrong, and never gives
+  // less help than the first attempt.
+  kept?: boolean[]
+  // The table as the child left it on a wrong submit: [left, right] per row.
+  // Written by the component at that moment (see `submit`) — it is what the
+  // retry's `kept` is derived from, and it rides on the answer record as
+  // evidence of which rows went wrong.
+  entries?: (number | null)[][]
   tierId: string
 }
+
+// How long the wrong rows stay marked before the overlay.
+const WRONG_ROWS_MS = 1500
 
 function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsAlleMeta>) {
   const { operandA, operandB, meta } = question
@@ -44,10 +58,13 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   const total = operandA + operandB
   const rows = total + 1   // total..0 in the left column
 
+  // tabel-aanvullen: is row r's right cell printed for the child?
+  const given = (r: number) => meta.kept ? !!meta.kept[r] : !!meta.prefill[r]
+
   const isRequired = useCallback((r: number, col: number): boolean => {
     if (meta.tierId === 'tabel-vol') return true
-    return col === 1 && !meta.prefill[r]
-  }, [meta])
+    return col === 1 && !given(r)
+  }, [meta]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // cells[row][col]: 0=left, 1=right
   const [cells, setCells] = useState<(number | null)[][]>([])
@@ -59,11 +76,19 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   const { answered, resolve } = useClosure(question, onResolve)
 
   useEffect(() => {
+    const vol = meta.tierId === 'tabel-vol'
     setCells(Array.from({ length: rows }, (_, r) => [
-      meta.tierId === 'tabel-vol' ? null : total - r,
-      meta.tierId === 'tabel-aanvullen' && meta.prefill[r] ? r : null,
+      vol ? null : total - r,
+      !vol && given(r) ? r : null,
     ]))
-    setActiveCell(null)
+    // The first cell to fill is active from the start — typing works at once,
+    // and the highlight shows where to begin.
+    let first: [number, number] | null = null
+    for (let r = 0; r < rows && !first; r++) {
+      if (vol) first = [r, 0]
+      else if (!given(r)) first = [r, 1]
+    }
+    setActiveCell(first)
     setLeftWarning(false)
     setWrongRows(new Set())
     setSubmitting(false)
@@ -85,7 +110,7 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
     const order: [number, number][] = []
     for (let r = 0; r < rows; r++) {
       if (meta.tierId === 'tabel-vol') { order.push([r, 0], [r, 1]) }
-      else if (!meta.prefill[r]) { order.push([r, 1]) }
+      else if (!given(r)) { order.push([r, 1]) }
     }
     const cur = order.findIndex(([r, c]) => r === fromRow && c === fromCol)
     for (let i = cur + 1; i < order.length; i++) {
@@ -106,7 +131,10 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
     } else {
       setWrongRows(wrongSet)
       setSubmitting(true)
-      setTimeout(() => resolve(false, { tapCount }), 800)
+      // Hand the table to the retry (and the record) before resolving: the
+      // retry keeps the rows that were right.
+      meta.entries = currentCells.map(row => [...row])
+      setTimeout(() => resolve(false, { tapCount }), WRONG_ROWS_MS)
     }
   }
 
@@ -160,14 +188,14 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
         onClick={(!required || submitting || disabled || answered) ? undefined : () => { setActiveCell([r, col]); setLeftWarning(false) }}
         style={{
           width: 52, height: 34, boxSizing: 'border-box',
-          background: value !== null ? paperMid : paper,
-          border: `2px solid ${wrong ? '#ef4444' : act ? accent : ink}`,
+          background: wrong ? `${tokens.refuse}40` : value !== null ? paperMid : paper,
+          border: `2px solid ${wrong ? tokens.refuse : act ? accent : ink}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: 'Fredoka One, cursive', fontSize: 22,
           color: value !== null ? ink : `${ink}45`,
           boxShadow: act ? `inset 0 0 0 2px ${accent}` : 'none',
           cursor: required && !submitting && !disabled ? 'pointer' : 'default',
-          transition: 'border-color .12s',
+          transition: 'border-color .12s, background .2s',
         }}
       >{displayVal}</div>
     )
@@ -175,15 +203,7 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>
-      {leftWarning ? (
-        <div style={{
-          background: '#f97316', border: '2px solid #ea6c0a', borderRadius: 18,
-          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 24, color: 'white',
-        }}>Dit getal staat er al!</div>
-      ) : (
-        <ExerciseTitle tokens={tokens}>Alle splitsingen van <span style={{ color: accentText }}>{total}</span>!</ExerciseTitle>
-      )}
+      <ExerciseTitle tokens={tokens} warning={leftWarning ? 'Dit getal staat er al!' : undefined}>Alle splitsingen van <span style={{ color: accentText }}>{total}</span>!</ExerciseTitle>
 
       {/* Compact stage + compact numpad: the 6-row table of 5 and the pad must
           fit the viewport together (CLAUDE.md → conventions, "fits the screen"). */}
@@ -222,7 +242,7 @@ const SplitsAlle: ExerciseDefinition<SplitsAlleMeta> = {
       'Stopping at the "sensible" splits and stumbling on the 0-rows.',
       'Complement errors concentrated in the middle of the table where the pattern helps least.',
     ],
-    progression: 'tabel-aanvullen (65): the left column is pre-printed counting down — the systematic trick is given; the child fills the right column\'s gaps in any order and submits. tabel-vol (85): empty table — the child fills both columns freely; the left-column duplicate guard (orange warning on repeat values) teaches uniqueness; full validation fires on submit and wrong rows are highlighted before the engine retries one tier down.',
+    progression: 'tabel-aanvullen (65): the left column is pre-printed counting down — the systematic trick is given; the child fills the right column\'s gaps (the first one is active from the start, the cursor moves on by itself) and submits. tabel-vol (85): empty table — the child fills both columns; the left-column duplicate guard (a warning on repeat values) teaches uniqueness. On submit the wrong rows are marked; the retry, one tier down, keeps the rows that were right and asks again only for the others.',
   },
   // Retry: the same pre-printed cells — a retry never gives fewer hints.
   retryStable: ['prefill'],
@@ -231,7 +251,17 @@ const SplitsAlle: ExerciseDefinition<SplitsAlleMeta> = {
   generateMeta(operandA, operandB, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
     const total = operandA + operandB
-    if (ctx?.retryOf) return { prefill: ctx.retryOf.prefill, tierId: tier.id }
+    if (ctx?.retryOf) {
+      const prev = ctx.retryOf
+      if (!prev.entries) return { prefill: prev.prefill, kept: prev.kept, tierId: tier.id }
+      // What was printed for the child on the failed attempt (nothing, at tabel-vol).
+      const printed = (r: number) => prev.tierId === 'tabel-vol' ? false : (prev.kept ? !!prev.kept[r] : !!prev.prefill[r])
+      // Row r of the retry has left = total − r: the child had it right when
+      // some row carried that left number with its complement.
+      const right = (r: number) => prev.entries!.some(([l, v]) => l === total - r && v !== null && l + v === total)
+      const kept = Array.from({ length: total + 1 }, (_, r) => printed(r) || right(r))
+      return { prefill: prev.prefill, kept, tierId: tier.id }
+    }
     // pre-print roughly half the right column, never all, never none
     const prefill = Array.from({ length: total + 1 }, () => Math.random() < 0.5)
     if (prefill.every(Boolean)) prefill[0] = false

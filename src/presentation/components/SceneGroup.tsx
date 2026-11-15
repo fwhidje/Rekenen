@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import type { Scene } from '../scenes'
 import type { CounterProps } from '../nature/Counters'
+import { FiveRow } from './FiveRow'
 
 interface Props {
   n: number
@@ -15,6 +16,7 @@ interface Props {
   crossed?: number
 }
 
+// A group of creatures as a 5-row (convention Q — see FiveRow).
 export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
   // With the theme counter the group sits on its parent's panel — the legacy
   // gradient (scene.bg) is the old v1 look and clashes, so drop it. The emoji
@@ -24,14 +26,12 @@ export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
     <div style={{
       background: themed ? 'transparent' : scene.bg,
       borderRadius: 14, padding: themed ? '4px 2px' : '10px 12px',
-      display: 'flex', flexWrap: 'wrap', gap: themed ? 6 : 5, justifyContent: 'center',
-      minWidth: 68, maxWidth: n > 6 ? 158 : 122,
       boxShadow: themed ? 'none' : '0 4px 14px rgba(0,0,0,.18)',
     }}>
-      {Array.from({ length: n }).map((_, i) => {
+      <FiveRow n={n} item={32} gap={6} renderItem={(i) => {
         const isCrossed = i >= n - crossed
         return (
-          <span key={i} style={{
+          <span style={{
             position: 'relative',
             fontSize: 27, lineHeight: 1.1, display: 'inline-flex',
             filter: !themed && scene.dk ? 'drop-shadow(0 0 3px rgba(255,255,255,.25))' : 'none',
@@ -50,7 +50,7 @@ export function SceneGroup({ n, scene, Counter, crossed = 0 }: Props) {
             )}
           </span>
         )
-      })}
+      }} />
     </div>
   )
 }

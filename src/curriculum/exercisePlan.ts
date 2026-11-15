@@ -41,23 +41,25 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'playtesting.',
 
   '+1-2-tot-5':
-    'The entry belongs to the erbij action: erbij-tap (30, fading out by 70) has the child tap ' +
-    'the arrivals into a standing group while the chip counts on — counting on physically ' +
-    'enacted, with the cardinality question hidden-group so a recount can\'t answer it. ' +
-    'fill-vis (30→15) carries the two semantic variants (erbij arrival / samenvoegen merge), ' +
-    'each bound to its canonical cue phrase, and owns the introduction of the + sign via the ' +
-    'reveal. The middle of the curve shifts to seeing and strategy: numberline-jump ramps to 20 ' +
-    'at 40 (sprongetjes: +1/+2 as spatial moves, tiers watch → tap-the-landing → sparse line), ' +
-    'collect-counter stays a low constant as the strategy probe (tap counts expose ' +
-    'counting-all), choice fades its dots at 50. Post-60 is width and automation: tf phases in ' +
-    'from 25 and adds operand-echo traps at 60, fill-plain ramps from 40 to dominance at 100, ' +
-    'and the generator starts serving flipped forms (1 + 4) that the equation tier of fill-vis ' +
-    'answers with the explicit commutativity swap while the action exercises enact from the ' +
-    'larger operand. splits-som-match joins early (from ~40) via a full-som scaffold tier — the ' +
-    'whole som with its uitkomst (2 + 3 = 5) shown so all three numbers match the split — before ' +
-    'the bare-som relation tiers at 60/80. rekenverhaal joins from 60 (the words carry the ' +
-    'semantics — erbij/samenvoegen sentences, replay tap as reading fallback). Weights are ' +
-    'initial guesses pending playtesting.',
+    'The entry belongs to the erbij action: erbij-tap (30, gone by 55; one tier) has the child tap ' +
+    'the waiting arrivals into the start group\'s 5-row while the chip counts on — counting on ' +
+    'physically enacted, with the row covered at the question so a recount can\'t answer it. ' +
+    'fill-vis (30→15) carries the two semantic variants (erbij arrival / samenvoegen), each bound ' +
+    'to its canonical cue phrase, and owns the introduction of the + sign: picture and sum form ' +
+    'together, each number appearing with its group. From 40 it is the bare sum (a wrong answer ' +
+    'brings the picture back). The middle of the curve shifts to seeing and strategy: ' +
+    'numberline-jump ramps to 20 at 40 (sprongetjes: +1/+2 as spatial moves, tiers watch → ' +
+    'tap-the-landing → sparse line), and doosje (12 → 18 at 40 → 8) makes counting on NECESSARY — ' +
+    'the start group sits in a closed box, so only the number on the lid plus the visible ' +
+    'arrivals give the answer. choice fades its dots at 50. Post-60 is width and automation: tf ' +
+    'phases in from 25 and adds operand-echo traps at 60, fill-plain ramps from 40 to dominance ' +
+    'at 100, and the generator starts serving flipped forms (1 + 4) — shown as written, with no ' +
+    'animation. splits-som-match joins early (from ~40) via a full-som scaffold tier — the whole ' +
+    'som with its uitkomst (2 + 3 = 5) shown so all three numbers match the split — before the ' +
+    'relation tiers at 60/80 (bare som for the dice pictures, full som with the mini-huisje). ' +
+    'rekenverhaal joins from 60: the sentences with the sum forming alongside, then (80) the ' +
+    'sentences alone; the film plays only on the ▶ tap, and a wrong answer brings the fully ' +
+    'pictured version. Weights are initial guesses pending playtesting.',
 
   'splitsen-noteren-5':
     'Production complement to splitsen-herken-5; the invariant everywhere is that the parts are ' +
@@ -95,14 +97,14 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'holds a low flat share (15→8) through the whole curve: the static werkboek form, worth ' +
     'recognising in its own right. The middle shifts to structure and strategy: ' +
     'numberline-jump-back ramps to 20 at 40 (counting back as spatial moves, doubling as ' +
-    'backward-counting practice), collect-counter-down stays a low constant as the strategy ' +
-    'probe. Post-60 is width and automation: tf adds reversal traps ("2 − 5 = 3") and ' +
+    'backward-counting practice), and doosje (12 → 18 at 40 → 8) makes counting back ' +
+    'necessary — the whole sits in a closed box, some come out, how many are still inside? Post-60 is width and automation: tf adds reversal traps ("2 − 5 = 3") and ' +
     'operand-echo at 60 — the only place order-sensitivity gets tested, since the generator ' +
     'never produces smaller-first — and fill-plain ramps from 40 to dominance. splits-som-match ' +
     'joins early (from ~40) via a full-som scaffold tier — 5 − 1 = 4 shown whole so all three ' +
-    'numbers match the split — before the bare-som via-splitsing tiers at 60/80 (5 − 1 next to ' +
-    'the split {1,4}). rekenverhaal joins from 60 (wegnemen sentences, replay tap as reading ' +
-    'fallback). The generator serves the two "alles weg" → 0 facts damped below score 30. ' +
+    'numbers match the split. For − the som stays in full at every tier and the picture always ' +
+    'shows the whole (a two-colour die or the huisje, never two separate dice). rekenverhaal ' +
+    'joins from 60 (wegnemen sentences; sum alongside at 60, text alone at 80, film on the ▶ tap). The generator serves the two "alles weg" → 0 facts damped below score 30. ' +
     'Weights are initial guesses pending playtesting.',
   'aftrekken-wegnemen-5': TODO,
   'aftrekken-verschil-5': TODO,

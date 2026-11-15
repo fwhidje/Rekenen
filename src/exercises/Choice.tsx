@@ -41,7 +41,7 @@ function ChoiceComponent({ question, onResolve, disabled, scene }: ExerciseCompo
             equation. For '+' two groups combine; for '−' one whole group with
             the removed part crossed out (the wegnemen after-image). */}
         {meta.showVisual && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center' }}>
             {op === '-' ? (
               <DotGroup n={operandA} color={meta.colorA} crossed={operandB} />
             ) : (
