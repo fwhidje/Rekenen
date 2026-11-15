@@ -409,11 +409,11 @@ Directions, given before any exercise was designed. "Decided" is settled; "direc
 | # | Answer | State |
 |---|---|---|
 | 1 | Timed answers: a time allowance on the first attempt, a longer one on the retry. Not for typed (numpad) answers — the child's dexterity would dominate. Needs testing and balancing. | Direction |
-| 2 | Getalfamilie matters enough to be a skill of its own, or at least part of a skill that follows from the + and − skills. | Direction. Proposed: do not add a node — make the missing-part skill (answer 7) the getalfamilie skill, since "a whole and two parts, any one of them unknown, in any notation" is one piece of knowledge |
-| 3 | Not answered. | Proposed: later than tot 5 — as `rekenverhaal` variants in the tot-10 range |
+| 2 | Getalfamilie matters enough to be a skill of its own, or at least part of a skill that follows from the + and − skills. No new node: the missing-part skill (answer 7) is the getalfamilie skill — "a whole and two parts, any one of them unknown, in any notation" is one piece of knowledge. | Decided. To settle with the skill's design: its id, name and operation tag (`aftrekken-aanvullen-*`, `−`) no longer describe it |
+| 3 | Later than tot 5 — as `rekenverhaal` variants in the tot-10 range. | Decided |
 | 4 | Yes: a + 0, 0 + a and a − 0 belong, possibly from the start of `optellen-tot-5` / `aftrekken-wegnemen-5`. | Decided that they belong. Open: the share (with zero terms allowed, 11 of the 21 sums within 5 contain a 0 — sampled evenly they would be half the skill) and which exercises can show "nothing arrives" |
 | 5 | Leave as is: the 5-structure stays, because it carries the tienvrienden. The child is still in the kleuterklas, so the school's method is unknown. | Decided. Look again when he enters the first year |
-| 6 | Option B (split by total), with two conditions: it must not bore, and it must not gate everything else. | Direction. Constraint for the design: no more gates on the tot-10 arithmetic than today |
+| 6 | Option B (split by total), with two conditions: it must not bore, and it must not gate everything else. The 6–7 and 8–9 bands unlock **at the same time**, not one after the other. | Direction. Constraint for the design: no more gates on the tot-10 arithmetic than today. Open: when the splits of 10 (`tienvrienden`) unlock; whether the bands also wait for `splitsen-noteren-5`. Proposed: `splitsen-herken-5` and `splitsen-noteren-5` get `subsumed_by: null` — no band contains their facts, and with the tot-10 skill gated they cannot archive today anyway |
 | 7 | Yes — redefine `aftrekken-aanvullen-*` as the missing-part skill. | Decided |
 | 8 | Leave as is: "0 meer" is correct. Usage data will show whether it is always answered wrong. | Decided |
 
