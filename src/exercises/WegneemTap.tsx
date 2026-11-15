@@ -7,6 +7,7 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { CountChip } from '../presentation/components/CountChip'
+import { FiveRow } from '../presentation/components/FiveRow'
 import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
 import { useClosure } from '../presentation/useClosure'
 import { opGlyph, opColor, equationText } from './opDisplay'
@@ -158,12 +159,9 @@ function WegneemTapComponent({ question, onResolve, disabled, scene }: ExerciseC
 
         {/* The pen: whole group; leavers fade to crossed ghosts — transparent
             so the single stage colour shows through */}
-        <div style={{
-          borderRadius: 16, padding: '4px 8px',
-          display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
-          maxWidth: 260, minHeight: 52, alignItems: 'center',
-        }}>
-          {Array.from({ length: whole }, (_, i) => renderCreature(i))}
+        <div style={{ padding: '4px 0' }}>
+          {/* a 5-row (convention Q): fixed places, so a leaver never moves the rest */}
+          <FiveRow n={whole} item={40} gap={8} renderItem={renderCreature} />
         </div>
       </ExerciseStage>
 

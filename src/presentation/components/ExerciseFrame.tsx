@@ -24,14 +24,30 @@ interface PieceProps {
 
 // The title band — a cream chip above the stage. `children` is a ReactNode so
 // exercises can colour operands inside the prompt.
-export function ExerciseTitle({ children, tokens = NATURE_TOKENS, style }: PieceProps) {
+//
+// `warning`: a short notice that temporarily takes the title's place ("Dat is
+// dezelfde!"). It is drawn ON the band — the title keeps its box and is only
+// hidden — so a warning never changes the band's size, whatever the title's
+// length (convention L: nothing moves). One short line; it uses the accent
+// colour (a hint, not an error).
+export function ExerciseTitle({ children, tokens = NATURE_TOKENS, style, warning }: PieceProps & { warning?: ReactNode }) {
+  const warn = warning !== undefined && warning !== null && warning !== false
   return (
     <div style={{
-      background: tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
+      position: 'relative',
+      background: warn ? tokens.accent : tokens.cream, border: `2px solid ${tokens.ink}`, borderRadius: 18,
       padding: '8px 22px 10px', boxShadow: SHADOW,
       fontFamily: 'Fredoka One, cursive', fontSize: 24, color: tokens.ink,
-      textAlign: 'center', ...style,
-    }}>{children}</div>
+      textAlign: 'center', transition: 'background .15s', ...style,
+    }}>
+      <div style={{ visibility: warn ? 'hidden' : 'visible' }}>{children}</div>
+      {warn && (
+        <div role="status" style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '0 10px', whiteSpace: 'nowrap',
+        }}>{warning}</div>
+      )}
+    </div>
   )
 }
 

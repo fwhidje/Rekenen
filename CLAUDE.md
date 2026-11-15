@@ -134,9 +134,9 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
 | `splitsen-tot-10` *(TBD: split like tot-5?)* | 🔲 | 🔲 |
 | `tienvrienden` | 🔲 Pass 6 | 🔲 |
-| `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap rework, fill-vis semantic variants + commutativity swap, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) | 🟡 initial guesses |
+| `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap single tier, fill-vis picture-and-sum in step, doosje count-on, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 after a play-through review | 🟡 initial guesses |
 | `optellen-tot-5` and later optellen | 🔲 reachable on the default curve; own tuning round pending | 🔲 |
-| `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back + counter-down twins, fill-vis − grammar live, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) | 🟡 initial guesses |
+| `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back twin, doosje count-back, fill-vis − grammar, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 | 🟡 initial guesses |
 | `aftrekken-wegnemen-5` and later aftrekken | 🔲 reachable on the default curve (needs `optellen-tot-5` ≥ 60 too); own tuning round pending — verschil/aanvullen types not built | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
@@ -165,25 +165,24 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-build-it` | `SplitsBuildIt.tsx` | ✅ done (open: cut + name the hidden part; gericht: 'Splits 5 in 2 en 3', either cut order accepted) |
 | `rekenrek-show` | — | 🅿️ parked (see above) |
 | `dot-pattern-decompose-pad` | — | 🅿️ parked — numpad variant of dot-pattern-decompose at score ≥ 24; uncertain whether worth a separate type (see skill map) |
-| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase + matching reveal grammar; `variant` recorded; commutativity term-swap at equation tier for flipped `+`; `−` grammar built, goes live with the −1-2 round; scene-visual uses the theme `Counter` on a transparent ground via SceneGroup; cue+visual+equation on a shared `Panel`, numpad outside) |
+| `fill-vis` | `FillVisual.tsx` | ✅ reworked (semantic variants erbij/samenvoegen/wegnemen, each with canonical cue phrase; `variant` recorded; picture and sum form TOGETHER — number with its group, sign in both, second number with its group; groups are 5-rows; 2 tiers: beeld + som 0 / kale som 40 (= fill-plain on the first try, picture back on the retry); the commutativity swap was removed) |
 | `fill-plain` | `FillPlain.tsx` | ✅ op-generic (`+`/`−` via opDisplay, tokens) |
 | `choice` | `Choice.tsx` | ✅ op-generic (crossed-dots aid for `−` at visual tier; shared range-clamped distractors, 0 allowed for `−`) |
-| `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands) |
-| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; staged opening reveal — start group + number, then the arrival chunk + cue, then "=?"; items fade in place, no bob/rotate; child still taps arrivals in one by one; written order; calm stable prompt; pen lingers then hides for "hoeveel nu?"; completed-equation closure held ~850ms before the feedback overlay; Panel; tiers doen 0 / voorspel 35) |
-| `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
+| `tf` | `TrueFalse.tsx` | ✅ op-generic, 2 tiers (judge near-miss / strikt at 60: operand-echo + `−` reversal traps via display operands); false statements stay inside the number range (no 6 or 7 in a tot-5 skill) |
+| `erbij-tap` | `ErbijTap.tsx` | ✅ done (replaces collect-tap; ONE tier — the voorspel tier was dropped; staged opening — start group + number, then the waiting arrivals + "Doe er N bij!", then "=?"; start group and arrivals share one 5-row, the arrivals wait a step to the right, pulsing, and each tap slides one home; chip counts on; row lingers then is covered for "hoeveel nu?") |
+| `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers in a 5-row, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
 | `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (werkboek picture: whole drawn, removed part crossed; theme `Counter` via SceneGroup; tiers keuze 0 (cross-out animates one item at a time via useReveal, equation builds, no reflow) / numpad 50 (instant static)) |
 | `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
-| `collect-counter-down` | `CollectCounter.tsx` | ✅ done (downward twin id on the shared component; counter starts at the whole, child taps − down) |
-| `collect-counter` | `CollectCounter.tsx` | ✅ op-generic (counts on from the larger `+` operand / back from the whole; confirm unlocked after first tap so 0 is answerable; `collect-counter-down` id registered with the − round) |
+| `doosje` | `Doosje.tsx` | ✅ done (Nov 2026; replaces `collect-counter` / `collect-counter-down`, which were removed. Op-generic, one id: the first number is a group in a closed box, the lid says how many; b stand outside going in (+) or have come out (−); the hidden group can't be recounted, so the child must count on / back. Tiers kijk 0 (box seen open first) / dicht 35 / intikken 65; on a correct answer the lid lifts and shows the result) |
 | `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; written order — jump departs from operandA; tier-0 staged reveal: sum builds → line → start → jump → target; Panel + completed-equation closure; full-range line that fills the stage (50 px cells on the tot-5 line, completed jump drawn on a correct tap); direction seam for `numberline-jump-back`) |
-| `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60, the two houses side by side) |
+| `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT — small on purpose, a fading aid from herken; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60, the two houses side by side; a repeated split gets "Dat is dezelfde!" and another try, not counted wrong; totals 2 and 3 need a 0-split for the second house — intended) |
 | `splitsbenen` | `Splitsbenen.tsx` | ✅ done (second notation; tiers been-keuze 25 / been-pad 55; weight silent until 25 so the huisje lands first) |
 | `splits-ontbreken-rechts` | `SplitsOntbreken.tsx` | ✅ done (tiers is-en-keuze 20 / is-en-pad 40 / vergelijking "5 = 3 + ?" 55; also serves the aanvullen skills via op `-`) |
 | `splits-ontbreken-links` | `SplitsOntbreken.tsx` | ✅ done (post-60 only: links-keuze 60 / links-pad 80) |
 | `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent — both rows on the stage from the start; a repeat gets a warning and another try, it is not counted wrong) |
-| `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; free-entry grid, end validation; left-column duplicate guard in tabel-vol — orange warning teaches uniqueness; for splitsen-10 the guard should likely be dropped) |
-| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid + Panel; tiers som-vol 40 (full som incl. = uitkomst — gentle entry) / som-kiezen 60 (bare som) / omgekeerd 80; entry lowered to ~40 in the +/− weight tables; distractors are other facts, never the relation's twin) |
-| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; equation HIDDEN on first attempt, revealed as scaffold on the wrong-answer retry — the sanctioned invariant exception; replay tap re-acts it; tiers tekst-film 60 / tekst 80; weight-only, never a gate) |
+| `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; first open cell active from the start, cursor moves on; end validation marks the wrong rows; the retry keeps the rows that were right and reopens only the wrong ones (`meta.entries` → `kept`); left-column duplicate guard in tabel-vol — a warning teaches uniqueness; for splitsen-10 the guard should likely be dropped) |
+| `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid; tiers som-vol 40 / som-kiezen 60 / omgekeerd 80; the som is written in full at som-vol, always for `−`, and always with the mini-huisje — bare only for `+` with a dice picture; for `−` the picture always shows the whole (two-colour die or huisje, never two separate dice); distractors are other facts, never the relation's twin) |
+| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; tiers tekst-som 60 (sentences, the sum forming alongside) / tekst 80 (sentences only — the sanctioned hidden-equation exception); the film never auto-plays on a first attempt: ▶ acts the story out, taps recorded, creatures leave at the question; the retry is the pictured version — film plays, creatures stay, sum shown; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
 | aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
 | tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
@@ -194,7 +193,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 2. Add its id to `src/exercises/index.ts`
 3. Add or update the skill's weight table in `src/curriculum/weightMatrix.ts`
 4. Run `npm run typecheck` and `npm test` — fix any errors (the test suite includes the curriculum-consistency tripwire; a forgotten weight or registration fails there)
-5. Test in DebugMode — right, and wrong-then-retry; check the conventions (W / R / C / L), L at 375 × 667 and 390 × 844
+5. Test in DebugMode — right, and wrong-then-retry; check the conventions (W / R / C / L / Q), L at 375 × 667 and 390 × 844
 6. Update the status tables in this file (status lives here only)
 7. Commit: `feat: add <exercise-id> exercise`
 
@@ -264,7 +263,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question; `SelectionContext` (retry one tier down, repeat avoidance); re-draws instead of returning null |
 | `src/engine/answer.ts` | `computeAnswer(problem)` + `problemOperands(problem)` (legacy a/b view) |
 | `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Carries `tiers` (declared scaffolding levels) and `didactics`; optional `isCompatible(a, b)` guard. Also `ExerciseTier`, `ExerciseDidactics`, `AnswerDetail` (the optional `onResolve` payload). |
-| `src/exercises/conventions.test.ts` | Tripwire for the behaviour conventions (W wrong text, R retry stability, C closure) + `PENDING_AUDIT`, the list of exercises not yet checked against them |
+| `src/exercises/conventions.test.ts` | Tripwire for the behaviour conventions (W wrong text, R retry stability, C closure, Q no free-wrapping groups) + `PENDING_AUDIT`, the list of exercises not yet checked against them |
 | `src/exercises/tiers.ts` | Shared `pickTier(tiers, score)` — picks the active scaffolding tier (highest `minScore <= score`) |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
 | `src/exercises/choiceOptions.ts` | Shared range-clamped numeral-distractor builder (`makeNumeralOptions`) — tot-5 never shows a numeral above 5 |
@@ -278,7 +277,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/FillPlain.tsx` | `fill-plain` — plain numpad |
 | `src/exercises/Choice.tsx` | `choice` — 4-option multiple choice |
 | `src/exercises/TrueFalse.tsx` | `tf` — Waar / niet waar? |
-| `src/exercises/ErbijTap.tsx` | `erbij-tap` — the erbij action performed by the child; counting-on chip; voorspel tier (replaces the removed counting-all `collect-tap`) |
+| `src/exercises/ErbijTap.tsx` | `erbij-tap` — the erbij action performed by the child; counting-on chip; one tier (replaces the removed counting-all `collect-tap`) |
 | `src/exercises/WegneemTap.tsx` | `wegneem-tap` — the wegnemen action performed by the child; counting-back chip; crossed ghosts; voorspel tier |
 | `src/exercises/WegnemenCrossedOut.tsx` | `wegnemen-crossed-out` — static werkboek take-away picture |
 | `src/exercises/Splitshuisje.tsx` | `splitshuisje` — production house (noteren); unsplit roof die-aid |
@@ -289,13 +288,14 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/SplitsSomMatch.tsx` | `splits-som-match` — op-generic split ↔ som relation probe (post-60 width) |
 | `src/exercises/Rekenverhaal.tsx` | `rekenverhaal` — op-generic story problems (post-60 width; language gradient capstone) |
 | `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
-| `src/exercises/CollectCounter.tsx` | `collect-counter` — +/− counter (mid score) |
+| `src/exercises/Doosje.tsx` | `doosje` — op-generic count-on / count-back from a group hidden in a box (replaces the collect-counter pair) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing incl. `closureMs` (locked feedback constraints); `wrongFeedbackText` — the one place the wrong overlay's text is decided |
 | `src/presentation/useClosure.ts` | `useClosure(question, onResolve)` — how every exercise hands in its answer: correct → completed state held `closureMs`, wrong → at once |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
-| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
+| `src/presentation/components/FiveRow.tsx` | The 5-row: the layout for any quantity that changes (convention Q); DotGroup and SceneGroup are built on it |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later, and `ExerciseTitle`'s `warning`, a notice drawn on the band without resizing it), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/deviceSettings.ts` | Per-device preferences (not per profile, never synced) — today only the ⚑ review-flag button toggle |
@@ -330,7 +330,7 @@ Every exercise wears the same chrome, from `presentation/components/ExerciseFram
 
 ## Exercise behaviour conventions (locked)
 
-Four rules every exercise follows, so the child meets the same behaviour everywhere. W, R and C are enforced by `src/exercises/conventions.test.ts`; L needs a browser.
+Five rules every exercise follows, so the child meets the same behaviour everywhere. W, R, C and (roughly) Q are enforced by `src/exercises/conventions.test.ts`; L needs a browser.
 
 **W — wrong answer: the overlay shows the correct fact, as the child should read it.**
 - Decided in one place: `wrongFeedbackText(question, def)` (`presentation/feedback.ts`), used by KidMode and DebugMode.
@@ -358,21 +358,31 @@ Four rules every exercise follows, so the child meets the same behaviour everywh
 - From the moment a question is on screen until it is answered, the title band, the stage and the input area keep their position and height. Things appear, fade and change *in place*.
 - Anything that appears later reserves its space from the start: answer buttons of a two-phase exercise go in `<Reserve show={…}>` (`ExerciseFrame`); later items are laid out from the start and faded in (opacity), never inserted.
 - Groups that grow use a fixed grid sized for the final count (`erbij-tap`'s pen), so a new item never wraps the stage taller.
-- A title that changes during a question keeps the same number of lines; a warning that replaces the title has the title band's height (same font size and padding, one line).
+- A title that changes during a question keeps the same number of lines; a warning is drawn on the band itself (`<ExerciseTitle warning=…>`), so it cannot change the band's size.
 - The whole question fits **375 × 667** without scrolling, measured at **390 × 844** too. Tall stages make room: two houses side by side at a smaller size, `NumPad compact`, tighter stage padding.
 - The exercise column is `border-box` inside `100dvh` (KidMode / DebugMode / the inspector's replay frame): the page itself never scrolls.
 - Stages that set a width use `boxSizing: 'border-box'` — a `width: 100%` stage with padding otherwise sticks out of the screen and is clipped.
 - Tap targets on the stage are at least ~44 px where the range allows (the tot-5 number line: 50 px cells).
 - **How to check** (no test can — jsdom has no layout): play the exercise right and wrong-then-retry at both sizes and confirm nothing shifts; when automating, sample `offsetTop` / `offsetHeight` of the title, stage and input (not `getBoundingClientRect`, which a button's press animation distorts) and `document.documentElement.scrollHeight` / `scrollWidth`.
 
-**Audit status.** The exercises of `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` follow W / R / C / L (Nov 2026; L measured in a browser at both sizes). The others — the getalbegrip and splitsen-herken exercises — predate the conventions and are **not yet checked**: they are listed in `PENDING_AUDIT` in `conventions.test.ts`, which is the to-do list (code is authoritative; no copy here). **A later run must go through that list**: bring each exercise in line, declare `retryStable` + `correctStatement`, route answers through `useClosure`, verify L in a browser, remove its id from the list. Until then they only get the safe default of W. A new exercise never goes on the list.
+**Q — quantities: a 5-row or a die pattern, nothing else.**
+- A group of things is drawn in one of two structured layouts. No free-wrapping clusters — "4 as 3-over-1" teaches nothing and invites counting by ones.
+- **5-row** (`presentation/components/FiveRow.tsx`; `DotGroup` and `SceneGroup` are built on it): five positions per row, filled left to right; 6–10 continue on a second row. Use it for every quantity that *changes* — things are added, removed, tapped, crossed out — and for the groups of a sum. Positions are fixed, so an item that appears or is crossed out never moves its neighbours; `total` reserves the places a group will grow into.
+- **Die pattern** (`presentation/diePatterns.ts`): for a quantity that *stands still to be recognised* — the split pictures (two-colour die, twin dice), the huisje's roof aid.
+- Two groups of a sum stand side by side as two 5-row segments (●●● + ●●), not merged into one cluster.
+- Test proxy: a converted exercise file contains no `flexWrap` — quantities come from the shared components.
+- A deliberate, known consequence of the concrete tiers: where the picture is on screen the answer can be counted. That is the intended support for the entry of `+` and especially `−`; the symbolic exercises take over through the middle of the curve.
+
+**Warnings that are not errors.** A repeated split (`splits-vrij` nog-een, twee-huisjes) and a duplicate left number (`splits-alle`) are refused with a notice on the title band (`<ExerciseTitle warning=…>`) and another try. They are never counted wrong and never resolve the question.
+
+**Audit status.** The exercises of `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` follow W / R / C / L / Q (Nov 2026; L measured in a browser at both sizes). The others — the getalbegrip and splitsen-herken exercises — predate the conventions and are **not yet checked**: they are listed in `PENDING_AUDIT` in `conventions.test.ts`, which is the to-do list (code is authoritative; no copy here). **A later run must go through that list**: bring each exercise in line, declare `retryStable` + `correctStatement`, route answers through `useClosure`, draw quantities per Q, verify L in a browser, remove its id from the list. Until then they only get the safe default of W. A new exercise never goes on the list.
 
 ## Adding a new exercise type
 
 1. Create `src/exercises/MyExercise.tsx` with a typed `Meta` interface, a component, and call `registerExercise(...)`.
 2. Declare `const TIERS: ExerciseTier[]` (even a single `minScore: 0` tier). In `generateMeta`, derive the active tier with `pickTier(TIERS, score)` and stamp `meta.tierId = tier.id` — don't reintroduce an inline `pickStage`/threshold function. The component switches on the tier.
 3. Wear the shell: render an `<ExerciseTitle>` and (unless pure choose-between-cards) an `<ExerciseStage>`, input outside it (see Unified exercise shell above).
-4. Fill `tiers` and `didactics` on the definition (see Blueprint). Follow the behaviour conventions (W / R / C / L, above): answer through `useClosure`'s `resolve(correct, { givenAnswer, tapCount })` — pass what you cheaply know so diagnostics can classify — declare `retryStable` and `correctStatement`, keep what is asked stable via `ctx.retryOf`, and check in a browser that nothing moves and the question fits.
+4. Fill `tiers` and `didactics` on the definition (see Blueprint). Follow the behaviour conventions (W / R / C / L / Q, above): answer through `useClosure`'s `resolve(correct, { givenAnswer, tapCount })` — pass what you cheaply know so diagnostics can classify — declare `retryStable` and `correctStatement`, keep what is asked stable via `ctx.retryOf`, and check in a browser that nothing moves and the question fits.
 5. Import it in `src/exercises/index.ts`.
 6. Reference its id in any skill's `applicableExercises` in `skills.ts`.
 7. Add a weight in `src/curriculum/weightMatrix.ts`. An applicable + registered exercise with zero weight everywhere is flagged as dead by `validate.ts` (dev console + `npm test`).
@@ -405,7 +415,7 @@ The didactic + diagnostic fields are *required* and exist to make the curriculum
 - An exercise documents every tier's scaffolding intent and the concrete→abstract logic of their order.
 - Scaffolding thresholds live in `TIERS`, never in an inline `if (score < n)` — and `generateMeta` stamps `tierId`.
 - An exercise reports `givenAnswer` (and `tapCount` for multi-step) via `useClosure`'s `resolve` wherever it cheaply can, so answers are classifiable.
-- An exercise follows the behaviour conventions (W / R / C / L) and declares `retryStable` + `correctStatement`.
+- An exercise follows the behaviour conventions (W / R / C / L / Q) and declares `retryStable` + `correctStatement`.
 - Every skill has an `EXERCISE_PLAN` entry.
 
 ## Review flag ⚑ (admin)
@@ -485,7 +495,7 @@ npm run build     # production build
 ## Exercise invariants (locked)
 
 - **The equation is always visible.** Every exercise shows the operation — with one documented exception (below). For splitsen the equation analog is the split statement ("5 is 2 en ?"): visible as text from the numeral tiers upward; at fully concrete tiers the structured visual (colour-split die, frame, huisje) carries the same statement.
-  - **Exception — `rekenverhaal`.** The story capstone hides the equation on the first attempt (the whole point is to read the words and extract the math); it reveals the equation as a scaffold only on the re-scaffolded retry (`question.isRetry`). This is the single sanctioned exception, justified because showing the equation would let the child skip reading.
+  - **Exception — `rekenverhaal`, top tier only.** At `tekst` (80) the story hides the equation on the first attempt (the whole point is to read the words and extract the math). The tier below (`tekst-som`, 60) shows the sum forming alongside the sentences, and the retry (`question.isRetry`) shows it with the film. This is the single sanctioned exception, justified because showing the equation would let the child skip reading.
 - **Reveal exercises build the equation piece by piece on a timer.** The sequence is: visual group A → `+` → visual group B → number A → `+` → number B → `= ?`. The child watches, input is locked until complete.
 - **Reveal detail is each exercise's own concern.** Which steps are included and their timing depends on exercise type and score. High score → no reveal, equation is instant.
 - **The visual is an illustration, not a gate.** Dots/scenes appear alongside their number, not instead of it.

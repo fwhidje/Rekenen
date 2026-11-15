@@ -6,6 +6,7 @@ import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { opGlyph, opColor, equationText } from './opDisplay'
+import { numeralRangeMax } from './choiceOptions'
 import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
@@ -53,12 +54,13 @@ function TrueFalseComponent({ question, onResolve, disabled, scene }: ExerciseCo
   )
 }
 
-// A magnitude near-miss: ±1 or ±2 around the true answer, clamped to ≥ 0 and
+// A magnitude near-miss: ±1 or ±2 around the true answer, kept inside the
+// skill's number range (0…max — a tot-5 child is never shown "3 + 2 = 7") and
 // guaranteed ≠ correct (the old unguarded clamp could collapse a "false"
 // statement onto the true answer).
-function nearMiss(correct: number): number {
+function nearMiss(correct: number, max: number): number {
   const candidates = [correct - 2, correct - 1, correct + 1, correct + 2]
-    .filter(v => v >= 0)
+    .filter(v => v >= 0 && v <= max)
   return candidates[Math.floor(Math.random() * candidates.length)]
 }
 
@@ -85,6 +87,7 @@ const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
     const op = problem?.op ?? '+'
     const correct = op === '-' ? operandA - operandB : operandA + operandB
     const isCorrect = Math.random() < 0.5
+    const max = numeralRangeMax(Math.max(operandA, correct))
 
     let displayA = operandA
     let displayB = operandB
@@ -104,9 +107,9 @@ const TrueFalse: ExerciseDefinition<TrueFalseMeta> = {
         const echoes = [operandA, operandB].filter(v => v !== correct)
         shownAnswer = echoes.length > 0
           ? echoes[Math.floor(Math.random() * echoes.length)]
-          : nearMiss(correct)
+          : nearMiss(correct, max)
       } else {
-        shownAnswer = nearMiss(correct)
+        shownAnswer = nearMiss(correct, max)
       }
     }
 

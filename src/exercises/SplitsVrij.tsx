@@ -118,15 +118,7 @@ function SplitsVrijComponent({ question, onResolve, disabled, scene }: ExerciseC
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-      {sameWarning ? (
-        <div style={{
-          background: '#f97316', border: '2px solid #ea6c0a', borderRadius: 18,
-          padding: '8px 22px 10px', boxShadow: '2px 4px 0 rgba(61,47,30,.12)',
-          fontFamily: 'Fredoka One, cursive', fontSize: 24, color: 'white', textAlign: 'center',
-        }}>Dat is dezelfde!</div>
-      ) : (
-        <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
-      )}
+      <ExerciseTitle tokens={tokens} warning={sameWarning ? 'Dat is dezelfde!' : undefined}>{prompt}</ExerciseTitle>
 
       {/* The statement(s) under construction. With two rounds both rows are on
           the stage from the start: the first becomes the greyed referent, the

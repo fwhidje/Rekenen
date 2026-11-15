@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
@@ -16,7 +16,10 @@ import { AnswerSlot } from '../presentation/components/AnswerSlot'
 // ─── Meta ─────────────────────────────────────────────────────────────────────
 
 type VisualKind = 'dots' | 'scene' | 'none'
-type RevealKind = 'visual' | 'equation' | 'instant'
+// 'visual' builds picture and sum together; anything else shows the bare sum
+// at once. (Stored records may still carry the retired 'equation' kind — it
+// renders as the bare sum.)
+type RevealKind = 'visual' | 'instant'
 // Semantic variant: which meaning of the operation the visual acts out. Each
 // variant pairs ONE canonical cue phrase with ONE matching animation — never
 // mixed — so the rekentaal binds to the visual meaning. Lifted into the
@@ -28,34 +31,26 @@ interface FillVisualMeta {
   visualKind: VisualKind
   revealKind: RevealKind
   variant: SemVariant
-  // Post-60 '+' problems can arrive small-addend-first (1 + 4); at the
-  // equation tier the two terms then visibly trade places after the build —
-  // the "je mag het omdraaien" demonstration. The swap is explicit because
-  // enacting-from-the-larger alone is too implicit to read as a strategy.
-  commuteSwap: boolean
   sceneIndex: number
   colorA: string
   colorB: string
   tierId: string
 }
 
-// Tier ids double as the reveal kind: the score band picks how much of the
-// equation is built up before input unlocks.
 const TIERS: ExerciseTier[] = [
-  { id: 'visual',   minScore: 0,  label: 'volledige opbouw', description: 'Full piece-by-piece reveal: the semantic action (erbij arrival / samenvoegen merge / wegnemen leave) with its cue phrase, then numbers, then "= ?". Maximum support.' },
-  { id: 'equation', minScore: 40, label: 'som opbouw',       description: 'Numbers-only reveal — no visual groups; the equation animates in then unlocks. Flipped + problems demonstrate the commutativity swap here.' },
-  { id: 'instant',  minScore: 80, label: 'meteen',           description: 'Equation shown instantly, no reveal — the child works abstractly at speed.' },
+  { id: 'visual',  minScore: 0,  label: 'beeld + som', description: 'Picture and sum form together, in three beats: the first number with its group, the sign in both, the second number with its group (erbij arrival / samenvoegen / wegnemen leave), then "= ?". Maximum support.' },
+  { id: 'instant', minScore: 40, label: 'kale som',    description: 'The bare sum, shown at once. Same as fill-plain on the first try; a wrong answer brings the picture back (retry one tier down).' },
 ]
 
 // ─── Reveal timing ────────────────────────────────────────────────────────────
-// visual (7 steps): vis1 → cue/op → vis2/action → numA → eqOp → numB → complete
-// equation (4 steps): numA → eqOp → numB → complete
-// equation+swap (5 steps): numA → eqOp → numB → swap → complete
-// instant (0 steps): complete immediately
-
-const VISUAL_DELAYS        = [400, 600, 600, 700, 500, 500, 600]
-const EQUATION_DELAYS      = [400, 500, 500, 600]
-const EQUATION_SWAP_DELAYS = [400, 500, 500, 700, 900]
+// Picture and sum share every beat — the numeral never arrives after its
+// group, so the child reads "3" and three things as one statement.
+//   step 1: number A  + group A
+//   step 2: the sign, in the picture and in the sum
+//   step 3: number B  + group B (erbij: slides in · samenvoegen: stands beside ·
+//           wegnemen: B of the whole are crossed out)
+//   step 4: "= ?" — input unlocks
+const VISUAL_DELAYS = [350, 600, 600, 650]
 
 // ─── Cue phrases ──────────────────────────────────────────────────────────────
 // The canonical rekentaal per semantic variant (§5 cue tables). Sub-60 the
@@ -89,51 +84,16 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const legacyScene = meta.visualKind === 'scene' ? pickScene(meta.sceneIndex) : null
 
-  const delays = meta.revealKind === 'visual' ? VISUAL_DELAYS
-               : meta.revealKind === 'equation' ? (meta.commuteSwap ? EQUATION_SWAP_DELAYS : EQUATION_DELAYS)
-               : []
-
-  const { step, complete } = useReveal(delays, question)
+  const hasVisual = meta.revealKind === 'visual' && meta.visualKind !== 'none'
+  const { step, complete } = useReveal(hasVisual ? VISUAL_DELAYS : [], question)
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
-  // Visibility flags per element
-  const v = meta.revealKind === 'instant' ? {
-    vis1: true, cue: false, action: true,
-    numA: true, eqOp: true, numB: true, eq: true, swap: false,
-  } : meta.revealKind === 'visual' ? {
-    vis1:   step >= 1,
-    cue:    step >= 2,
-    action: step >= 3,   // erbij: B arrives · samenvoegen: B joins · wegnemen: b leave
-    numA:   step >= 4,
-    eqOp:   step >= 5,
-    numB:   step >= 6,
-    eq:     complete,
-    swap:   false,
-  } : {
-    // equation reveal — no visual
-    vis1: false, cue: false, action: false,
-    numA: step >= 1,
-    eqOp: step >= 2,
-    numB: step >= 3,
-    swap: meta.commuteSwap && step >= 4,
-    eq:   complete,
-  }
+  // One flag per beat, shared by the picture and the sum.
+  const showA  = !hasVisual || step >= 1
+  const showOp = !hasVisual || step >= 2
+  const showB  = !hasVisual || step >= 3
+  const showEq = complete
 
-  // ── Commutativity swap: measure the real distance between the two number
-  // slots and let them trade places (single-digit terms, so widths match).
-  const numARef = useRef<HTMLSpanElement>(null)
-  const numBRef = useRef<HTMLSpanElement>(null)
-  const [swapDx, setSwapDx] = useState(0)
-  useEffect(() => { setSwapDx(0) }, [question])
-  useEffect(() => {
-    if (v.swap && swapDx === 0 && numARef.current && numBRef.current) {
-      const a = numARef.current.getBoundingClientRect()
-      const b = numBRef.current.getBoundingClientRect()
-      setSwapDx((b.left + b.width / 2) - (a.left + a.width / 2))
-    }
-  }, [v.swap, swapDx])
-
-  const hasVisual = meta.visualKind !== 'none'
   const fs        = hasVisual ? 42 : 60
   const slotSize  = hasVisual ? 54 : 72
 
@@ -162,29 +122,29 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
      <ExerciseTitle tokens={tokens}>{title}</ExerciseTitle>
 
      {/* Visual + equation share one stage; the numpad sits outside it. */}
-     <ExerciseStage tokens={tokens} style={{ minWidth: 300 }}>
+     <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box' }}>
 
-      {/* Visual row — the semantic action */}
+      {/* Picture row — the semantic action, beat for beat with the sum below */}
       {hasVisual && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'center', minHeight: 80 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', minHeight: 44 }}>
           {meta.variant === 'wegnemen' ? (
-            // One whole group; on the action step the removed part becomes
+            // One whole group; on the third beat the removed part becomes
             // crossed-out ghosts — the leave IS the minus sign's meaning.
-            <div style={fade(v.vis1)}>
-              {renderGroup(operandA, meta.colorA, v.action ? operandB : 0)}
+            <div style={fade(showA)}>
+              {renderGroup(operandA, meta.colorA, showB ? operandB : 0)}
             </div>
           ) : (
             <>
-              <div style={fade(v.vis1)}>
+              <div style={fade(showA)}>
                 {renderGroup(operandA, meta.colorA)}
               </div>
               <span style={{
-                ...fade(meta.variant === 'samenvoegen' ? v.cue : v.action),
+                ...fade(showOp),
                 fontFamily: 'Fredoka One, cursive', fontSize: 28, color: glyphColor,
               }}>{glyph}</span>
               {/* erbij: the second group ARRIVES (slides in); samenvoegen: it
-                  stands alongside from its own step — joining, not arriving. */}
-              <div style={fade(v.action, meta.variant === 'erbij' ? 'translateX(48px) scale(0.4)' : 'scale(0.4)')}>
+                  appears alongside — joining, not arriving. */}
+              <div style={fade(showB, meta.variant === 'erbij' ? 'translateX(48px) scale(0.4)' : 'scale(0.4)')}>
                 {renderGroup(operandB, meta.colorB)}
               </div>
             </>
@@ -192,19 +152,13 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
         </div>
       )}
 
-      {/* Equation row — always in DOM, elements animate in via opacity/transform */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: hasVisual ? 10 : 14, flexWrap: 'wrap', justifyContent: 'center', minHeight: hasVisual ? 60 : 80 }}>
-        <span ref={numARef} style={{
-          ...fade(v.numA), fontFamily: 'Fredoka One, cursive', fontSize: fs, color: tokens.accentText,
-          ...(v.swap ? { transform: `translateX(${swapDx}px)`, transition: 'transform .65s cubic-bezier(.45,-.25,.55,1.25)' } : {}),
-        }}>{operandA}</span>
-        <span style={{ ...fade(v.eqOp), fontFamily: 'Fredoka One, cursive', fontSize: fs, color: glyphColor }}>{glyph}</span>
-        <span ref={numBRef} style={{
-          ...fade(v.numB), fontFamily: 'Fredoka One, cursive', fontSize: fs, color: tokens.pop,
-          ...(v.swap ? { transform: `translateX(${-swapDx}px)`, transition: 'transform .65s cubic-bezier(.45,-.25,.55,1.25)' } : {}),
-        }}>{operandB}</span>
-        <span style={{ ...fade(v.eq), fontFamily: 'Fredoka One, cursive', fontSize: Math.round(fs * 0.85), color: tokens.ink, opacity: v.eq ? 0.4 : 0 }}>=</span>
-        <div style={fade(v.eq)}>
+      {/* Sum row — always in the DOM; pieces fade in on the picture's beats */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: hasVisual ? 10 : 14, justifyContent: 'center', minHeight: hasVisual ? 60 : 80 }}>
+        <span style={{ ...fade(showA), fontFamily: 'Fredoka One, cursive', fontSize: fs, color: tokens.accentText }}>{operandA}</span>
+        <span style={{ ...fade(showOp), fontFamily: 'Fredoka One, cursive', fontSize: fs, color: glyphColor }}>{glyph}</span>
+        <span style={{ ...fade(showB), fontFamily: 'Fredoka One, cursive', fontSize: fs, color: tokens.pop }}>{operandB}</span>
+        <span style={{ ...fade(showEq), fontFamily: 'Fredoka One, cursive', fontSize: Math.round(fs * 0.85), color: tokens.ink, opacity: showEq ? 0.4 : 0 }}>=</span>
+        <div style={fade(showEq)}>
           <AnswerSlot value={input} solved={solved} size={slotSize} tokens={tokens} />
         </div>
       </div>
@@ -224,9 +178,9 @@ const FillVisual: ExerciseDefinition<FillVisualMeta> = {
   supportsReveal: true,
   tiers: TIERS,
   didactics: {
-    goal: 'Compute a sum or difference, scaffolded by a timed reveal that acts out the operation\'s meaning (erbij arrival, samenvoegen merge, wegnemen leave — each with its canonical cue phrase) and then builds the equation from it.',
+    goal: 'Compute a sum or difference from a picture that forms together with its sum: each number appears with its group, the sign in both, so the written sum is read AS the picture (erbij arrival, samenvoegen, wegnemen leave — each with its canonical cue phrase).',
     pitfalls: ['Counting all from 1 instead of counting on', 'Off-by-one', 'Reading the variant\'s visual without linking it to the cue phrase'],
-    progression: 'visual (semantic action + full concrete→symbolic reveal) → equation (symbols only; flipped + terms demonstrate the commutativity swap) → instant (no reveal). Support fades as score rises.',
+    progression: 'visual: picture and sum built in step, beat for beat. instant (40): the bare sum — identical to fill-plain on the first try, but a wrong answer brings the picture back. Support fades as score rises.',
   },
 
   // Retry keeps the meaning acted out (variant) and the look (kind of picture,
@@ -244,16 +198,13 @@ const FillVisual: ExerciseDefinition<FillVisualMeta> = {
     // (the counting-on action) with samenvoegen mixed in.
     const variant: SemVariant = prev?.variant ??
       (op === '-' ? 'wegnemen' : (Math.random() < 0.6 ? 'erbij' : 'samenvoegen'))
-    const commuteSwap =
-      revealKind === 'equation' && op === '+' &&
-      problem?.op === '+' && problem.terms[0] < problem.terms[1]
     const visualKind: VisualKind =
       revealKind !== 'visual' ? 'none'
       : prev && prev.visualKind !== 'none' ? prev.visualKind
       : (Math.random() < 0.5 ? 'dots' : 'scene')
     const [colorA, colorB] = prev ? [prev.colorA, prev.colorB] : pickColors()
     const sceneIndex = prev?.sceneIndex ?? Math.floor(Math.random() * 24)
-    return { visualKind, revealKind, variant, commuteSwap, sceneIndex, colorA, colorB, tierId: tier.id }
+    return { visualKind, revealKind, variant, sceneIndex, colorA, colorB, tierId: tier.id }
   },
 
   Component: FillVisualComponent,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
@@ -7,28 +7,32 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { CountChip } from '../presentation/components/CountChip'
+import { FiveRow, fiveRowSize } from '../presentation/components/FiveRow'
 import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useClosure } from '../presentation/useClosure'
 import { opGlyph, opColor, equationText } from './opDisplay'
 
 // ─── erbij-tap ────────────────────────────────────────────────────────────────
-// The erbij action performed by the child: a start group stands in the pen and
+// The erbij action performed by the child: a start group stands in a 5-row and
 // is GIVEN as a known quantity (the chip already reads `a` before anything is
-// tapped — never counted from 1), then the erbij-group is tapped in one by one
-// while the chip counts on. Replaces collect-tap, whose tap-everything flow
-// trained counting-all (the documented dead-end strategy) and could not fail.
+// tapped — never counted from 1); the arrivals wait just beside it, gently
+// pulsing, and the child taps each one in while the chip counts on. Replaces
+// collect-tap, whose tap-everything flow trained counting-all (the documented
+// dead-end strategy) and could not fail.
 //
-// Presentation: the opening is a staged reveal (like fill-vis) — start group +
-// its number, then the cue with the arrival group appearing as a chunk, then
-// "= ?". The arrivals appear together (reinforcing "+N as one unit"); the child
-// then taps them in one by one. Written order: the start group is operandA, the
-// arrivals are operandB (no start-from-larger reordering — that lives only in
-// the fill-vis commutativity swap).
+// Presentation: a staged opening — start group + its number, then the arrivals
+// + the instruction, then "= ?". The arrivals stand in the SAME 5-row as the
+// start group, a small step to the right; a tap closes that step, so the row
+// fills up (3 and 2 make a full row of 5 — convention Q). Written order: the
+// start group is operandA, the arrivals are operandB.
+//
+// One tier. The former 'voorspel' tier (answer first, then watch) was dropped:
+// both groups stood on screen, so it could be counted, and its picture still
+// invited tapping. Predicting is fill-vis / the number line's job.
 
 const TIERS: ExerciseTier[] = [
-  { id: 'doen',     minScore: 0,  label: 'doe erbij',  description: 'Staged reveal of the start group and the arriving chunk, then the child taps the arrivals in while the chip counts on; the group is hidden for the final "hoeveel nu?" so the answer comes from the count-on, not a recount.' },
-  { id: 'voorspel', minScore: 35, label: 'voorspel',   description: 'Same staged reveal, but the child predicts the total before the arrivals animate in to confirm — the operation has to happen mentally first.' },
+  { id: 'doen', minScore: 0, label: 'doe erbij', description: 'Staged reveal of the start group and the waiting arrivals, then the child taps each arrival into the row while the chip counts on; the row is covered for the final "hoeveel nu?" so the answer comes from the count-on, not a recount.' },
 ]
 
 interface ErbijTapMeta {
@@ -37,26 +41,17 @@ interface ErbijTapMeta {
   tierId: string
 }
 
-// Reveal: [start group + a] → [cue + "+ b" + arrivals chunk] → ["= ?"].
+// Reveal: [start group + a] → [instruction + "+ b" + waiting arrivals] → ["= ?"].
 const REVEAL_DELAYS = [500, 750, 600]
-// How long the full pen lingers after the last arrival before the pen is
-// hidden and the "hoeveel nu?" question appears (the child gets to see it).
+// How long the full row lingers after the last arrival before it is covered
+// and the "hoeveel nu?" question appears (the child gets to see it).
 const HOWMANY_PAUSE = 1150
-// Fixed geometry (nothing moves): the pen is a 3-wide grid and the waiting box
-// a 2-wide one, and the area's height is reserved for the FINAL group, so an
-// arrival never wraps the pen into a taller stage.
+
+// Fixed geometry (nothing moves): one 5-row sized for the FINAL group.
 const ITEM = 40
 const GAP = 8
-const PEN_COLS = 3
-const BOX_COLS = 2
-const gridW = (cols: number) => cols * ITEM + (cols - 1) * GAP
-const gridH = (n: number, cols: number) => { const rows = Math.max(1, Math.ceil(n / cols)); return rows * ITEM + (rows - 1) * GAP }
-
-const fadeStyle = (visible: boolean): React.CSSProperties => ({
-  opacity: visible ? 1 : 0,
-  transform: visible ? 'none' : 'scale(0.5)',
-  transition: 'opacity .35s ease, transform .35s ease',
-})
+// A waiting arrival stands this far to the right of its place in the row.
+const WAIT_DX = 22
 
 function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<ErbijTapMeta>) {
   const { operandA, operandB, answer, op, meta } = question
@@ -67,15 +62,14 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   const legacyScene = pickScene(meta.sceneIndex)
   const Counter = scene?.Counter
 
-  const isVoorspel = meta.tierId === 'voorspel'
-  // doen:     'tap'  → all arrived → 'howmany' (choice)
-  // voorspel: 'ask' (choice first) → 'confirm' (arrivals animate) → resolve
-  const [phase, setPhase] = useState<'tap' | 'howmany' | 'ask' | 'confirm'>(isVoorspel ? 'ask' : 'tap')
-  const [arrived, setArrived] = useState(0)
-  const given = useRef<number | null>(null)
+  // 'tap' → all arrived → 'howmany' (choice)
+  const [phase, setPhase] = useState<'tap' | 'howmany'>('tap')
+  // which arrivals (0..arrive-1) have been tapped in — any order
+  const [arrivedSet, setArrivedSet] = useState(new Set<number>())
+  const arrived = arrivedSet.size
   // Closure: on a correct answer the equation's "?" becomes the total and is
   // held before the overlay; on wrong it resolves at once.
-  const { solved, answered: resolved, resolve: close } = useClosure(question, onResolve)
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // Staged opening reveal; the interaction is locked until it completes.
   const { step, complete } = useReveal(REVEAL_DELAYS, question)
@@ -84,84 +78,54 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
   const showEqTail = step >= 3
 
   useEffect(() => {
-    setPhase(isVoorspel ? 'ask' : 'tap')
-    setArrived(0)
-    given.current = null
-  }, [question, isVoorspel])
+    setPhase('tap')
+    setArrivedSet(new Set())
+  }, [question])
 
-  const resolve = (givenAnswer: number, tapCount?: number) =>
-    close(givenAnswer === answer, { givenAnswer, tapCount })
-
-  // doen: after the last arrival, linger on the full pen, then the question.
+  // After the last arrival, linger on the full row, then the question.
   useEffect(() => {
-    if (!isVoorspel && phase === 'tap' && complete && arrived === arrive) {
+    if (phase === 'tap' && complete && arrived === arrive) {
       const t = setTimeout(() => setPhase('howmany'), HOWMANY_PAUSE)
       return () => clearTimeout(t)
     }
-  }, [arrived, phase, isVoorspel, arrive, complete])
+  }, [arrived, phase, arrive, complete])
 
-  // voorspel: once predicted, the arrivals walk in one by one, then resolve.
-  useEffect(() => {
-    if (phase !== 'confirm') return
-    if (arrived < arrive) {
-      const t = setTimeout(() => setArrived(n => n + 1), 420)
-      return () => clearTimeout(t)
-    }
-    const t = setTimeout(() => resolve(given.current ?? -1), 700)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, arrived, arrive])
-
-  const tapWaiting = () => {
-    if (disabled || resolved || !complete || phase !== 'tap' || arrived >= arrive) return
-    setArrived(n => n + 1)
+  const canTap = !disabled && !answered && complete && phase === 'tap'
+  const tapArrival = (k: number) => {
+    if (!canTap || arrivedSet.has(k)) return
+    setArrivedSet(s => new Set([...s, k]))
   }
 
   const pickAnswer = (v: number) => {
-    if (disabled || resolved) return
-    if (phase === 'howmany') {
-      resolve(v, arrive)
-    } else if (phase === 'ask') {
-      given.current = v
-      setPhase('confirm')
-    }
+    if (disabled || answered || phase !== 'howmany') return
+    resolve(v === answer, { givenAnswer: v, tapCount: arrive })
   }
 
-  // Text stays calm: the cue once the arrivals show, the cardinality question
-  // only at the hidden-pen step (tier 0). No rekenverhaal-style question flips.
-  const cue = arrive === 1 ? 'Er komt er 1 bij!' : `Er komen er ${arrive} bij!`
+  // One line each, so the band keeps its height: look → the instruction → the
+  // cardinality question at the covered-row step.
+  const instruction = arrive === 1 ? 'Doe er 1 bij!' : `Doe er ${arrive} bij!`
   const prompt =
     phase === 'howmany' ? 'Hoeveel zijn er nu?' :
-    showArrivals        ? cue : 'Kijk!'
+    showArrivals        ? instruction : 'Kijk!'
 
-  // Items appear where they end up — a single gentle fade/scale, no rotation,
-  // no bobbing (the earlier pop+wiggle made everything "move about").
-  const renderCreature = (key: string, style?: React.CSSProperties) => {
-    const base: React.CSSProperties = { display: 'inline-block', ...style }
-    return Counter
-      ? <div key={key} style={base}><Counter size={40} /></div>
-      : <span key={key} style={{ fontSize: 36, ...base }}>{legacyScene.e}</span>
-  }
+  const creature = Counter ? <Counter size={ITEM} /> : <span style={{ fontSize: 36 }}>{legacyScene.e}</span>
 
-  const showChip = (phase === 'tap' || phase === 'confirm') && showStart
-  const waitingLeft = arrive - arrived
-
-  // Equation answer slot: "?" until the child answers correctly, then the total.
-  const tail = solved ? answer : '?'
-
-  const areaH = Math.max(96, gridH(start + arrive, PEN_COLS) + 16, gridH(arrive, BOX_COLS) + 24)
+  const total = start + arrive
+  const row = fiveRowSize(total, ITEM, GAP)
+  const areaH = Math.max(96, row.height)
+  const showChip = phase === 'tap' && showStart
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
       <style>{`
-        @keyframes erbij-fade { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: none; } }
+        @keyframes erbij-wait { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
       `}</style>
 
       {/* Prompt lives in the title band above the stage */}
       <ExerciseTitle tokens={tokens}>{prompt}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300 }}>
-        {/* Counting-on chip — reserve height so the equation never shifts */}
+      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box' }}>
+        {/* Counting-on chip — fixed height so the equation never shifts */}
         <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {showChip && <CountChip count={start + arrived} ink={ink} paper={paper} />}
         </div>
@@ -172,63 +136,58 @@ function ErbijTapComponent({ question, onResolve, disabled, scene }: ExerciseCom
           <span style={{ color: opColor(op, tokens), opacity: showArrivals ? 1 : 0, transition: 'opacity .3s' }}>{opGlyph(op)}</span>
           <span style={{ color: tokens.pop, opacity: showArrivals ? 1 : 0, transition: 'opacity .3s' }}>{operandB}</span>
           <span style={{ color: ink, opacity: showEqTail ? 0.4 : 0, fontSize: 27, transition: 'opacity .3s' }}>=</span>
-          <span style={{ color: tokens.accentText, opacity: showEqTail ? 1 : 0, transition: 'opacity .3s' }}>{tail}</span>
+          <span style={{ color: tokens.accentText, opacity: showEqTail ? 1 : 0, transition: 'opacity .3s' }}>{solved ? answer : '?'}</span>
         </div>
 
-        {/* One area of fixed size for both states — the pen and its cover — so
+        {/* One area of fixed size for both states — the row and its cover — so
             the stage never changes height during a question. */}
         <div style={{ height: areaH, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {phase === 'howmany' ? (
-          // Pen covered: naming the total has to come from the count-on, not a recount.
-          <div style={{
-            width: 130, height: 96, boxSizing: 'border-box', borderRadius: 16, border: `2px dashed ${ink}55`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Fredoka One, cursive', fontSize: 44, color: `${ink}40`,
-          }}>?</div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* The pen: start group + arrivals tapped/animated in — transparent
-                so the single stage colour shows through. Fixed width and a
-                height reserved for the final group: an arrival never reflows it. */}
+          {phase === 'howmany' ? (
+            // Row covered: naming the total has to come from the count-on, not a recount.
             <div style={{
-              width: gridW(PEN_COLS), height: gridH(start + arrive, PEN_COLS),
-              display: 'flex', flexWrap: 'wrap', gap: GAP, justifyContent: 'center',
-              alignContent: 'flex-start',
-            }}>
-              {/* start group fades in together at reveal step 1 */}
-              {Array.from({ length: start }, (_, i) => renderCreature(`a${i}`, fadeStyle(showStart)))}
-              {/* each tapped-in arrival gets one gentle fade, in place */}
-              {Array.from({ length: arrived }, (_, i) => renderCreature(`in${i}`, { animation: 'erbij-fade .3s ease-out' }))}
-            </div>
-
-            {/* The arrivals, waiting outside — always in DOM (prevents flex reflow);
-                opacity-controlled so the pen never shifts when arrivals appear. */}
-            <div
-              onClick={showArrivals && waitingLeft > 0 && complete && phase === 'tap' && !resolved
-                ? tapWaiting : undefined}
-              style={{
-                opacity: showArrivals && waitingLeft > 0 ? 1 : 0,
-                transition: 'opacity .3s ease-out',
-                pointerEvents: showArrivals && waitingLeft > 0 ? 'auto' : 'none',
-                border: `2px dashed ${ink}45`, borderRadius: 14, padding: '10px 12px',
-                width: gridW(Math.min(arrive, BOX_COLS)),
-                display: 'flex', flexWrap: 'wrap', gap: GAP, alignItems: 'center',
-                cursor: complete && phase === 'tap' && !resolved && waitingLeft > 0 ? 'pointer' : 'default',
-              }}>
-              {/* Always render `arrive` creatures; tapped ones fade out (fixed width → no reflow) */}
-              {Array.from({ length: arrive }, (_, i) =>
-                renderCreature(`w${i}`, { opacity: i < arrived ? 0 : 1, transition: 'opacity .2s' })
-              )}
-            </div>
-          </div>
-        )}
+              width: 130, height: 96, boxSizing: 'border-box', borderRadius: 16, border: `2px dashed ${ink}55`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Fredoka One, cursive', fontSize: 44, color: `${ink}40`,
+            }}>?</div>
+          ) : (
+            // The 5-row, sized for the final group. Start creatures fade in at
+            // their places; each arrival waits a step to the right of ITS place
+            // and slides home when tapped — the row fills, nothing reflows.
+            <FiveRow n={total} item={ITEM} gap={GAP} style={{ marginRight: WAIT_DX }} renderItem={(i) => {
+              if (i < start) {
+                return (
+                  <div style={{ opacity: showStart ? 1 : 0, transform: showStart ? 'none' : 'scale(0.5)', transition: 'opacity .35s ease, transform .35s ease' }}>
+                    {creature}
+                  </div>
+                )
+              }
+              const k = i - start
+              const isIn = arrivedSet.has(k)
+              return (
+                <div
+                  onClick={() => tapArrival(k)}
+                  style={{
+                    opacity: showArrivals ? 1 : 0,
+                    transform: isIn ? 'none' : `translateX(${WAIT_DX}px)`,
+                    transition: 'opacity .3s ease-out, transform .3s ease-out',
+                    cursor: canTap && !isIn ? 'pointer' : 'default',
+                    pointerEvents: showArrivals ? 'auto' : 'none',
+                  }}>
+                  {/* the pulse is the "tap me" cue; it stops once the arrival is in */}
+                  <div style={{ animation: !isIn && canTap ? 'erbij-wait 1.1s ease-in-out infinite' : 'none' }}>
+                    {creature}
+                  </div>
+                </div>
+              )
+            }} />
+          )}
         </div>
       </ExerciseStage>
 
       {/* Input lives outside the stage. Its space is reserved from the start,
           so the title and stage don't jump when the buttons appear. */}
-      <Reserve show={phase === 'howmany' || (phase === 'ask' && complete)}>
-        <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled || resolved} tokens={scene?.tokens} />
+      <Reserve show={phase === 'howmany'}>
+        <ChoiceButtons options={meta.options} onPick={pickAnswer} disabled={disabled || answered} tokens={scene?.tokens} />
       </Reserve>
     </div>
   )
@@ -240,22 +199,21 @@ const ErbijTap: ExerciseDefinition<ErbijTapMeta> = {
   supportsReveal: true,
   tiers: TIERS,
   didactics: {
-    goal: 'Counting on, enacted: the start group is a given quantity (the chip reads it without counting), the child performs the erbij action and names the new total. The erbij meaning of + with its canonical cue phrase.',
+    goal: 'Counting on, enacted: the start group is a given quantity (the chip reads it without counting), the child performs the erbij action and names the new total.',
     pitfalls: [
-      'Recounting the whole pen from 1 at the question — the group is hidden at answer time to force the count-on.',
+      'Recounting the whole row from 1 at the question — the row is covered at answer time to force the count-on.',
       'Reading the chip instead of counting along — the chip vanishes before the answer for the same reason.',
       'Off-by-one at the step over the start group (says the start number again for the first arrival).',
     ],
-    progression: 'doen: a staged reveal builds the start group and the arriving chunk, then the child taps the arrivals in while the chip models counting on; the pen lingers, then is hidden for "hoeveel nu?". voorspel: same reveal, but the answer comes BEFORE the arrivals animate in to confirm. Doing → anticipating is the move from acting out addition to performing it.',
+    progression: 'Single tier: a staged reveal builds the start group and the waiting arrivals, the child taps each arrival in while the chip models counting on; the row lingers, then is covered for "hoeveel nu?". The entry exercise of the + skills — it fades out as fill-vis and the number line take over.',
   },
   retryStable: ['sceneIndex'],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
   generateMeta(operandA, operandB, score, _problem, ctx) {
-    const tier = pickTier(TIERS, score)
     return {
       sceneIndex: ctx?.retryOf?.sceneIndex ?? Math.floor(Math.random() * 24),
       options: makeNumeralOptions(operandA + operandB, numeralRangeMax(operandA + operandB)),
-      tierId: tier.id,
+      tierId: pickTier(TIERS, score).id,
     }
   },
   Component: ErbijTapComponent,

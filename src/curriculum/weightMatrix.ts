@@ -90,13 +90,15 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // +1-2-tot-5: the erbij action dominates the entry (doing), the middle belongs
   // to the spatial/counter forms (seeing/strategy), the symbolic forms take over
   // toward 100. tf silent until 25 (judging needs something to judge against).
+  // erbij-tap is one tier and is gone by 55; doosje (hidden start group) is the
+  // count-on enforcer through the middle.
   // Initial guesses, to be tuned with playtesting.
 
   '+1-2-tot-5': {
-    'erbij-tap':        [[0, 30], [35, 20], [70, 0]],
+    'erbij-tap':        [[0, 30], [30, 18], [55, 0]],
     'fill-vis':         [30, 15],
     'numberline-jump':  [[0, 10], [40, 20], [100, 10]],
-    'collect-counter':  [10, 5],
+    'doosje':           [[0, 12], [40, 18], [100, 8]],
     'choice':           [20, 10],
     'tf':               [[25, 0], [60, 15], [100, 15]],
     'fill-plain':       [[40, 0], [100, 40]],
@@ -115,7 +117,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'wegnemen-crossed-out':  [15, 8],
     'fill-vis':              [25, 12],
     'numberline-jump-back':  [[0, 10], [40, 20], [100, 10]],
-    'collect-counter-down':  [10, 5],
+    'doosje':                [[0, 12], [40, 18], [100, 8]],
     'choice':                [18, 10],
     'tf':                    [[25, 0], [60, 15], [100, 15]],
     'fill-plain':            [[40, 0], [100, 38]],
@@ -150,12 +152,11 @@ function defaultWeights(score: number): WeightMap {
     'choice':           lerp(25, 15, t),
     'tf':               lerp(10, 15, t),
     'erbij-tap':        lerp(25,  0, t),
-    'collect-counter':  lerp(15,  5, t),
+    'doosje':           lerp(15,  8, t),
     'numberline-jump':  lerp(15, 10, t),
     // − mirrors, for untuned aftrekken skills on this fallback curve
     'wegnemen-crossed-out': lerp(25,  5, t),
     'numberline-jump-back': lerp(15, 10, t),
-    'collect-counter-down': lerp(15,  5, t),
     // total-first missing-part form, for the untuned aanvullen skills
     'splits-ontbreken-rechts': lerp(15, 25, t),
   }
