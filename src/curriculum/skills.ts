@@ -208,11 +208,17 @@ export const SKILLS: SkillDefinition[] = [
     id: 'splitsen-tot-10',
     disabled: true,  // WIP gate — exercises not yet built
     name: 'Splitsen tot 10',
-    intent: 'Same as splitsen-herken-5 / splitsen-noteren-5 for 6, 7, 8, 9, 10. The "boss splitgetal" is 10 — its 11 splits get drilled to recall.',
+    intent: 'The part-whole spine extended to 6–10: every split of 6, 7, 8, 9 and 10 known paraat — the fact base that sums and differences to 10 are read from (getalfamilie), and that the brug over 10 later leans on.',
+    // Didactics: sources in reference/flemish-curriculum/, reasoning in the
+    // skill map → "Didactic frame".
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with splitsen-herken-5 and getalbegrip-10: sees the splits of 2–5 at a glance, and reads 6–10 from a structured picture without counting from 1. Knows what a split is and has met the huisje. What is new: these totals can no longer be taken in at a glance — a split of 8 has to be read through structure, or known.',
+      goal: 'Given any total 6–10 and one part, names the other part at once, without counting — in a structured picture, in the huisje / splitsbenen, and as a bare statement ("8 is 5 en ?"), with the given part in either position. Uses what makes 35 splits few: the anchors (a part of 5, the dubbels 3 en 3 / 4 en 4 / 5 en 5, a part of 1), the turn-around (3 en 5 is 5 en 3) and the neighbour step (one part up, the other down). Can give all splits of a total in order.',
+      pitfalls: [
+        'Counts instead of knowing — finds the missing part by counting on from the given part, on fingers or along the picture. The answer is right, so the score cannot see it; only response time does. Left alone it never becomes a known fact, and every sum to 10 stays a counting sum.',
+        'Every split a separate fact — does not use the anchors or the turn-around, so the load is 35 facts instead of a handful. Expected to show as uneven knowledge: splits with 1, with 5 and the dubbels come at once, the others (8 is 2 en 6, 9 is 3 en 6) stay slow or wrong, hidden behind one score for all totals.',
+        'Neighbour slip — gives a part that belongs to the total next door (7 is 3 en 5): one off, from a miscount or an unsure picture of the total.',
+      ],
     },
     op: 'split',
     unlockedBy: ['splitsen-herken-5', 'getalbegrip-10'],
@@ -233,14 +239,15 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: 'tienvrienden',
     name: 'Tienvrienden',
-    intent: 'Instant recall of the 5 pairs that make 10 (1+9, 2+8, 3+7, 4+6, 5+5) in both orders. Fact-recall drill, never archived.',
+    intent: 'Instant recall of the 5 pairs that make 10 (1+9, 2+8, 3+7, 4+6, 5+5) in both orders — the splits of 10, practised until no thinking time is needed. Fact-recall drill, never archived: the brug over 10 leans on it.',
+    // Didactics: see the note on splitsen-tot-10.
     didactics: {
-      startingPoint: 'Knows the splits of 10 with support and can recognise them visually.',
-      goal: 'Instant recall of all five tienvrienden pairs in both orders, with no counting.',
+      startingPoint: 'Secure with splitsen-tot-10: finds the partner of a number in 10 with a structured picture in sight (the empty places of a full ten, the fingers that are down), mostly without counting — but not yet instantly, and not yet for every pair.',
+      goal: 'Sees or hears any number 1–9 and names its partner in 10 at once — no counting, no fingers, no picture — from either side (7 → 3 and 3 → 7) and in every form: the split ("10 is 7 en ?"), aanvullen tot 10 (7 + . = 10) and 10 − 7. Fast enough that splitting the second term in the brug over 10 will cost no attention.',
       pitfalls: [
-        'Counting up to find the partner instead of recalling it',
-        'Off-by-one on the partner',
-        'Confusing near-pairs (3+7 vs 3+8)',
+        'Counts up to 10 — on fingers or in the head. Accurate, so the score rises anyway; only response time shows the pair is not yet known. This skill is about speed, which a right/wrong score does not measure.',
+        'Partner one off — 7 → 4, 6 → 3. Expected mostly on the middle pairs (3–7, 4–6), which have no anchor, rather than on 1–9 or 5–5.',
+        'Known from one side or in one form only — instant for 7 → 3, slow for 3 → 7; or knows the split but does not see that 10 − 7 and 7 + . = 10 ask for the same pair.',
       ],
     },
     op: 'split',
@@ -299,11 +306,16 @@ export const SKILLS: SkillDefinition[] = [
     id: 'optellen-tot-5',
     disabled: true,  // WIP gate — scoped out of the current playtest; own tuning round pending
     name: 'Optellen tot 5',
-    intent: 'Any optelling within 5 (a + b ≤ 5).',
+    intent: 'Any optelling within 5 (a + b ≤ 5) — the sums are no longer counted but read from the splits (getalfamilie), in either order.',
+    // Didactics: see the note on splitsen-tot-10.
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with +1-2-tot-5: reads the + sign and the equation form, knows erbij and samenvoegen as its two meanings, and answers a + 1 and a + 2 by counting on. Has met turned-around sums (1 + 4) late in that skill. Knows the splits of 2–5 from splitsen-herken-5 — as pictures, not yet as the answer to a sum.',
+      goal: 'Any a + b ≤ 5 answered at once, without counting: the sum is read from the split the child already knows ("2 en 3 is 5, dus 2 + 3 = 5"). 1 + 4 and 4 + 1 are one fact (van plaats wisselen), and the sum is the same whether things come erbij or are taken samen. Counting on stays available as the fall-back; it is no longer the method.',
+      pitfalls: [
+        'Keeps counting — the answers are right, so nothing looks wrong, but every sum is still worked out by counting on, often on fingers. Only response time shows it. This is the habit that later makes sums to 10 and the brug slow and error-prone.',
+        'Split and sum stay two things — fills "5 is 2 en ?" in the huisje at once, then counts out 2 + 3. The split is not yet used as the getalfamilie behind the sum.',
+        'Small-first sums counted the long way — 1 + 4 is counted on from 1 (four steps, more slips) instead of turned around or simply known; 1 + 4 and 4 + 1 are treated as two different sums.',
+      ],
     },
     op: '+',
     unlockedBy: ['+1-2-tot-5'],
@@ -473,14 +485,15 @@ export const SKILLS: SkillDefinition[] = [
     id: 'aftrekken-wegnemen-5',
     disabled: true,  // WIP gate — scoped out of the current playtest; own tuning round + verschil/aanvullen exercises pending
     name: 'Aftrekken (wegnemen) tot 5',
-    intent: 'Take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?"',
+    intent: 'Take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?" — answered from the getalfamilie rather than counted back.',
+    // Didactics: see the note on splitsen-tot-10.
     didactics: {
-      startingPoint: 'Can count back and knows optellen tot 5; understands "minder".',
-      goal: 'Take-away within 5: given a whole and a removed part, finds what remains.',
+      startingPoint: 'Secure with −1-2-tot-5 and optellen-tot-5: reads the − sign as things leaving, answers a − 1 and a − 2 by counting back, rejects a turned-around statement (2 − 5), and knows the sums within 5 from the splits. Has not yet taken away 3 or 4, where counting back gets long.',
+      goal: 'Any a − b within 5, as a bare sum or acted out as wegnemen, answered at once from the getalfamilie ("5 is 3 en 2, dus 5 − 3 = 2"). Sees + and − as each other\'s omgekeerde bewerking: one family (5; 2, 3) gives 2 + 3, 3 + 2, 5 − 2 and 5 − 3. "Alles weg" (a − a = 0) is answered without hesitation.',
       pitfalls: [
-        'Counting back off-by-one (including or excluding the start)',
-        'Reversing to a + b instead of a − b',
-        'Returning an operand unchanged',
+        'Counting back as the only method — fine for −1 and −2, but −3 and −4 need two counts at once (the steps taken and the number reached) and break: answers one off, or the count lost. 5 − 4 counted back is four fragile steps; from the family it is one known fact.',
+        'Sum and difference not connected — knows 3 + 2 = 5 and still works out 5 − 3 from scratch. The omgekeerde bewerking is not yet a tool.',
+        'Sign not read — with + and − now mixed in one rotation, answers the sum (5 − 3 → 8), or repeats one of the numbers shown.',
       ],
     },
     semanticForm: 'wegnemen',
@@ -503,13 +516,14 @@ export const SKILLS: SkillDefinition[] = [
     id: 'aftrekken-verschil-5',
     name: 'Aftrekken (verschil) tot 5',
     intent: 'Difference meaning — "Anna heeft 5, Tom heeft 2, hoeveel meer Anna?" Both groups still exist; nothing is removed.',
+    // Didactics: see the note on splitsen-tot-10.
     didactics: {
-      startingPoint: 'Secure with wegnemen tot 5; can compare two quantities side by side.',
-      goal: 'Difference meaning: both groups remain, find how many more one has than the other.',
+      startingPoint: 'Secure with wegnemen tot 5: knows a − b from the getalfamilie and reads − as things leaving. From getalbegrip, compares two groups and says which has meer, minder or evenveel — but has only answered "which one", never "by how many".',
+      goal: 'Given two groups or two numbers within 5, says hoeveel meer / hoeveel minder the one is than the other, and can make them evenveel. Finds it by pairing off (the ones without a partner are the difference), later from the getalfamilie. Hears "3 meer dan" and "3 minder dan" as one fact told from two sides, and writes the comparison as a − sum with the larger number first — although nothing leaves.',
       pitfalls: [
-        'Treating verschil as wegnemen or as addition (semantic narrowing)',
-        'Counting only one of the two groups',
-        'Off-by-one when matching the groups pairwise',
+        '"Hoeveel meer?" heard as "hoeveel?" or "wie heeft er meer?" — answers the size of the larger group, or of the group that was named. The relational question is the hard part, not the arithmetic.',
+        'Adds the two groups — both are on screen and "meer" sounds like erbij, so the answer is the total (tagged semantic-narrow).',
+        'No − in sight — the difference can be seen or counted, but is not connected to 5 − 2 because nothing is taken away; and when the smaller group is named first, the sum is read or written as 2 − 5.',
       ],
     },
     semanticForm: 'verschil',
@@ -531,14 +545,15 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: 'aftrekken-aanvullen-5',
     name: 'Aftrekken (aanvullen) tot 5',
-    intent: 'Missing-part meaning — "Tom heeft 2 en wil 5. Hoeveel erbij?"',
+    intent: 'Missing-part meaning — "Tom heeft 2 en wil 5. Hoeveel erbij?" The puntoefening 2 + . = 5, and the same fact as 5 − 2.',
+    // Didactics: see the note on splitsen-tot-10.
     didactics: {
-      startingPoint: 'Secure with wegnemen tot 5; knows the splits of numbers ≤ 5.',
-      goal: 'Missing-part meaning: given a start and a target, finds how many to add.',
+      startingPoint: 'Secure with wegnemen tot 5: answers a − b from the getalfamilie. Knows the missing-part statement from splitsen ("5 is 2 en ?") and the sums within 5. Has always met the unknown at the end of a sum, after the = sign.',
+      goal: 'Given a start and a target within 5, says how many more are needed (aanvullen tot), and solves the puntoefening 2 + . = 5 from the getalfamilie instead of by trying. Recognises three notations as one fact — "5 is 2 en 3", 2 + 3 = 5 and 5 − 2 = 3 — so a difference can also be found by filling up (indirect optellen), and the = sign is read as "is evenveel als", not as "now comes the answer".',
       pitfalls: [
-        'Treating aanvullen as wegnemen (semantic narrowing)',
-        'Adding start and target instead of finding the gap',
-        'Off-by-one on the count up to the target',
+        'Adds the two numbers shown — 2 + . = 5 answered 7. The + is on screen, and = is read as the signal to work out what stands before it (tagged semantic-narrow).',
+        'Answers the target — counts up 3, 4, 5 and reports where the count ended (5) instead of how many steps it took; or is one off by counting the start number as the first step.',
+        'Does not recognise the split — counts up every time although "5 is 2 en ?" is known at once; does not see that the puntoefening, the split and 5 − 2 ask the same thing.',
       ],
     },
     semanticForm: 'aanvullen',
