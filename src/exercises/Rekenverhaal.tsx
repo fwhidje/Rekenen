@@ -257,6 +257,8 @@ const Rekenverhaal: ExerciseDefinition<RekenverhaalMeta> = {
   // Retry: the SAME story (variant decides the sentences), now with the equation.
   retryStable: ['variant', 'sceneIndex'],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  // No zero term (a + 0, 0 + a, a − 0): a story in which nothing happens is not a story.
+  isCompatible: (a, b) => a !== 0 && b !== 0,
   generateMeta(_operandA, _operandB, score, problem?: Problem, ctx?) {
     const tier = pickTier(TIERS, score)
     const op = problem?.op ?? '+'

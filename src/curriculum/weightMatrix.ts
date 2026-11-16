@@ -106,6 +106,24 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'rekenverhaal':     [[60, 0], [80, 15], [100, 15]],
   },
 
+  // optellen-tot-5: no new sums over +1-2-tot-5 — a new method. The counting
+  // exercises of that skill (erbij-tap, doosje, numberline-jump) are absent on
+  // purpose. Entry: the picture flashes (flits-som) and the split is the aid
+  // (huisje-som, the main exercise). Middle: the split alone, then nothing.
+  // snel-weten (time-aware, from 60) is designed and joins when it is built.
+  // Initial guesses, to be tuned with playtesting.
+
+  'optellen-tot-5': {
+    'huisje-som':       [[0, 30], [50, 25], [100, 8]],
+    'flits-som':        [[0, 30], [40, 15], [65, 0]],
+    'fill-vis':         [[0, 8], [40, 0]],
+    'choice':           [[0, 12], [60, 6], [100, 4]],
+    'splits-som-match': [[20, 0], [45, 15], [100, 10]],
+    'tf':               [[30, 0], [60, 12], [100, 12]],
+    'fill-plain':       [[30, 0], [60, 20], [100, 20]],
+    'rekenverhaal':     [[60, 0], [75, 10], [100, 10]],
+  },
+
   // ── Aftrekken ────────────────────────────────────────────────────────────────
   // -1-2-tot-5: mirror of the + table with a more concrete-heavy entry
   // (backward counting is weaker than forward). wegnemen-crossed-out keeps a

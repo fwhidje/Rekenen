@@ -1,4 +1,4 @@
-import type { SkillDefinition } from './types'
+import type { SkillDefinition, Problem } from './types'
 import { sampleFact, reweight, enumerateSplits, enumeratePlus, enumerateMinus } from './factSampling'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -86,6 +86,28 @@ const EX = {
   wegnemenCrossedOut:    'wegnemen-crossed-out',
   numberlineJumpBack:    'numberline-jump-back',
 } as const
+
+// ─── Fact spaces with zero terms ──────────────────────────────────────────────
+// Share of the draws that goes to sums with a 0 in them (skill map → Exercise
+// design for the next set, shared rule 3).
+const ZERO_SHARE = 0.15
+
+const OPTELLEN_TOT_5: [Extract<Problem, { op: '+' }>, number][] = (() => {
+  const plain: [number, number][] = []
+  const zero: [number, number][] = []
+  for (let a = 0; a <= 5; a++) {
+    for (let b = 0; a + b <= 5; b++) {
+      if (a === 0 && b === 0) continue
+      ;(a === 0 || b === 0 ? zero : plain).push([a, b])
+    }
+  }
+  // each plain fact weighs 1; the zero facts share ZERO_SHARE of the total
+  const zeroWeight = (ZERO_SHARE / (1 - ZERO_SHARE)) * plain.length / zero.length
+  return [
+    ...plain.map(t => [{ op: '+' as const, terms: t }, 1] as [Extract<Problem, { op: '+' }>, number]),
+    ...zero.map(t => [{ op: '+' as const, terms: t }, zeroWeight] as [Extract<Problem, { op: '+' }>, number]),
+  ]
+})()
 
 // ─── Skills ───────────────────────────────────────────────────────────────────
 
@@ -368,11 +390,10 @@ export const SKILLS: SkillDefinition[] = [
       EX.choice, EX.tf, EX.fillPlain,
       EX.splitsSomMatch, EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => {
-      const a = rnd(1, 4)
-      const b = rnd(1, 5 - a)
-      return { op: '+', terms: [a, b] }
-    },
+    // Fact space: every a + b ≤ 5, the zero sums included (a + 0, 0 + a; not
+    // 0 + 0). There are as many zero sums as others (10 each), so they are
+    // down-weighted to about 15% of the draws together.
+    generate: () => sampleFact(OPTELLEN_TOT_5),
   },
 
   {

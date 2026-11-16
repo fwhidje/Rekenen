@@ -35,6 +35,8 @@ import './Rekenverhaal'
 import './SplitsMatch'
 import './SplitsShuffle'
 import './SplitsBuildIt'
+import './FlitsSom'
+import './HuisjeSom'
 
 // Runs after every registerExercise() above (module execution order follows
 // import order): warns in dev when the curriculum lists disagree.

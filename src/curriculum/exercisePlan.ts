@@ -80,8 +80,8 @@ export const EXERCISE_PLAN: Record<string, string> = {
 
   // Later branches — fill as exercises are built.
   // ── Designed, not built (Nov 2026) ───────────────────────────────────────────
-  // The seven plans below describe the INTENDED curves; none has a weight table
-  // yet, and most of the exercises they name do not exist. The design, with a
+  // The plans below that start with PLAN describe INTENDED curves: no weight
+  // table yet, and most of the exercises they name do not exist. The design, with a
   // first-guess weight per exercise, is in the skill map → "Exercise design for
   // the next set". Rewrite each plan when its skill is built and tuned.
   'splitsen-6-7':
@@ -107,16 +107,18 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'snel-weten takes over and reaches half of all questions — speed is this skill\'s goal, ' +
     'and it is the only exercise that can see it.',
   'optellen-tot-5':
-    'PLAN. The skill adds no new sums over +1-2-tot-5; it changes the method, from counting on ' +
+    'Built except snel-weten (Nov 2026). The skill adds no new sums over +1-2-tot-5; it changes the method, from counting on ' +
     'to reading the sum off the split. So the counting exercises of the previous skill ' +
     '(erbij-tap, doosje, numberline-jump) are absent on purpose. Entry: flits-som (30, gone by ' +
     '65) — the picture of the sum flashes, too briefly to count — and huisje-som (30 → 8), the ' +
     'main exercise: a filled splitshuisje beside the sum, later flashed, later only shown as ' +
     'confirmation; its twee-sommen tier (2 + 3 and 3 + 2 from one house) is where van plaats ' +
     'wisselen is taught. fill-vis keeps a small fading share for continuity. Middle: ' +
-    'splits-som-match from 20, tf and fill-plain from 30. Post-60: rekenverhaal and snel-weten ' +
-    '(one tap, time-aware), which ramps to the largest share. Zero terms (a + 0, 0 + a) run ' +
-    'through the whole curve at about 15% of the draws.',
+    'splits-som-match from 20, tf and fill-plain from 30. Post-60: rekenverhaal, and — once it is ' +
+    'built — snel-weten (one tap, time-aware), which is to ramp to the largest share. Zero ' +
+    'terms (a + 0, 0 + a) run through the whole curve at about 15% of the draws; fill-vis, ' +
+    'splits-som-match and rekenverhaal skip them (no picture or story for "nothing arrives"). ' +
+    'Weights are initial guesses pending playtesting.',
   '+1-2-tot-10': TODO,
   '+3-4-tot-10': TODO,
   'optellen-tot-10': TODO,

@@ -410,7 +410,7 @@ Directions, given before any exercise was designed. "Decided" is settled; "direc
 
 | # | Answer | State |
 |---|---|---|
-| 1 | Timed answers: a time allowance on the first attempt, a longer one on the retry. Not for typed (numpad) answers — the child's dexterity would dominate. Needs testing and balancing. | Direction. Designed as `snel-weten` (*Exercise design → shared rules, 4*), in a softer form than a visible limit: slow-but-correct is not wrong and is never shown as slow. **That softening is a proposal** — to be accepted or replaced by the visible limit when the exercise is tested |
+| 1 | Timed answers: a time allowance on the first attempt, a longer one on the retry. Not for typed (numpad) answers — the child's dexterity would dominate. Needs testing and balancing. | Direction. Designed as `snel-weten` (*Exercise design → shared rules, 4*), in a softer form than a visible limit: slow-but-correct is not wrong and is never shown as slow. **Accepted** (November 2026): build this form; a visible limit can be added later as a higher tier |
 | 2 | Getalfamilie matters enough to be a skill of its own, or at least part of a skill that follows from the + and − skills. No new node: the missing-part skill (answer 7) is the getalfamilie skill — "a whole and two parts, any one of them unknown, in any notation" is one piece of knowledge. | Decided and in the graph: `getalfamilie-5` / `getalfamilie-10`, a split problem whose exercise chooses the view |
 | 3 | Later than tot 5 — as `rekenverhaal` variants in the tot-10 range. | Decided |
 | 4 | Yes: a + 0, 0 + a and a − 0 belong, from the start of `optellen-tot-5` / `aftrekken-wegnemen-5`. | Decided. Designed: about 15% of the draws; each exercise says whether it can show a zero (*shared rules, 3*). Not yet in the generators |
@@ -592,7 +592,7 @@ A countable picture comes back only on a retry, as the step down.
 - Only above score 60, so it cannot hold up an unlock. It can hold a skill between 60 and 100 — which is the intended meaning of "not yet automatised".
 - The retry of a wrong answer is the same fact one tier down: untimed, with the huisje back.
 
-Open, to settle when it is built and tested: where the baseline comes from (candidate: the median time of the child's correct answers in `dot-pattern-recognise`, which stays in rotation; otherwise a short "tik de 7" warm-up inside the exercise); whether a visible limit with a longer second attempt — the original idea — works better than this; whether slow should cost something.
+Accepted in this form. A visible limit with a longer second attempt — the original idea — can be added later as a higher tier. Open, to settle when it is built and tested: where the baseline comes from (candidate: the median time of the child's correct answers in `dot-pattern-recognise`, which stays in rotation; otherwise a short "tik de 7" warm-up inside the exercise); whether slow should cost something.
 
 **5. Conventions.** W / R / C / L / Q apply as everywhere. Quantities are 5-rows (two rows for 6–10) or, up to 5, die patterns. A picture that disappears is covered, not removed, so the stage keeps its size.
 
@@ -956,7 +956,7 @@ For Claude Code context — what was considered and chosen during the design con
 16. **Getalbeeld for 6–10**: the 5-structure; looked at again when the child enters the first year.
 17. **Comparison with the compared amount unknown** ("3 meer dan"): not in the tot-5 range; later, as story problems at tot 10.
 18. **A difference of 0** stays in the verschil skills.
-19. **Exercise set for the tot-5 arithmetic, the split bands and tienvrienden** designed in one go — *Exercise design for the next set*. The time-aware exercise (`snel-weten`) is designed in a soft form that is still a proposal.
+19. **Exercise set for the tot-5 arithmetic, the split bands and tienvrienden** designed in one go — *Exercise design for the next set*. The time-aware exercise (`snel-weten`) is built in its soft form — no clock shown, slow-but-correct is not wrong; a visible limit may be added later as a higher tier.
 12. **No trivial 0-splits**: splitsen generators produce a ≥ 1, b ≥ 1. A "split into 0 and n" carries no recognition signal and was previously confusing in visual exercises. Was previously `a ≥ 0`.
 
 ---

@@ -4,7 +4,7 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { DOT_POS } from '../presentation/diePatterns'
+import { Huisje } from '../presentation/components/Huisje'
 import { makeNumeralOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
@@ -21,8 +21,7 @@ import { splitText } from './opDisplay'
 // One house fills the stage; the two houses of twee-huisjes stand side by side
 // at a smaller size, so the numpad stays on screen (the question must fit the
 // viewport — CLAUDE.md → Exercise behaviour conventions).
-const ROOM = 76
-const ROOM_PAIR = 60
+const ROOM_PAIR = 60   // one house alone uses the Huisje default (76)
 
 const TIERS: ExerciseTier[] = [
   { id: 'één-kamer',      minScore: 0,  label: 'één kamer',      description: 'One room prefilled, unsplit die-aid in the roof; the missing part is generated mentally and picked from four numerals.' },
@@ -38,64 +37,6 @@ interface SplitshuisjeMeta {
 
 const splitEq = (a1: number, b1: number, a2: number, b2: number) =>
   (a1 === a2 && b1 === b2) || (a1 === b2 && b1 === a2)
-
-// Unsplit die-aid: one colour, deliberately NOT showing the split.
-function PlainDie({ n, colour, size }: { n: number; colour: string; size: number }) {
-  const positions = DOT_POS[n] ?? []
-  const dot = Math.round(size * 0.23)
-  return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      {positions.map(([x, y], i) => (
-        <div key={i} style={{
-          position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)',
-          width: dot, height: dot, borderRadius: '50%', background: colour,
-        }} />
-      ))}
-    </div>
-  )
-}
-
-function House({ total, left, right, activeCell, dieAid, tokens, room: ROOM_SIZE = ROOM }: {
-  room?: number
-  total: number
-  left: string; right: string
-  activeCell: 'left' | 'right' | null
-  dieAid: boolean
-  tokens: typeof NATURE_TOKENS
-}) {
-  const { ink, paper, dot, accent } = tokens
-  const HOUSE_W = ROOM_SIZE * 2 + 6
-  const ROOF_H = Math.round(ROOM_SIZE * 0.76)
-  const room = (val: string, active: boolean, key: string) => (
-    <div key={key} style={{
-      width: ROOM_SIZE, height: ROOM_SIZE, boxSizing: 'border-box', background: paper,
-      border: `2px solid ${active ? accent : ink}`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Fredoka One, cursive', fontSize: Math.round(ROOM_SIZE * 0.53),
-      color: val === '?' ? `${ink}55` : ink,
-      boxShadow: active ? `inset 0 0 0 2px ${accent}` : 'none',
-    }}>{val}</div>
-  )
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ position: 'relative', width: HOUSE_W, height: ROOF_H }}>
-        <svg width={HOUSE_W} height={ROOF_H} style={{ position: 'absolute', inset: 0 }}>
-          <polygon points={`${HOUSE_W / 2},2 2,${ROOF_H - 1} ${HOUSE_W - 2},${ROOF_H - 1}`} fill={paper} />
-          <polyline points={`2,${ROOF_H - 1} ${HOUSE_W / 2},2 ${HOUSE_W - 2},${ROOF_H - 1} 2,${ROOF_H - 1}`}
-            fill="none" stroke={ink} strokeWidth={2} strokeLinejoin="round" />
-        </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 6, paddingBottom: 4 }}>
-          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: Math.round(ROOM_SIZE * 0.37), color: ink, lineHeight: 1 }}>{total}</span>
-          {dieAid && <PlainDie n={total} colour={dot} size={30} />}
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 6, borderTop: `2px solid ${ink}`, paddingTop: 0 }}>
-        {room(left, activeCell === 'left', 'l')}
-        {room(right, activeCell === 'right', 'r')}
-      </div>
-    </div>
-  )
-}
 
 function SplitshuisjeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitshuisjeMeta>) {
   const { operandA, operandB, meta } = question
@@ -169,10 +110,10 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
         <>
           <ExerciseStage tokens={tokens}>
             <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-              <House room={ROOM_PAIR} total={total} left={cellVal(0)} right={cellVal(1)}
+              <Huisje room={ROOM_PAIR} total={total} left={cellVal(0)} right={cellVal(1)}
                 activeCell={activeIdx === 0 ? 'left' : activeIdx === 1 ? 'right' : null}
                 dieAid={false} tokens={tokens} />
-              <House room={ROOM_PAIR} total={total} left={cellVal(2)} right={cellVal(3)}
+              <Huisje room={ROOM_PAIR} total={total} left={cellVal(2)} right={cellVal(3)}
                 activeCell={activeIdx === 2 ? 'left' : activeIdx === 3 ? 'right' : null}
                 dieAid={false} tokens={tokens} />
             </div>
@@ -182,7 +123,7 @@ function SplitshuisjeComponent({ question, onResolve, disabled, scene }: Exercis
       ) : (
         <>
           <ExerciseStage tokens={tokens}>
-            <House total={total}
+            <Huisje total={total}
               left={meta.givenSide === 'left' ? String(given) : singleMissingDisplay}
               right={meta.givenSide === 'right' ? String(given) : singleMissingDisplay}
               activeCell={solved || meta.tierId === 'één-kamer' ? null : (meta.givenSide === 'left' ? 'right' : 'left')}
