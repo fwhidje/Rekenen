@@ -52,7 +52,7 @@ Local play without an account must keep working throughout.
 
 ## Parked — needs design review before implementing
 
-- **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Flemish teaching materials — first of all the method used at the child's school — structure 6–10 (5-structure / rekenrek vs kwadraatbeeld; skill map → *Didactic frame §6*) — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants — `rekenrek-decompose` was removed from `splitsen-herken-5` for the same reason and stays listed only under `splitsen-tot-10`, where the 5-structure earns it.
+- **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Flemish teaching materials — first of all the method used at the child's school — structure 6–10 (5-structure / rekenrek vs kwadraatbeeld; skill map → *Didactic frame §6*) — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants — `rekenrek-decompose` was removed from `splitsen-herken-5` for the same reason; for the 6–10 bands its job is done by `splits-build-it` on a bead row coloured per five, and the id is dropped (skill map → *Exercise design for the next set*).
 
 ---
 
@@ -73,14 +73,16 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `-1-2-tot-5` (lifted June 2026 — its downstream `aftrekken-wegnemen-5` chain is re-gated below until each gets its own tuning round)
 - `splitsen-noteren-5` (lifted June 2026 — parallel notation track, gates nothing downstream in v2)
 
-### Currently gated (6 subtree roots)
+### Currently gated (11 flagged skills)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
 | `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | optellen-tot-5 tuning round done |
-| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `aftrekken-aanvullen-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream | aftrekken-wegnemen-5 tuning round done + verschil/aanvullen exercise types built |
-| `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
-| `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
+| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream | its new exercises built + tuning round done |
+| `aftrekken-verschil-5`, `aftrekken-verschil-10` | flagged themselves: none of their exercises exists yet | `verschil-paren` built |
+| `getalfamilie-5`, `getalfamilie-10` | flagged themselves: their core exercises do not exist yet | `puntoefening` + `familie-sommen` built |
+| `splitsen-6-7`, `splitsen-8-9` | `tienvrienden` (from 6–7), `optellen-tot-10`, `aftrekken-wegnemen-10` (both bands) downstream | split exercises stretched to 6–10 + `splits-buren` built |
+| `tienvrienden` | tienvrienden drill | `maak-tien` / `tien-paren` built |
 | `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
 | `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
 
@@ -113,7 +115,7 @@ components. No exercise file needs to change.
 
 ## ★ Round 2 progress — implement all exercise types
 
-Round 1 (done): curriculum data, engine, DebugMode. All 22 skills defined in `skills.ts` (splitsen-tot-5 split into herken/noteren halves).
+Round 1 (done): curriculum data, engine, DebugMode. All 23 skills defined in `skills.ts` (splitsen-tot-5 split into herken/noteren halves; the splits of 6–10 split by total into `splitsen-6-7` / `splitsen-8-9`, with 10 in `tienvrienden`; `aftrekken-aanvullen-*` redefined as `getalfamilie-*` — Nov 2026).
 Engine foundations (done, June 2026): persisted answer stream, retry-one-tier-down, typed `Problem`, dynamic per-exercise weight factors, curriculum validation, vitest suite — see Core model.
 Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tuned per skill.
 
@@ -132,21 +134,29 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
 | `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
-| `splitsen-tot-10` *(TBD: split like tot-5? — the skill map argues for a split by total instead)* | 🔲 none designed; didactics written (preliminary, Nov 2026) | 🔲 |
-| `tienvrienden` | 🔲 Pass 6; didactics written (preliminary, Nov 2026) | 🔲 |
+| `splitsen-6-7`, `splitsen-8-9` *(replace `splitsen-tot-10`)* | 📐 designed (Nov 2026), none built — 10 existing split exercises to stretch to 6–10, `splits-buren` and `snel-weten` new | 📐 first-guess curve in the skill map |
+| `tienvrienden` | 📐 designed, none built — `maak-tien`, `tien-paren` new | 📐 first guess |
 | `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap single tier, fill-vis picture-and-sum in step, doosje count-on, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 after a play-through review | 🟡 initial guesses |
-| `optellen-tot-5` | 🔲 reachable on the default curve; own tuning round pending; didactics written (preliminary, Nov 2026) | 🔲 |
+| `optellen-tot-5` | 📐 designed, not built — `huisje-som`, `flits-som`, `snel-weten` new; zero terms to add. Until then playable only with its existing exercises on the default curve | 📐 first guess |
 | `+1-2-tot-10`, `+3-4-tot-10`, `optellen-tot-10` | 🔲 own tuning rounds pending; didactics still `TODO` | 🔲 |
 | `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back twin, doosje count-back, fill-vis − grammar, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 | 🟡 initial guesses |
-| `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5` | 🔲 wegnemen-5 reachable on the default curve (needs `optellen-tot-5` ≥ 60 too); own tuning round pending — verschil/aanvullen types not built; didactics written (preliminary, Nov 2026) | 🔲 |
-| `-1-2-tot-10`, `-3-4-tot-10`, `aftrekken-*-10` | 🔲 didactics still `TODO` | 🔲 |
+| `aftrekken-wegnemen-5` | 📐 designed, not built — adds `omkeer-som`, `teken-kiezen` to the optellen set | 📐 first guess |
+| `aftrekken-verschil-5` | 📐 designed, not built — `verschil-paren`, `numberline-gap` new | 📐 first guess |
+| `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | 📐 designed, not built — `puntoefening`, `familie-sommen` new | 📐 first guess |
+| `-1-2-tot-10`, `-3-4-tot-10`, `aftrekken-wegnemen-10`, `aftrekken-verschil-10`, `getalfamilie-10` | 🔲 didactics still `TODO`; will reuse the new op-generic exercises | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
 **Preliminary documentation run (Nov 2026)** for the next set — `splitsen-tot-10`, `tienvrienden`, `optellen-tot-5`, `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5`:
 - `didactics` (starting point, goal, pitfalls) and `intent` filled in `skills.ts`. The goals follow Flemish sources (`reference/flemish-curriculum/`); several pitfalls are reasoned, not sourced — the skill map's source table says which. Written before any exercise was designed — revise in each skill's own round.
 - Reasoning and eight open questions: skill map → *Didactic frame*. None of them is decided; no graph, generator or exercise change was made. The ones that block exercise design: which getalbeeld carries 6–10 (5-structure vs kwadraatbeeld — depends on the school's method), the shape of `splitsen-tot-10` (one skill vs split by total), how to tell knowing from counting when the score is right/wrong only.
-- `EXERCISE_PLAN` for these skills is still `TODO` (no exercises chosen yet).
+- `EXERCISE_PLAN` for these skills now holds the planned curve, marked `PLAN.` — to be rewritten when each skill is built.
 - Known and not fixed: the classifier's aanvullen rule (`given == a − b`) can never fire — see the skill map's error-taxonomy notes.
+
+**Exercise design run (Nov 2026)** for the same set, now seven skills:
+- **Graph changed in `skills.ts`**: `splitsen-tot-10` → `splitsen-6-7` + `splitsen-8-9` (unlock together); `tienvrienden` unlocks from `splitsen-6-7` and now also teaches the splits of 10; `aftrekken-aanvullen-*` → `getalfamilie-*` (a split problem; the exercise picks the view); `splitsen-herken-5` / `splitsen-noteren-5` no longer archive. All affected skills are gated, so nothing changes in play. No profile held progress in the removed ids unless set by hand.
+- **Designed, not built**: 12 new exercise types and the changes to existing ones — skill map → *Exercise design for the next set* (what each is for, how it works, tiers, pitfalls, first-guess weights, shared rules, what else must be built, a build order). The ids are reserved in `skills.ts` (`EX`) and listed in `applicableExercises`; no weight tables yet.
+- **Still a proposal, not a decision**: the soft form of the time-aware exercise `snel-weten` (slow-but-correct is not wrong and never shown as slow) instead of a visible time limit with a longer retry.
+- **Not done on purpose**: zero terms in the generators, the third answer outcome in the engine, the family-aware error classification — they belong with the exercises that need them.
 
 ### Exercise file status
 
@@ -192,8 +202,19 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid; tiers som-vol 40 / som-kiezen 60 / omgekeerd 80; the som is written in full at som-vol, always for `−`, and always with the mini-huisje — bare only for `+` with a dice picture; for `−` the picture always shows the whole (two-colour die or huisje, never two separate dice); distractors are other facts, never the relation's twin) |
 | `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; tiers tekst-som 60 (sentences, the sum forming alongside) / tekst 80 (sentences only — the sanctioned hidden-equation exception); the film never auto-plays on a first attempt: ▶ acts the story out, taps recorded, creatures leave at the question; the retry is the pictured version — film plays, creatures stay, sum shown; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
-| aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
-| tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
+| `flits-som` | — | 📐 designed — the picture of the sum flashes, the sum stays (optellen-tot-5, wegnemen-5) |
+| `huisje-som` | — | 📐 designed — the sum read from a filled splitshuisje; `twee-sommen` tier teaches van plaats wisselen |
+| `omkeer-som` | — | 📐 designed — a finished sum gives its reverse; `buur` tier (wegnemen-5) |
+| `familie-sommen` | — | 📐 designed — a huisje, number tiles, the four sums (getalfamilie) |
+| `puntoefening` | — | 📐 designed — "2 + . = 5", target picture → bare → other positions (getalfamilie, tienvrienden); replaces the planned `aanvullen-target` |
+| `numberline-gap` | `NumberLine.tsx` (third id, to add) | 📐 designed — the jump between two marks, variants aanvullen / verschil; replaces `numberline-jump-up-from-b` |
+| `teken-kiezen` | — | 📐 designed — choose + or − (wegnemen-5, verschil-5, getalfamilie-5) |
+| `verschil-paren` | — | 📐 designed — pair off two groups; replaces `verschil-two-groups` / `verschil-rekenrek` |
+| `splits-buren` | — | 📐 designed — one part up, the other down (split bands) |
+| `maak-tien` | — | 📐 designed — tienveld / vingers, the empty places are the partner; replaces `tienveld-fill` / `rekenrek-make-ten` |
+| `tien-paren` | — | 📐 designed — tap the pairs that make 10, one-off decoys at the top |
+| `snel-weten` | — | 📐 designed — one tap on a fixed number strip, time-aware; needs a third answer outcome in the engine |
+| splits-helft | — | 🔲 not built |
 
 ### Per-exercise ritual
 
@@ -219,12 +240,13 @@ Status rots when it lives in more than one place. The rules:
 2. **Implementation status lives in THIS file only** (the status tables under Round 2 progress). No other doc records what's built/weighted/tested — when a change alters status, update the tables here and nothing else.
 3. **`rekenen_v2_skill_exercise_map.md`** owns curriculum *design rationale* (skill graph, exercise catalog, error taxonomy). It carries no status. **`road_to_ai_driven_rekenen.md`** owns the long-term direction; it carries no status either.
 4. **`core_logic.md` and `rekenen_v2_app_design.md` are frozen** historical decision records. Never update them; never trust them for current state.
-5. **`reference/`** holds extracts of external sources (today: Flemish curriculum documents). Evidence only — no status, no decisions of this project. Never edit the quoted text; add a file and a README row when a new source is consulted. The curriculum follows the **Flemish** progression: Dutch material (TAL, SLO, Dutch methods) is organised differently and is not a reference.
+5. **`reference/`** holds extracts of external sources (today: Flemish curriculum documents) and the background didactics text. Evidence only — no status, no decisions of this project. Never edit the quoted text; add a file and a README row when a new source is consulted. The curriculum follows the **Flemish** progression: Dutch material (TAL, SLO, Dutch methods) is organised differently and is not a reference.
 
 ## Reference docs (in repo root)
 
 - **`rekenen_v2_skill_exercise_map.md`** — authoritative skill graph, exercise type catalog, error taxonomy. **Takes precedence over the frozen docs** when there's any conflict.
 - **`road_to_ai_driven_rekenen.md`** — long-term plan (AI-teacher direction). Carries no status.
+- **`reference/l1_maths_didactics_belgie.md`** — the project's own background text on first-year didactics (source of the terms "movement 5", "mastery width"). A synthesis without sources; where it differs from the Flemish documents below, the documents win; its §15 describes an older app.
 - **`reference/flemish-curriculum/`** — extracts of the Flemish sources behind the didactics: minimumdoelen wiskunde, GO! doelenset bewerkingen (getalfamilies, optellen / aftrekken to 10), UCLL leerlijnen and vakdidactisch kader. `README.md` there lists sources, URLs and what is still unread (ZILL, OVSG, the school's method).
 - `rekenen_v2_app_design.md` — *frozen* — original app-level design conversation.
 - `core_logic.md` — *frozen* — original logic model (superseded by the core model below).
