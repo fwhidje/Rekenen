@@ -189,6 +189,8 @@ const FillVisual: ExerciseDefinition<FillVisualMeta> = {
   retryStable: ['variant', 'sceneIndex', 'colorA', 'colorB'],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
 
+  // No zero term (a + 0, 0 + a, a − 0): its action picture needs something that arrives or leaves.
+  isCompatible: (a, b) => a !== 0 && b !== 0,
   generateMeta(_operandA, _operandB, score, problem, ctx) {
     const prev = ctx?.retryOf
     const tier = pickTier(TIERS, score)

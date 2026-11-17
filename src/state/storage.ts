@@ -70,9 +70,12 @@ export function saveAppState(state: AppState): void {
 
 // ─── Score updates with unlock + subsume cascade ──────────────────────────────
 
-export function recordAnswer(profile: Profile, skillId: string, correct: boolean): Profile {
+// `counts: false` — a correct answer that was too slow to count as known
+// (engine/pace.ts): the score stays where it is.
+export function recordAnswer(profile: Profile, skillId: string, correct: boolean, opts: { counts?: boolean } = {}): Profile {
   const current = profile.skills[skillId]
   if (!current) return profile
+  if (opts.counts === false) return profile
 
   const newScore = correct ? applyCorrect(current.score) : applyWrong(current.score)
 

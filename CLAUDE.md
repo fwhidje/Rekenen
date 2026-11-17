@@ -52,7 +52,7 @@ Local play without an account must keep working throughout.
 
 ## Parked — needs design review before implementing
 
-- **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Flemish teaching materials — first of all the method used at the child's school — structure 6–10 (5-structure / rekenrek vs kwadraatbeeld; skill map → *Didactic frame §6*) — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants — `rekenrek-decompose` was removed from `splitsen-herken-5` for the same reason and stays listed only under `splitsen-tot-10`, where the 5-structure earns it.
+- **`rekenrek-show`** — currently listed in `getalbegrip-5` / `getalbegrip-10` applicableExercises but not registered, not weighted, and not implemented. Open question: is "how many beads on the rekenrek?" actually a useful exercise for plain counting, or does the rekenrek only earn its keep in the splitsen-5 / splitsen-10 skills where the 5-structure split is the whole point? Revisit after looking at how Flemish teaching materials — first of all the method used at the child's school — structure 6–10 (5-structure / rekenrek vs kwadraatbeeld; skill map → *Didactic frame §6*) — likely either drop from getalbegrip or redesign as a structure-recognition exercise. Same question applies to any future `rekenrek-*` variants — `rekenrek-decompose` was removed from `splitsen-herken-5` for the same reason; for the 6–10 bands its job is done by `splits-build-it` on a bead row coloured per five, and the id is dropped (skill map → *Exercise design for the next set*).
 
 ---
 
@@ -73,15 +73,16 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 - `-1-2-tot-5` (lifted June 2026 — its downstream `aftrekken-wegnemen-5` chain is re-gated below until each gets its own tuning round)
 - `splitsen-noteren-5` (lifted June 2026 — parallel notation track, gates nothing downstream in v2)
 
-### Currently gated (6 subtree roots)
+### Currently gated (9 flagged skills)
 
 | Skill id | Gates | Lift when |
 |---|---|---|
-| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | optellen-tot-5 tuning round done |
-| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `aftrekken-aanvullen-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream | aftrekken-wegnemen-5 tuning round done + verschil/aanvullen exercise types built |
-| `splitsen-tot-10` | `tienvrienden`, `optellen-tot-10`, `aftrekken-wegnemen-10` downstream | splitsen-tot-10 exercises built |
-| `tienvrienden` | tienvrienden drill | `tienveld-fill` / `rekenrek-make-ten` built |
-| `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
+| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | built — lift after a DebugMode play-through by Filip. **Lifting it opens `+1-2-tot-10`** (planned, never played) and behind it `+3-4-tot-10` and `dubbels-tot-10` (planned, never played): give those their own flag first, or play them through |
+| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream (verschil-5 and getalfamilie-5 are built and carry no flag of their own — lifting this one opens them) | built — lift after a DebugMode play-through by Filip; needs `optellen-tot-5` lifted too |
+| `aftrekken-verschil-10`, `getalfamilie-10` | flagged themselves: no weight table, didactics `TODO` | their own tuning round |
+| `splitsen-6-7`, `splitsen-8-9` | `tienvrienden` (from 6–7), `optellen-tot-10`, `aftrekken-wegnemen-10` (both bands) downstream | built — lift after a DebugMode play-through by Filip |
+| `tienvrienden` | nothing downstream | built — lift after a play-through, once `splitsen-6-7` is live |
+| `optellen-tot-10` | `helften-tot-10` | optellen-tot-10 verified end-to-end |
 | `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
 
 To open up the next branch: remove `disabled: true` from one of the rows above. Downstream stays gated until *its* root is also lifted (the cascade is automatic).
@@ -113,7 +114,7 @@ components. No exercise file needs to change.
 
 ## ★ Round 2 progress — implement all exercise types
 
-Round 1 (done): curriculum data, engine, DebugMode. All 22 skills defined in `skills.ts` (splitsen-tot-5 split into herken/noteren halves).
+Round 1 (done): curriculum data, engine, DebugMode. All 23 skills defined in `skills.ts` (splitsen-tot-5 split into herken/noteren halves; the splits of 6–10 split by total into `splitsen-6-7` / `splitsen-8-9`, with 10 in `tienvrienden`; `aftrekken-aanvullen-*` redefined as `getalfamilie-*` — Nov 2026).
 Engine foundations (done, June 2026): persisted answer stream, retry-one-tier-down, typed `Problem`, dynamic per-exercise weight factors, curriculum validation, vitest suite — see Core model.
 Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tuned per skill.
 
@@ -132,21 +133,35 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
 | `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
-| `splitsen-tot-10` *(TBD: split like tot-5? — the skill map argues for a split by total instead)* | 🔲 none designed; didactics written (preliminary, Nov 2026) | 🔲 |
-| `tienvrienden` | 🔲 Pass 6; didactics written (preliminary, Nov 2026) | 🔲 |
+| `splitsen-6-7`, `splitsen-8-9` *(replace `splitsen-tot-10`)* | ✅ all 8 live (Nov 2026): `splits-beeld` and `splits-buren` new, `splitshuisje` / `splitsbenen` / `splits-ontbreken-*` / `splits-vrij` checked at 6–9 in a browser, `snel-weten`. Not used: the dice exercises and `splits-alle` (table too tall). **Still gated** — not playtested by a child | 🟡 initial guesses, one curve for both |
+| `tienvrienden` | ✅ all 7 live (Nov 2026): `maak-tien`, `tien-paren` new; `splitshuisje`, `splits-ontbreken-*`, `puntoefening` checked at total 10; `snel-weten`. **Still gated** | 🟡 initial guesses |
 | `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap single tier, fill-vis picture-and-sum in step, doosje count-on, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 after a play-through review | 🟡 initial guesses |
-| `optellen-tot-5` | 🔲 reachable on the default curve; own tuning round pending; didactics written (preliminary, Nov 2026) | 🔲 |
-| `+1-2-tot-10`, `+3-4-tot-10`, `optellen-tot-10` | 🔲 own tuning rounds pending; didactics still `TODO` | 🔲 |
+| `optellen-tot-5` | ✅ all 9 live (Nov 2026): `huisje-som`, `flits-som`, `snel-weten` new, zero terms in the generator (about 15% of the draws), `fill-vis` / `splits-som-match` / `rekenverhaal` skip zero terms. **Still gated** — not playtested by a child; lift the flag after a DebugMode play-through | 🟡 initial guesses |
+| `+1-2-tot-10` | 📐 planned and wired (Nov 2026): didactics, a 9-exercise list of existing types (number line leads; no action exercises), generator with a 30% refresh share of the tot-5 sums and post-60 turn-arounds. Played in a browser at 6–10. The tot-10 number line was reworked for it: one bow for the jump, the landing answered on the number strip. Gated only through `optellen-tot-5` | 📐 planned, never played |
+| `+3-4-tot-10` | 📐 planned and wired (Nov 2026): didactics, an 8-exercise list of existing types (`huisje-som` leads, no number line), generator with a small refresh share and post-60 turn-arounds. `buur-som` added for the derived-fact route (9 exercises; `som-in-stappen` dropped — no two steps through the five). Played in a browser at these numbers. Gated only through `optellen-tot-5` | 📐 planned, never played |
+| `optellen-tot-10` | 🔲 own tuning round pending; didactics still `TODO` | 🔲 |
 | `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back twin, doosje count-back, fill-vis − grammar, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 | 🟡 initial guesses |
-| `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5` | 🔲 wegnemen-5 reachable on the default curve (needs `optellen-tot-5` ≥ 60 too); own tuning round pending — verschil/aanvullen types not built; didactics written (preliminary, Nov 2026) | 🔲 |
-| `-1-2-tot-10`, `-3-4-tot-10`, `aftrekken-*-10` | 🔲 didactics still `TODO` | 🔲 |
-| `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
+| `aftrekken-wegnemen-5` | 🟡 10 of 11 live (Nov 2026): `omkeer-som` and `teken-kiezen` built, `huisje-som` / `flits-som` shared with optellen; a − 0 and a − a in the generator (about 15% together); `snel-weten`. **Still gated** — not playtested by a child | 🟡 initial guesses |
+| `aftrekken-verschil-5` | ✅ all 4 live (Nov 2026): `verschil-paren`, `numberline-gap`, `teken-kiezen`, `rekenverhaal` (verschil story). Problems carry `form: 'verschil'`; a difference of 0 is kept but made rarer. Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
+| `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | ✅ all 7 live (Nov 2026): `puntoefening`, `familie-sommen` (two of its three designed tiers), `numberline-gap`, `splits-ontbreken-rechts`, `teken-kiezen`, `rekenverhaal` (aanvullen / deel-geheel stories), `snel-weten` (asks any view of the family). Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
+| `-1-2-tot-10` | 📐 planned and wired (Nov 2026): didactics, an 11-exercise list of existing types (number line back leads), generator with a 30% refresh share. Uses the reworked tot-10 number line. Gated only through `aftrekken-wegnemen-5` | 📐 planned, never played |
+| `-3-4-tot-10` | 📐 planned and wired (Nov 2026): didactics, a 10-exercise list of existing types (`huisje-som` leads, `omkeer-som` early, no number line or doosje). Played in a browser. Gated only through `aftrekken-wegnemen-5` | 📐 planned, never played |
+| `aftrekken-wegnemen-10`, `aftrekken-verschil-10`, `getalfamilie-10` | 🔲 didactics still `TODO`; will reuse the new op-generic exercises | 🔲 |
+| `dubbels-tot-10` | 📐 planned and wired (Nov 2026): **moved forward — unlocks from `+1-2-tot-10`** (was `optellen-tot-10`), next to `+3-4-tot-10`. Didactics, 7 exercises (`dubbel-spiegel` new), generator serves 3 + 3, 4 + 4, 5 + 5 twice as often as 1 + 1, 2 + 2. Played in a browser. Gated only through `optellen-tot-5` | 📐 planned, never played |
+| `helften-tot-10` | 🔲 still behind `optellen-tot-10`; didactics `TODO` | 🔲 |
 
 **Preliminary documentation run (Nov 2026)** for the next set — `splitsen-tot-10`, `tienvrienden`, `optellen-tot-5`, `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5`:
 - `didactics` (starting point, goal, pitfalls) and `intent` filled in `skills.ts`. The goals follow Flemish sources (`reference/flemish-curriculum/`); several pitfalls are reasoned, not sourced — the skill map's source table says which. Written before any exercise was designed — revise in each skill's own round.
 - Reasoning and eight open questions: skill map → *Didactic frame*. None of them is decided; no graph, generator or exercise change was made. The ones that block exercise design: which getalbeeld carries 6–10 (5-structure vs kwadraatbeeld — depends on the school's method), the shape of `splitsen-tot-10` (one skill vs split by total), how to tell knowing from counting when the score is right/wrong only.
-- `EXERCISE_PLAN` for these skills is still `TODO` (no exercises chosen yet).
+- `EXERCISE_PLAN` for these skills now holds the planned curve, marked `PLAN.` — to be rewritten when each skill is built.
 - Known and not fixed: the classifier's aanvullen rule (`given == a − b`) can never fire — see the skill map's error-taxonomy notes.
+
+**Exercise design run (Nov 2026)** for the same set, now seven skills:
+- **Graph changed in `skills.ts`**: `splitsen-tot-10` → `splitsen-6-7` + `splitsen-8-9` (unlock together); `tienvrienden` unlocks from `splitsen-6-7` and now also teaches the splits of 10; `aftrekken-aanvullen-*` → `getalfamilie-*` (a split problem; the exercise picks the view); `splitsen-herken-5` / `splitsen-noteren-5` no longer archive. All affected skills are gated, so nothing changes in play. No profile held progress in the removed ids unless set by hand.
+- **Designed, not built**: 12 new exercise types and the changes to existing ones — skill map → *Exercise design for the next set* (what each is for, how it works, tiers, pitfalls, first-guess weights, shared rules, what else must be built, a build order). The ids are reserved in `skills.ts` (`EX`) and listed in `applicableExercises`; no weight tables yet.
+- **Decided**: the time-aware exercise `snel-weten` is built in its soft form (no clock shown; slow-but-correct is not wrong and never shown as slow). A visible time limit with a longer retry can be added later as a higher tier.
+- **All seven skills are built (Nov 2026) and all are still gated**: none has been played by a child, and every weight is a first guess. Lift the gates one at a time after a DebugMode play-through.
+- **Still open**: the `zelf` tier of `familie-sommen` and the `rij` tier of `splits-buren` (designed, not built); a "make the split yourself" exercise for 6–9; error classification for family questions (a wrong puntoefening answer is classified as a split: an echoed part is tagged `reversal`, the rest `unclassified`); the pace numbers (`engine/pace.ts`) have never met real data.
 
 ### Exercise file status
 
@@ -181,8 +196,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `wegneem-tap` | `WegneemTap.tsx` | ✅ done (mirror of erbij-tap: tap the leavers in a 5-row, they fade to crossed ghosts, chip counts back; tiers doen 0 / voorspel 35; remainder stays readable at the doen tier) |
 | `wegnemen-crossed-out` | `WegnemenCrossedOut.tsx` | ✅ done (werkboek picture: whole drawn, removed part crossed; theme `Counter` via SceneGroup; tiers keuze 0 (cross-out animates one item at a time via useReveal, equation builds, no reflow) / numpad 50 (instant static)) |
 | `numberline-jump-back` | `NumberLine.tsx` | ✅ done (backward twin id on the shared component; same 3-tier ladder, direction from `question.op`) |
-| `doosje` | `Doosje.tsx` | ✅ done (Nov 2026; replaces `collect-counter` / `collect-counter-down`, which were removed. Op-generic, one id: the first number is a group in a closed box, the lid says how many; b stand outside going in (+) or have come out (−); the hidden group can't be recounted, so the child must count on / back. Tiers kijk 0 (box seen open first) / dicht 35 / intikken 65; on a correct answer the lid lifts and shows the result) |
-| `numberline-jump` | `NumberLine.tsx` | ✅ reworked (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; written order — jump departs from operandA; tier-0 staged reveal: sum builds → line → start → jump → target; Panel + completed-equation closure; full-range line that fills the stage (50 px cells on the tot-5 line, completed jump drawn on a correct tap); direction seam for `numberline-jump-back`) |
+| `doosje` | `Doosje.tsx` | ✅ done (Nov 2026; at most four outside the box — a turned-around 1 + 9 is not served; replaces `collect-counter` / `collect-counter-down`, which were removed. Op-generic, one id: the first number is a group in a closed box, the lid says how many; b stand outside going in (+) or have come out (−); the hidden group can't be recounted, so the child must count on / back. Tiers kijk 0 (box seen open first) / dicht 35 / intikken 65; on a correct answer the lid lifts and shows the result) |
+| `numberline-jump` | `NumberLine.tsx` | ✅ reworked; Nov 2026: on the tot-10 line the jump is one move under one bow and the landing is answered on the number strip (cells too small to tap) — the tot-5 line is unchanged; only jumps of 1 or 2 are served (a turned-around 1 + 4 no longer comes here, also in the live `+1-2-tot-5`). (3 tiers: sprong-zien animated / sprong-zelf tap-the-landing 40 / kale-sprong sparse 70; written order — jump departs from operandA; tier-0 staged reveal: sum builds → line → start → jump → target; Panel + completed-equation closure; full-range line that fills the stage (50 px cells on the tot-5 line, completed jump drawn on a correct tap); direction seam for `numberline-jump-back`) |
 | `splitshuisje` | `Splitshuisje.tsx` | ✅ done (production house, roof die-aid always UNSPLIT — small on purpose, a fading aid from herken; tiers één-kamer choice 0 / één-kamer-kaal numpad 30 / twee-huisjes two-different-splits 60, the two houses side by side; a repeated split gets "Dat is dezelfde!" and another try, not counted wrong; totals 2 and 3 need a 0-split for the second house — intended) |
 | `splitsbenen` | `Splitsbenen.tsx` | ✅ done (second notation; tiers been-keuze 25 / been-pad 55; weight silent until 25 so the huisje lands first) |
 | `splits-ontbreken-rechts` | `SplitsOntbreken.tsx` | ✅ done (tiers is-en-keuze 20 / is-en-pad 40 / vergelijking "5 = 3 + ?" 55; also serves the aanvullen skills via op `-`) |
@@ -190,10 +205,25 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `splits-vrij` | `SplitsVrij.tsx` | ✅ done (two-slot numpad production, 0-splits accepted; nog-een tier 60: second different split, first greyed as referent — both rows on the stage from the start; a repeat gets a warning and another try, it is not counted wrong) |
 | `splits-alle` | `SplitsAlle.tsx` | ✅ done (descending huisje-table incl. both orders + 0-rows; tiers tabel-aanvullen 65 / tabel-vol 85; first open cell active from the start, cursor moves on; end validation marks the wrong rows; the retry keeps the rows that were right and reopens only the wrong ones (`meta.entries` → `kept`); left-column duplicate guard in tabel-vol — a warning teaches uniqueness; for splitsen-10 the guard should likely be dropped) |
 | `splits-som-match` | `SplitsSomMatch.tsx` | ✅ done (op-generic relation probe, split ↔ som both directions; 2×2 option grid; tiers som-vol 40 / som-kiezen 60 / omgekeerd 80; the som is written in full at som-vol, always for `−`, and always with the mini-huisje — bare only for `+` with a dice picture; for `−` the picture always shows the whole (two-colour die or huisje, never two separate dice); distractors are other facts, never the relation's twin) |
-| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; tiers tekst-som 60 (sentences, the sum forming alongside) / tekst 80 (sentences only — the sanctioned hidden-equation exception); the film never auto-plays on a first attempt: ▶ acts the story out, taps recorded, creatures leave at the question; the retry is the pictured version — film plays, creatures stay, sum shown; weight-only, never a gate) |
+| `rekenverhaal` | `Rekenverhaal.tsx` | ✅ done; Nov 2026: three more stories — `verschil` (two groups, "hoeveel zijn er hier meer?"), and for a family `aanvullen` ("Er moeten er 5 zijn. Hoeveel komen er nog bij?", sum "2 + ? = 5") and `deel-geheel` ("2 zijn wakker. Hoeveel slapen er?"). (op-generic story problems, words carry the semantics; Dutch singular/plural agreement; tiers tekst-som 60 (sentences, the sum forming alongside) / tekst 80 (sentences only — the sanctioned hidden-equation exception); the film never auto-plays on a first attempt: ▶ acts the story out, taps recorded, creatures leave at the question; the retry is the pictured version — film plays, creatures stay, sum shown; weight-only, never a gate) |
 | optellen extras (2 types) | — | 🔲 not built |
-| aftrekken-specific remainder (verschil-two-groups, verschil-rekenrek, aanvullen-target, numberline-jump-up-from-b) | — | 🔲 not built — with the wegnemen/verschil/aanvullen rounds |
-| tienveld / rekenrek-make-ten / splits-helft | — | 🔲 not built |
+| `flits-som` | `FlitsSom.tsx` | ✅ done (Nov 2026; op-generic; the dots shrink when both groups are wide, so 6 + 4 fits a phone. The sum stays, its picture is shown briefly and then covered — two colour groups for +, crossed group for −, an empty place for a 0; ↻ look again, replays recorded; the picture returns with the correct answer. Tiers lang 0 (2.5 s, choice with the sum's own numbers as distractors) / kort 30 (1.2 s, number strip); a retry shows the picture standing still. `FLASH_MS` at the top of the file is the tuning knob. L measured at both sizes; the − side is not yet used by a live skill) |
+| `huisje-som` | `HuisjeSom.tsx` | ✅ done (Nov 2026; op-generic. A filled splitshuisje beside the sum; the sum's numbers light up in the house, the dark one is the answer — roof for +, other room for −. Tiers huisje-open 0 (choice) / huisje-flits 30 (house covered after 1.8 s, strip) / twee-sommen 50 (two sums of one house in a row: 2 + 3 then 3 + 2 — van plaats wisselen; skipped for doubles) / huisje-erna 70 (empty house, fills in as confirmation); a retry always has the house open and one sum. L measured at both sizes) |
+| `omkeer-som` | `OmkeerSom.tsx` | ✅ done (Nov 2026; "3 + 2 = 5, dus 5 − 3 = ?". Tiers omkeer-beeld 0 (two-colour row: together, then one colour crossed; choice) / omkeer-kaal 35 (two lines, strip) / buur 65 (the given line is the neighbouring sum: "5 − 2 = 3, dus 5 − 3 = ?"). Skips zero terms and a − a. A retry brings the picture back) |
+| `familie-sommen` | `FamilieSommen.tsx` | 🟡 two of three tiers (Nov 2026; a huisje, its three numbers as tiles, the + pair then the − pair to fill by tapping tiles; a wrong tile ends the question. Tiers aanvullen 0 (one open place per sum) / leggen 40 (both numbers before the = open; + in either order, − order fixed). The designed `zelf` tier — make sums from the bare house — is not built) |
+| `puntoefening` | `Puntoefening.tsx` | ✅ done (Nov 2026; "2 + ? = 5" for a family. Tiers doel-beeld 0 (the whole as places, given part filled; choice) / doel-flits 25 (picture flashes; strip) / kaal 45 / voor 65 ("? + 2 = 5") / min 80 ("5 − ? = 3"); the same part stays given on a retry, and the picture comes back. The `voor` tier was first opened in a browser after DebugMode got 5-point score steps; checked at 390 × 844 only) |
+| `numberline-gap` | `NumberlineGap.tsx` | ✅ done (Nov 2026; two marks and one bow between them. A family is served as aanvullen ("2 + ? = 5"), a − problem as verschil ("5 − 2 = ?"). Tiers sprong-zien 0 (bow drawn, small steps under it; choice) / sprong-kaal 40 (bow comes with the answer; strip) / kale-lijn 70 (only the ends labelled). A difference of 0 puts both marks on one cell) |
+| `teken-kiezen` | `TekenKiezen.tsx` | ✅ done (Nov 2026; "5 ○ 2 = 3", two buttons + / −. Tiers film 0 (a scene plays: arrive / leave / two groups paired for verschil) / som 40 / zin 70 (cue sentence, outcome hidden until the sign is chosen). For a family the sign varies per question; skips zero terms. No `givenAnswer` is recorded — the answer is a sign) |
+| `verschil-paren` | `VerschilParen.tsx` | ✅ done (Nov 2026; two owners as two colours — a row each and a chip in the question; questions meer / minder / "hoeveel moet ● er nog" recorded as `variant`. Tiers paren 0 (pairs dim one by one, the − sum forms; choice with both groups and their total as distractors) / naast 30 / schuin 55 (rows with different spacing) / getallen 75 (two numbers)) |
+| `splits-beeld` | `SplitsBeeld.tsx` | ✅ done (Nov 2026; not in the original design — replaces the dice exercises for 6–10. The whole on 5-rows in two colours, with the statement "8 is 5 en ?". Tiers zien 0 (both parts in view; choice) / bedekt 25 (one part under a cover of fixed size; strip) / flits 50 (the picture for 1.5 s). A retry shows the whole picture) |
+| `splits-buren` | `SplitsBuren.tsx` | 🟡 three of four tiers (Nov 2026; "7 is 5 en 2 — 7 is 4 en ?". Tiers schuif-zien 0 (a bead row coloured per five; the gap between the parts moves one bead; choice incl. "both parts moved the same way") / twee-regels 35 (strip) / sprong 70 (two steps away). The designed `rij` tier — three rows of the table — is not built) |
+| `maak-tien` | `MaakTien.tsx` | ✅ done (Nov 2026; "7 en ? is 10" with a tienveld or two hands, recorded as `variant`. Tiers zien 0 (picture stays; choice) / flits 30 (1.4 s; strip) / denk 55 (no picture until the answer is in). Only for the splits of 10) |
+| `tien-paren` | `TienParen.tsx` | ✅ done (Nov 2026; number cards, tap two that make 10; a wrong pair ends the question. Tiers open 0 (six cards with a small tienveld each) / getallen 35 / lokkers 60 (eight cards: three pairs and two that belong to nobody). A card-grid exercise without a stage) |
+| `snel-weten` | `SnelWeten.tsx` | ✅ done (Nov 2026; one bare fact, one tap on the number strip, no clock. Reports `answerMs` and a margin per tier; the engine judges the pace (`engine/pace.ts`): a slow correct answer gets the normal praise and does not move the score. Tiers rustig 60 (tap baseline + 1.5 s) / vlot 80 (+ 0.8 s); met-huisje is the untimed retry with the family's house. Asks a split as a split, a getalfamilie in any of four views. Never played by a child — the limits are guesses) |
+| `som-in-stappen` | `SomInStappen.tsx` | ✅ built, **listed in no skill** (Nov 2026: going through the five is not in the Flemish sources read; kept for the brug over 10 / sums of three terms). Op-generic, only for sums that cross the five. "4 + 3": the 3 split into 1 and 2, 4 + 1 = 5, 5 + 2 = ?. Tiers stappen-zien 0 (picture, split and first step given; choice) / eerst-vijf 35 (two taps: first how many to five; strip) / drie-termen 65 ("4 + 1 + 2 = ?"). A retry is the fully shown version) |
+| `buur-som` | `BuurSom.tsx` | ✅ done (Nov 2026; optellen only, not for a dubbel. "3 + 3 = 6, dus 3 + 4 = ?" — the anchor is the best neighbour: dubbel, sum of 10, sum of / with 5, else the +2 sum. Tiers buur-beeld 0 / buur-kaal 35 / buur-zonder 65 (anchor without its outcome)) |
+| `dubbel-spiegel` | `DubbelSpiegel.tsx` | ✅ done (Nov 2026; a row and its mirror image, sum n + n, title "Het dubbel van n". Tiers spiegel-zien 0 / spiegel-denk 30 / woord 60. Replaces the planned `dubbel-recognise`) |
+| splits-helft | — | 🔲 not built |
 
 ### Per-exercise ritual
 
@@ -219,17 +249,20 @@ Status rots when it lives in more than one place. The rules:
 2. **Implementation status lives in THIS file only** (the status tables under Round 2 progress). No other doc records what's built/weighted/tested — when a change alters status, update the tables here and nothing else.
 3. **`rekenen_v2_skill_exercise_map.md`** owns curriculum *design rationale* (skill graph, exercise catalog, error taxonomy). It carries no status. **`road_to_ai_driven_rekenen.md`** owns the long-term direction; it carries no status either.
 4. **`core_logic.md` and `rekenen_v2_app_design.md` are frozen** historical decision records. Never update them; never trust them for current state.
-5. **`reference/`** holds extracts of external sources (today: Flemish curriculum documents). Evidence only — no status, no decisions of this project. Never edit the quoted text; add a file and a README row when a new source is consulted. The curriculum follows the **Flemish** progression: Dutch material (TAL, SLO, Dutch methods) is organised differently and is not a reference.
+5. **`reference/`** holds extracts of external sources (today: Flemish curriculum documents) and the background didactics text. Evidence only — no status, no decisions of this project. Never edit the quoted text; add a file and a README row when a new source is consulted. The curriculum follows the **Flemish** progression: Dutch material (TAL, SLO, Dutch methods) is organised differently and is not a reference.
 
 ## Reference docs (in repo root)
 
 - **`rekenen_v2_skill_exercise_map.md`** — authoritative skill graph, exercise type catalog, error taxonomy. **Takes precedence over the frozen docs** when there's any conflict.
 - **`road_to_ai_driven_rekenen.md`** — long-term plan (AI-teacher direction). Carries no status.
+- **`reference/l1_maths_didactics_belgie.md`** — the project's own background text on first-year didactics (source of the terms "movement 5", "mastery width"). A synthesis without sources; where it differs from the Flemish documents below, the documents win; its §15 describes an older app.
 - **`reference/flemish-curriculum/`** — extracts of the Flemish sources behind the didactics: minimumdoelen wiskunde, GO! doelenset bewerkingen (getalfamilies, optellen / aftrekken to 10), UCLL leerlijnen and vakdidactisch kader. `README.md` there lists sources, URLs and what is still unread (ZILL, OVSG, the school's method).
 - `rekenen_v2_app_design.md` — *frozen* — original app-level design conversation.
 - `core_logic.md` — *frozen* — original logic model (superseded by the core model below).
 
 ## Core model (read first)
+
+*One exception to "+1 on correct" (Nov 2026):* in the time-aware exercise `snel-weten` a correct answer that took longer than the child's own tap time plus a margin leaves the score unchanged (`engine/pace.ts`). The child sees no clock and gets the same praise. It applies only above score 60, so it cannot hold up an unlock. The answer record carries `answerMs` and `pace`; for upload the pace rides in the `variant` column (no migration).
 
 Skills are narrow and atomic. Each carries a 0–100 score that is both the **scaffolding dial** (which exercise type via the weight matrix, which tier within it — never the math the skill covers) **and the unlock gate**. Score moves +1 on correct, −3 on wrong; prerequisites must be unlocked and at score ≥ 60 (`UNLOCK_THRESHOLD`, `engine/scoring.ts`).
 
@@ -257,7 +290,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 
 | Path | Responsibility |
 |---|---|
-| `src/curriculum/types.ts` | `SkillDefinition` (incl. `didactics`, `semanticForm`), `Problem` (named-role problem union), `GenerateContext`, `Operation`, `WeightFunction` types |
+| `src/curriculum/types.ts` | `SkillDefinition` (incl. `didactics`, `semanticForm`), `Problem` (named-role problem union; a − problem may carry `form: 'verschil'`, set by the verschil skills so op-generic exercises show a comparison), `GenerateContext`, `Operation`, `WeightFunction` types |
 | `src/curriculum/skills.ts` | All skill definitions (data — add new skills here) |
 | `src/curriculum/weightMatrix.ts` | Per-skill weight tables (`SKILL_TABLES`); falls back to default global curve for untuned skills |
 | `src/curriculum/factSampling.ts` | Fact-space enumeration + weighted sampling (`enumerateSplits/Plus/Minus`, `sampleFact`, `reweight`) — generators draw facts, not parameter chains |
@@ -265,18 +298,19 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/curriculum/validate.ts` | Dev-time consistency checks across applicableExercises × registry × weight tables × EXERCISE_PLAN; runs after exercise registration |
 | `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD (dial + unlock gate) |
 | `src/engine/exerciseStats.ts` | Per-exercise recent attempts / accuracy / median-RT reporting kernel (feeds the DebugMode mix monitor; nothing gates on it) |
-| `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants |
+| `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants; a correct-but-slow answer is skipped |
+| `src/engine/pace.ts` | Time-aware answers: `tapBaselineMs` (the fast quarter of the child's own recent timed correct answers, clamped, default 1.5 s) and `judgePace` (fast / slow for a correct first attempt of a question that names a margin). Pure fold; constants at the top |
 | `src/engine/diagnostics.ts` | `AnswerRecord` (the long-term schema; incl. `scene`, `viewport`, review `flag`), `AnswerScene`, `AnswerFlag`, `ErrorType`, `classifyError`, `DiagnosticsSink` + persisted singleton `diagnostics` |
 | `src/engine/answerRecord.ts` | `buildAnswerRecord` — the one place an `AnswerRecord` is assembled (KidMode + DebugMode); `APP_VERSION` (build commit via `vite.config.ts`), `SESSION_ID`, `currentViewport()`; scene / viewport / flag are passed in by the caller (KidMode only); test tripwires JSON-safety, size and that the profile name never enters a record |
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator (unlocked + score ≥ UNLOCK_THRESHOLD) |
 | `src/engine/subsumeEvaluator.ts` | Archive evaluator (capped child + unlocked parent) |
 | `src/engine/exerciseSelector.ts` | Picks skill + exercise, generates question; `SelectionContext` (retry one tier down, repeat avoidance); re-draws instead of returning null |
 | `src/engine/answer.ts` | `computeAnswer(problem)` + `problemOperands(problem)` (legacy a/b view) |
-| `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Carries `tiers` (declared scaffolding levels) and `didactics`; optional `isCompatible(a, b)` guard. Also `ExerciseTier`, `ExerciseDidactics`, `AnswerDetail` (the optional `onResolve` payload). |
+| `src/exercises/types.ts` | **ExerciseDefinition** interface — the OO contract. Carries `tiers` (declared scaffolding levels) and `didactics`; optional `isCompatible(a, b, problem)` guard (the problem is passed so a guard can depend on the operation). Also `ExerciseTier`, `ExerciseDidactics`, `AnswerDetail` (the optional `onResolve` payload). |
 | `src/exercises/conventions.test.ts` | Tripwire for the behaviour conventions (W wrong text, R retry stability, C closure, Q no free-wrapping groups) + `PENDING_AUDIT`, the list of exercises not yet checked against them |
 | `src/exercises/tiers.ts` | Shared `pickTier(tiers, score)` — picks the active scaffolding tier (highest `minScore <= score`) |
 | `src/exercises/registry.ts` | Global exercise registry (Map) |
-| `src/exercises/choiceOptions.ts` | Shared range-clamped numeral-distractor builder (`makeNumeralOptions`) — tot-5 never shows a numeral above 5 |
+| `src/exercises/choiceOptions.ts` | Shared range-clamped numeral-distractor builders: `makeNumeralOptions` (near-misses; tot-5 never shows a numeral above 5) and `makeSumOptions` (first the numbers that are on screen — the echo errors — then near-misses) |
 | `src/presentation/diePatterns.ts` | Canonical die/subitising `DOT_POS` map — single source |
 | `src/exercises/index.ts` | Imports all exercise files to trigger registration |
 | `src/exercises/DotPatternDecompose.tsx` | `dot-pattern-decompose` — perceptual splits exercise (4 stages, choice buttons, reveal animation) |
@@ -297,6 +331,11 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/SplitsAlle.tsx` | `splits-alle` — full descending splits table |
 | `src/exercises/SplitsSomMatch.tsx` | `splits-som-match` — op-generic split ↔ som relation probe (post-60 width) |
 | `src/exercises/Rekenverhaal.tsx` | `rekenverhaal` — op-generic story problems (post-60 width; language gradient capstone) |
+| `src/exercises/FlitsSom.tsx` | `flits-som` — op-generic: the picture of a sum flashes, the sum stays |
+| `src/exercises/HuisjeSom.tsx` | `huisje-som` — op-generic: the sum read from a filled splitshuisje |
+| `src/exercises/OmkeerSom.tsx`, `TekenKiezen.tsx`, `VerschilParen.tsx`, `NumberlineGap.tsx`, `Puntoefening.tsx`, `FamilieSommen.tsx` | The exercises of the aftrekken skills and the getalfamilie skill (`omkeer-som`, `teken-kiezen`, `verschil-paren`, `numberline-gap`, `puntoefening`, `familie-sommen`) — see Exercise file status |
+| `src/exercises/SnelWeten.tsx`, `SplitsBeeld.tsx`, `SplitsBuren.tsx`, `MaakTien.tsx`, `TienParen.tsx` | `snel-weten` (time-aware), and the exercises of the split bands and tienvrienden — see Exercise file status |
+| `src/exercises/SomInStappen.tsx`, `BuurSom.tsx`, `DubbelSpiegel.tsx` | `som-in-stappen` (built, in no skill), `buur-som` (the derived-fact route of `+3-4-tot-10`) and `dubbel-spiegel` (dubbels) |
 | `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
 | `src/exercises/Doosje.tsx` | `doosje` — op-generic count-on / count-back from a group hidden in a box (replaces the collect-counter pair) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |
@@ -304,6 +343,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing incl. `closureMs` (locked feedback constraints); `wrongFeedbackText` — the one place the wrong overlay's text is decided |
 | `src/presentation/useClosure.ts` | `useClosure(question, onResolve)` — how every exercise hands in its answer: correct → completed state held `closureMs`, wrong → at once |
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
+| `src/presentation/useFlash.ts` | Hook for an aid shown for a set time and then covered in place (`showing`, `seen`, `replay`, `replays`; `hold` keeps it visible on a retry) |
 | `src/presentation/components/FiveRow.tsx` | The 5-row: the layout for any quantity that changes (convention Q); DotGroup and SceneGroup are built on it |
 | `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later, and `ExerciseTitle`'s `warning`, a notice drawn on the band without resizing it), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
@@ -320,12 +360,14 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `supabase/migrations/` | Database schema for accounts + evidence store, one numbered SQL file per change; run by hand in the Supabase SQL editor |
 | `src/ui/App.tsx` | Root: profile boot, screen routing |
 | `src/ui/KidMode.tsx` | Full-screen exercise loop; stamps scene + viewport on every record; ⚑ review-flag button when the device setting is on |
-| `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers, diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
+| `src/ui/DebugMode.tsx` | Exercise previewer (skill/score/exercise/scene pickers — score in steps of 5, each option names the tiers of the selected exercise that start there, and a row of tier buttons jumps to a tier's start score; diagnostics + mix monitor). Mirrors the live selector: passes `{ score }` to `generate`, the `problem` to `generateMeta`, re-draws problems the chosen exercise cannot show (`isCompatible`), and on a wrong answer re-presents the same problem one tier down (`buildRetry`, `isRetry`) so the re-scaffold is testable |
 | `src/ui/AdminMode.tsx` | Account section (login / sync status) + profile management incl. ☁️ upload + read-only per-profile state inspector (📊: scores, statuses, live weight factors) + 🌳 entry to the progress override + ⚑ review-flag toggle (device setting, under Ontwikkelaars) + link to the inspector page (logged in) |
 | `src/ui/SkillTreeScreen.tsx` | Progress override screen: skill tree for one profile, tap a skill → Open hier / Beheerst → preview diff → Toepassen |
 | `src/admin/progressOverride.ts` | Progress override rules (pure): `planOverride(profile, skillId, mode)` → new profile + per-skill diff; `prerequisites`, `blockedBy`, `canOverride` |
 | `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
-| `src/ui/components/` | NumPad (`compact` for tall stages), ChoiceButtons, TFButtons (`picked` stays lit during the closure) |
+| `src/presentation/components/Equation.tsx` | "x ± y = res" with one place open (`hole`: x / y / res / sign) and a `shown` step for reveals; `eqText` for the wrong-answer overlay — the sum of the family exercises |
+| `src/presentation/components/Huisje.tsx` | The splitshuisje as a shared component (roof + two rooms as strings; `activeCell`, unsplit `dieAid`, `lit` places, `good` answer place) — used by `splitshuisje` and `huisje-som` |
+| `src/ui/components/` | NumPad (`compact` for tall stages), ChoiceButtons, TFButtons (`picked` stays lit during the closure), **NumberStrip** (one tap on a number at a fixed place: 0, then 1–5, for tot 10 a second row 6–10; no confirm, no option set — the input of the "know it" exercises) |
 
 ## Unified exercise shell (locked)
 

@@ -8,6 +8,7 @@ import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getWeights } from '../curriculum/weightMatrix'
 import { recordAnswer } from '../state/storage'
 import { diagnostics } from '../engine/diagnostics'
+import { judgePace } from '../engine/pace'
 import { buildAnswerRecord, currentViewport } from '../engine/answerRecord'
 import { loadDeviceSettings } from '../state/deviceSettings'
 import { sync } from '../sync/client'
@@ -94,8 +95,16 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     setFeedback({ ok: correct, message: msg })
     setHistory(h => [...h, correct])
 
+    // Time-aware questions: a correct answer is also judged on its time. The
+    // child never sees this — the feedback above is the same either way.
+    const pace = judgePace({
+      marginMs: (question.meta as { paceMarginMs?: number }).paceMarginMs,
+      answerMs: detail?.answerMs, isRetry: question.isRetry, correct,
+    }, diagnostics.getAll(profile.id))
+
     // Diagnostic capture — persisted per profile via the localStorage sink.
     const record = buildAnswerRecord({
+      pace,
       profileId: profile.id,
       question,
       correct,
@@ -114,7 +123,7 @@ export function KidMode({ profile, onProfileUpdate, onOpenAdmin }: Props) {
     diagnostics.record(record)
     sync.onAnswer(record) // queued for the account when this profile is linked
 
-    const updatedProfile = recordAnswer(profile, question.skillId, correct)
+    const updatedProfile = recordAnswer(profile, question.skillId, correct, { counts: pace !== 'slow' })
     onProfileUpdate(updatedProfile)
     const completed = roundsDone + 1
     // Failure response (didactics: re-scaffold, don't move on): a wrong answer

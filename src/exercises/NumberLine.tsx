@@ -3,6 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
+import { NumberStrip } from '../ui/components/NumberStrip'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
@@ -17,10 +18,18 @@ import { useClosure } from '../presentation/useClosure'
 // operandB (no start-from-larger reordering — that lives only in the fill-vis
 // commutativity swap). Direction comes from question.op — the same component
 // backs the numberline-jump-back id for the − skills.
+//
+// On the tot-10 line (the ±1 / ±2 tot 10 skills) two things differ, because the
+// line is eleven cells wide and the point is no longer counting on:
+//   • the jump is ONE move with one bow over it — +2 as a unit, not as two
+//     separate steps (the pitfall of those skills);
+//   • the landing is answered on the number strip, not by tapping a cell: the
+//     cells are about 24 px on a phone, too small to tap.
+// The tot-5 line is unchanged.
 
 const TIERS: ExerciseTier[] = [
-  { id: 'sprong-zien', minScore: 0,  label: 'sprong zien', description: 'Staged reveal: the sum builds, then the line appears, the start cell lights, the jump animates cell by cell to the landing "?"; the child picks it from four numerals.' },
-  { id: 'sprong-zelf', minScore: 40, label: 'zelf springen', description: 'No animation: the start and the jump chip are given, the child taps the landing cell on the line — doing the jump instead of watching it.' },
+  { id: 'sprong-zien', minScore: 0,  label: 'sprong zien', description: 'Staged reveal: the sum builds, then the line appears, the start cell lights, the jump animates cell by cell to the landing "?" (on the tot-10 line: in one move, under one bow); the child picks it from four numerals.' },
+  { id: 'sprong-zelf', minScore: 40, label: 'zelf springen', description: 'No animation: the start and the jump chip are given, the child taps the landing cell on the line — doing the jump instead of watching it. On the tot-10 line the landing is given on the number strip (the cells are too small to tap).' },
   { id: 'kale-sprong', minScore: 70, label: 'kale sprong',  description: 'Sparse line: only the ends are labelled. The child places the landing from the structure of the line, not by reading labels.' },
 ]
 
@@ -47,6 +56,8 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   const range = numeralRangeMax(Math.max(start, answer))
   const tier = meta.tierId
   const isZien = tier === 'sprong-zien'
+  const wide = range > 5   // the tot-10 line: one bow, answer on the strip
+  const [picked, setPicked] = useState<number | null>(null)
 
   // Staged opening reveal for sprong-zien only; other tiers show instantly.
   const { step, complete: revealDone } = useReveal(isZien ? REVEAL_DELAYS : [], question)
@@ -62,14 +73,16 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   const { solved, answered: resolved, resolve: close } = useClosure(question, onResolve)
   const animDone = !isZien || hop >= jumpN
 
-  useEffect(() => { setHop(0) }, [question])
+  useEffect(() => { setHop(0); setPicked(null) }, [question])
   useEffect(() => {
     if (!isZien || !revealDone || hop >= jumpN) return
-    const t = setTimeout(() => setHop(h => h + 1), hop === 0 ? HOP_START_DELAY : HOP_STEP_MS)
+    // tot 10: the whole jump in one move; tot 5: hop by hop
+    const t = setTimeout(() => setHop(h => (wide ? jumpN : h + 1)), hop === 0 ? HOP_START_DELAY : HOP_STEP_MS)
     return () => clearTimeout(t)
-  }, [isZien, revealDone, hop, jumpN, question])
+  }, [isZien, revealDone, hop, jumpN, question, wide])
 
-  const tappable = !isZien
+  const tappable = !isZien && !wide
+  const useStrip = !isZien && wide
   const sparse = tier === 'kale-sprong'
 
   const resolve = (v: number) => close(v === answer, { givenAnswer: v })
@@ -106,11 +119,21 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
         <div style={{ width: '100%', maxWidth: cells * MAX_CELL + (cells - 1) * CELL_GAP, opacity: showLine ? 1 : 0, transition: 'opacity .4s' }}>
           {/* Jump chip above the start cell, pointing the direction */}
           <div style={{ height: 34, position: 'relative', marginBottom: 6 }}>
+            {/* tot 10: one bow from the start to the landing — the jump as a unit */}
+            {wide && jumpN > 0 && (
+              <svg viewBox={`0 0 ${cells} 34`} preserveAspectRatio="none" width="100%" height={34}
+                style={{ position: 'absolute', inset: 0, overflow: 'visible', opacity: (isZien ? hop > 0 : solved) ? 1 : 0, transition: 'opacity .35s' }}>
+                <path d={`M ${start + 0.5} 34 Q ${start + 0.5 + (dir * jumpN) / 2} 4 ${answer + 0.5} 34`}
+                  fill="none" stroke={solved ? tokens.confirm : glyphColor} strokeWidth={3} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              </svg>
+            )}
             <div style={{
               position: 'absolute',
               left: dir === 1 ? startCentre : undefined,
               right: dir === -1 ? `calc(100% - ${startCentre})` : undefined,
               background: tokens.cream, color: glyphColor, border: `2px solid ${glyphColor}`,
+              // tot 10: the chip announces the jump and makes way for the bow
+              opacity: wide && (isZien ? hop > 0 : solved) ? 0 : 1, transition: 'opacity .3s',
               borderRadius: 10, padding: '3px 10px',
               fontFamily: 'Fredoka One, cursive', fontSize: 16, whiteSpace: 'nowrap',
             }}>
@@ -157,6 +180,10 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
         </div>
       </ExerciseStage>
 
+      {useStrip && (
+        <NumberStrip max={10} onPick={v => { if (!disabled && !resolved) { setPicked(v); resolve(v) } }}
+          picked={picked} solved={solved} disabled={disabled || resolved} tokens={scene?.tokens} />
+      )}
       {isZien && (
         <ChoiceButtons
           options={meta.options}
@@ -190,6 +217,9 @@ const NumberLine: ExerciseDefinition<NumberLineMeta> = {
   },
   retryStable: [],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  // A jump of 1 or 2: a turned-around sum (1 + 4, 1 + 9) would be a jump of
+  // four or nine, which is not what the line is for.
+  isCompatible: (_a, b) => b <= 2,
   generateMeta(operandA, operandB, score, problem) {
     return makeMeta(operandA, operandB, score, problem?.op ?? '+')
   },

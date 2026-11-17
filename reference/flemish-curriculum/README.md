@@ -18,6 +18,13 @@ anything load-bearing, open the original.
 
 Retrieved 15 November 2026. Source URLs are in each file.
 
+Next to this folder, `reference/l1_maths_didactics_belgie.md` is the project's own background
+text on first-year didactics (written earlier, outside this repository). It is a synthesis,
+not a source: it cites no documents for its claims on Flemish practice, and where it differs
+from the documents extracted here, the documents win. Its last section describes an older
+state of the app. The skill map lists what was checked against it (*Didactic frame → The
+background document*).
+
 ## How these are used
 
 - They are **evidence for design decisions**, cited from `rekenen_v2_skill_exercise_map.md`

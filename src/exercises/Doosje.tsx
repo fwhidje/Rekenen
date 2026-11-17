@@ -167,6 +167,9 @@ const Doosje: ExerciseDefinition<DoosjeMeta> = {
   },
   retryStable: ['sceneIndex'],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  // At most four outside the box: a turned-around sum (1 + 9) would put nine
+  // there, and counting on from 1 is not the idea.
+  isCompatible: (_a, b) => b <= 4,
   generateMeta(operandA, operandB, score, problem, ctx) {
     const tier = pickTier(TIERS, score)
     const minus = problem?.op === '-'

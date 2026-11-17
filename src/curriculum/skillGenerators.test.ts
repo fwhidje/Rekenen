@@ -82,3 +82,56 @@ describe('-1-2-tot-5 generator', () => {
     expect(zerosLate).toBeGreaterThan(zerosEarly)
   })
 })
+
+describe('optellen-tot-5 generator', () => {
+  const gen = SKILLS_BY_ID['optellen-tot-5'].generate
+
+  it('stays within 5, never serves 0 + 0, and keeps zero sums to a small share', () => {
+    let zero = 0
+    const seen = new Set<string>()
+    for (let i = 0; i < 4000; i++) {
+      const p = gen({ score: 0 })
+      if (p.op !== '+') throw new Error('expected +')
+      const [a, b] = p.terms
+      expect(a + b).toBeLessThanOrEqual(5)
+      expect(a + b).toBeGreaterThan(0)
+      if (a === 0 || b === 0) zero++
+      seen.add(`${a}+${b}`)
+    }
+    // 10 sums without a zero and 10 with one; the zero sums share about 15%
+    expect(seen.size).toBe(20)
+    expect(zero / 4000).toBeGreaterThan(0.09)
+    expect(zero / 4000).toBeLessThan(0.22)
+  })
+})
+
+describe('aftrekken-wegnemen-5 generator', () => {
+  const gen = SKILLS_BY_ID['aftrekken-wegnemen-5'].generate
+
+  it('stays within 5 and keeps a − 0 and a − a to a small share together', () => {
+    let zero = 0
+    for (let i = 0; i < 4000; i++) {
+      const p = gen({ score: 0 })
+      if (p.op !== '-') throw new Error('expected -')
+      expect(p.whole).toBeGreaterThanOrEqual(1)
+      expect(p.whole).toBeLessThanOrEqual(5)
+      expect(p.part).toBeGreaterThanOrEqual(0)
+      expect(p.part).toBeLessThanOrEqual(p.whole)
+      if (p.part === 0 || p.part === p.whole) zero++
+    }
+    expect(zero / 4000).toBeGreaterThan(0.09)
+    expect(zero / 4000).toBeLessThan(0.22)
+  })
+})
+
+describe('aftrekken-verschil-5 generator', () => {
+  it('tags its problems as a comparison', () => {
+    for (let i = 0; i < 200; i++) {
+      const p = SKILLS_BY_ID['aftrekken-verschil-5'].generate({ score: 0 })
+      if (p.op !== '-') throw new Error('expected -')
+      expect(p.form).toBe('verschil')
+      expect(p.whole).toBeGreaterThanOrEqual(2)
+      expect(p.part).toBeGreaterThanOrEqual(1)
+    }
+  })
+})

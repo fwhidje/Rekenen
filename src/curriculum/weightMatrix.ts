@@ -106,6 +106,25 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'rekenverhaal':     [[60, 0], [80, 15], [100, 15]],
   },
 
+  // optellen-tot-5: no new sums over +1-2-tot-5 — a new method. The counting
+  // exercises of that skill (erbij-tap, doosje, numberline-jump) are absent on
+  // purpose. Entry: the picture flashes (flits-som) and the split is the aid
+  // (huisje-som, the main exercise). Middle: the split alone, then nothing.
+  // Top: snel-weten (one tap, time-aware) takes the largest share.
+  // Initial guesses, to be tuned with playtesting.
+
+  'optellen-tot-5': {
+    'huisje-som':       [[0, 30], [50, 25], [100, 8]],
+    'flits-som':        [[0, 30], [40, 15], [65, 0]],
+    'fill-vis':         [[0, 8], [40, 0]],
+    'choice':           [[0, 12], [60, 6], [100, 4]],
+    'splits-som-match': [[20, 0], [45, 15], [100, 10]],
+    'tf':               [[30, 0], [60, 12], [100, 12]],
+    'fill-plain':       [[30, 0], [60, 20], [100, 20]],
+    'rekenverhaal':     [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':       [[60, 0], [80, 25], [100, 35]],
+  },
+
   // ── Aftrekken ────────────────────────────────────────────────────────────────
   // -1-2-tot-5: mirror of the + table with a more concrete-heavy entry
   // (backward counting is weaker than forward). wegnemen-crossed-out keeps a
@@ -123,6 +142,170 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'fill-plain':            [[40, 0], [100, 38]],
     'splits-som-match':      [[40, 0], [65, 10], [100, 12]],
     'rekenverhaal':          [[60, 0], [80, 15], [100, 15]],
+  },
+
+  // aftrekken-wegnemen-5: the shape of optellen-tot-5 with support for longer.
+  // The counting-back exercises (wegneem-tap, doosje, numberline-jump-back) are
+  // absent on purpose. New here: omkeer-som (the reverse of a known sum) and
+  // teken-kiezen (the sign is read). snel-weten from 65.
+  // Initial guesses, to be tuned with playtesting.
+
+  'aftrekken-wegnemen-5': {
+    'huisje-som':            [[0, 30], [60, 25], [100, 8]],
+    'flits-som':             [[0, 30], [45, 15], [70, 0]],
+    'wegnemen-crossed-out':  [12, 5],
+    'omkeer-som':            [[25, 0], [50, 18], [100, 10]],
+    'teken-kiezen':          [[20, 0], [40, 10], [100, 6]],
+    'choice':                [10, 4],
+    'splits-som-match':      [[30, 0], [50, 12], [100, 8]],
+    'tf':                    [[40, 0], [65, 12], [100, 12]],
+    'fill-plain':            [[40, 0], [70, 18], [100, 18]],
+    'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':            [[65, 0], [85, 25], [100, 30]],
+  },
+
+  // aftrekken-verschil-5: a meaning skill — the facts are those of wegnemen,
+  // the question is new. No bare sum (a bare 5 − 2 says nothing about
+  // verschil); the meaning-carrying exercise stays the largest to the top.
+
+  'aftrekken-verschil-5': {
+    'verschil-paren':  [[0, 60], [60, 35], [100, 25]],
+    'teken-kiezen':    [[15, 0], [35, 12], [100, 8]],
+    'numberline-gap':  [[35, 0], [55, 18], [100, 15]],
+    'rekenverhaal':    [[60, 0], [75, 20], [100, 25]],
+  },
+
+  // getalfamilie-5: one family, every view. puntoefening owns the entry,
+  // familie-sommen is the core; the rest are the same fact in other clothes.
+
+  'getalfamilie-5': {
+    'puntoefening':            [[0, 40], [60, 25], [100, 15]],
+    'familie-sommen':          [[0, 25], [40, 30], [100, 20]],
+    'splits-ontbreken-rechts': [[20, 12], [100, 8]],
+    'numberline-gap':          [[20, 0], [40, 12], [100, 8]],
+    'teken-kiezen':            [[30, 6], [100, 6]],
+    'rekenverhaal':            [[60, 0], [75, 12], [100, 12]],
+    'snel-weten':              [[65, 0], [85, 20], [100, 25]],
+  },
+
+  // ── ±1 / ±2 tot 10 ───────────────────────────────────────────────────────────
+  // Number-row skills: +1 / −1 is the neighbour, +2 / −2 a jump of two. The
+  // number line leads; doosje (hidden start group) and flits-som (a 5-structured
+  // picture for a moment) keep the start number from being recounted. The
+  // erbij / wegneem action exercises are not used — the meaning of the signs is
+  // known from tot 5. huisje-som and omkeer-som tie in the split bands from the
+  // middle. PLANNED weights (Nov 2026): never played, the skills are not open.
+
+  '+1-2-tot-10': {
+    'numberline-jump':  [[0, 30], [50, 15], [100, 5]],
+    'doosje':           [[0, 25], [50, 15], [100, 5]],
+    'flits-som':        [[0, 20], [40, 12], [70, 0]],
+    'choice':           [[0, 12], [60, 6], [100, 4]],
+    'huisje-som':       [[30, 0], [55, 15], [100, 8]],
+    'tf':               [[30, 0], [60, 12], [100, 12]],
+    'fill-plain':       [[30, 0], [60, 20], [100, 20]],
+    'rekenverhaal':     [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':       [[60, 0], [80, 25], [100, 35]],
+  },
+
+  '-1-2-tot-10': {
+    'numberline-jump-back':  [[0, 30], [50, 18], [100, 6]],
+    'doosje':                [[0, 25], [50, 15], [100, 5]],
+    'flits-som':             [[0, 20], [45, 12], [70, 0]],
+    'wegnemen-crossed-out':  [10, 4],
+    'choice':                [10, 4],
+    'omkeer-som':            [[30, 0], [55, 15], [100, 8]],
+    'huisje-som':            [[35, 0], [60, 12], [100, 8]],
+    'tf':                    [[40, 0], [65, 12], [100, 12]],
+    'fill-plain':            [[40, 0], [70, 18], [100, 18]],
+    'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':            [[65, 0], [85, 25], [100, 30]],
+  },
+
+  // ── ±3 / ±4 tot 10 ───────────────────────────────────────────────────────────
+  // Too far to count: the sum comes from structure. huisje-som leads (the house
+  // is given, so the split need not be known yet), flits-som shows the sum in
+  // the 5-structure for a moment. No number line — hopping three or four cells
+  // is the counting these skills leave behind. doosje keeps a small, fading
+  // share for + as the fallback. PLANNED weights (Nov 2026): never played.
+
+  '+3-4-tot-10': {
+    'huisje-som':    [[0, 35], [60, 25], [100, 10]],
+    'flits-som':     [[0, 30], [45, 15], [70, 0]],
+    'buur-som':      [[20, 0], [45, 18], [100, 10]],
+    'doosje':        [[0, 10], [50, 0]],
+    'choice':        [[0, 12], [60, 6], [100, 4]],
+    'tf':            [[30, 0], [60, 12], [100, 12]],
+    'fill-plain':    [[35, 0], [65, 20], [100, 20]],
+    'rekenverhaal':  [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':    [[60, 0], [80, 25], [100, 35]],
+  },
+
+  '-3-4-tot-10': {
+    'huisje-som':            [[0, 35], [60, 25], [100, 10]],
+    'flits-som':             [[0, 28], [45, 15], [70, 0]],
+    'omkeer-som':            [[15, 0], [40, 20], [100, 12]],
+    'wegnemen-crossed-out':  [10, 4],
+    'teken-kiezen':          [[20, 0], [40, 8], [100, 5]],
+    'choice':                [10, 4],
+    'tf':                    [[40, 0], [65, 12], [100, 12]],
+    'fill-plain':            [[40, 0], [70, 18], [100, 18]],
+    'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':            [[65, 0], [85, 25], [100, 30]],
+  },
+
+  // dubbels-tot-10: five facts, a picture and a word. dubbel-spiegel gives the
+  // idea (a row and its mirror image), the rest is the same facts in other
+  // clothes; from 60 it is mostly speed. PLANNED weights: never played.
+
+  'dubbels-tot-10': {
+    'dubbel-spiegel':  [[0, 45], [50, 20], [100, 8]],
+    'flits-som':       [[0, 20], [50, 0]],
+    'huisje-som':      [[15, 0], [40, 15], [100, 8]],
+    'choice':          [15, 5],
+    'tf':              [[30, 0], [60, 10], [100, 10]],
+    'fill-plain':      [[30, 0], [60, 15], [100, 15]],
+    'snel-weten':      [[60, 0], [75, 35], [100, 50]],
+  },
+
+  // ── Splitsen 6–9, tienvrienden ───────────────────────────────────────────────
+  // One curve for both bands: the picture first (splits-beeld, in the
+  // 5-structure), the notations from 10–30, the neighbour step (splits-buren)
+  // through the middle, depth and speed post-60. Initial guesses.
+
+  'splitsen-6-7': {
+    'splits-beeld':            [[0, 45], [50, 18], [100, 6]],
+    'splitshuisje':            [[10, 10], [40, 22], [100, 12]],
+    'splits-buren':            [[20, 0], [50, 20], [100, 12]],
+    'splits-ontbreken-rechts': [[25, 0], [55, 20], [100, 12]],
+    'splitsbenen':             [[30, 0], [55, 12], [100, 8]],
+    'splits-ontbreken-links':  [[60, 0], [75, 10], [100, 10]],
+    'splits-vrij':             [[60, 0], [75, 8], [100, 8]],
+    'snel-weten':              [[60, 0], [80, 25], [100, 35]],
+  },
+
+  'splitsen-8-9': {
+    'splits-beeld':            [[0, 45], [50, 18], [100, 6]],
+    'splitshuisje':            [[10, 10], [40, 22], [100, 12]],
+    'splits-buren':            [[20, 0], [50, 20], [100, 12]],
+    'splits-ontbreken-rechts': [[25, 0], [55, 20], [100, 12]],
+    'splitsbenen':             [[30, 0], [55, 12], [100, 8]],
+    'splits-ontbreken-links':  [[60, 0], [75, 10], [100, 10]],
+    'splits-vrij':             [[60, 0], [75, 8], [100, 8]],
+    'snel-weten':              [[60, 0], [80, 25], [100, 35]],
+  },
+
+  // tienvrienden: the pairs seen (maak-tien), from both sides (tien-paren),
+  // in every form through the middle, then mostly speed — the goal of the skill.
+
+  'tienvrienden': {
+    'maak-tien':               [[0, 45], [50, 20], [100, 8]],
+    'tien-paren':              [[10, 10], [40, 20], [100, 12]],
+    'splitshuisje':            [[20, 0], [45, 12], [100, 6]],
+    'splits-ontbreken-rechts': [[25, 0], [50, 15], [100, 8]],
+    'puntoefening':            [[30, 0], [55, 15], [100, 8]],
+    'splits-ontbreken-links':  [[60, 8], [100, 8]],
+    'snel-weten':              [[60, 0], [75, 35], [100, 50]],
   },
 }
 

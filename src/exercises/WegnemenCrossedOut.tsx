@@ -119,6 +119,8 @@ const WegnemenCrossedOut: ExerciseDefinition<WegnemenCrossedOutMeta> = {
   // Retry: the same picture (dots or creatures, same colour), animated.
   retryStable: ['style', 'sceneIndex', 'color'],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  // a − 0: a picture with nothing crossed out is not a take-away picture
+  isCompatible: (_a, b) => b !== 0,
   generateMeta(operandA, operandB, score, _problem, ctx) {
     const prev = ctx?.retryOf
     const tier = pickTier(TIERS, score)

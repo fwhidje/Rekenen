@@ -161,6 +161,8 @@ const SplitsSomMatch: ExerciseDefinition<SplitsSomMatchMeta> = {
   retryStable: ['rep', 'split', 'som', 'options', 'tiles'],
   // The som that belongs to the split, in full.
   correctStatement: q => equationText(q.op, q.meta.som[0], q.meta.som[1]),
+  // No zero term (a + 0, 0 + a, a − 0): its split pictures have no drawing for a part of 0.
+  isCompatible: (a, b) => a !== 0 && b !== 0,
   generateMeta(operandA, operandB, score, problem?: Problem, ctx?) {
     const tier = pickTier(TIERS, score)
     const op = problem?.op ?? '+'

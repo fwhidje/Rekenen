@@ -28,7 +28,9 @@ export function exerciseFactors(
 ): Record<string, number> {
   const byExercise = new Map<string, AnswerRecord[]>()
   for (const r of records) {
-    if (r.skillId !== skillId || r.isRetry) continue
+    // a correct-but-slow answer (engine/pace.ts) moved nothing: it does not
+    // decay the factor either
+    if (r.skillId !== skillId || r.isRetry || r.pace === 'slow') continue
     const list = byExercise.get(r.exerciseId)
     if (list) list.push(r)
     else byExercise.set(r.exerciseId, [r])

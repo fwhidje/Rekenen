@@ -51,7 +51,7 @@ function questionsFor(exId: string): ExerciseQuestion[] {
       for (let d = 0; d < DRAWS; d++) {
         const problem = skill.generate({ score })
         const { a, b } = problemOperands(problem)
-        if (def.isCompatible && !def.isCompatible(a, b)) continue
+        if (def.isCompatible && !def.isCompatible(a, b, problem)) continue
         out.push({
           exerciseId: exId, skillId: skill.id, problem, operandA: a, operandB: b,
           op: problem.op, answer: computeAnswer(problem),

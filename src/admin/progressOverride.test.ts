@@ -79,7 +79,7 @@ describe("planOverride 'open'", () => {
       expect(plan.changes.find(c => c.skillId === id)?.role).toBe('cascade')
     }
     // ...but never a disabled one
-    expect(plan.profile.skills['splitsen-tot-10'].unlocked).toBe(false)
+    expect(plan.profile.skills['splitsen-6-7'].unlocked).toBe(false)
   })
 
   it('prereq scores are raise-only', () => {

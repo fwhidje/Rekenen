@@ -42,6 +42,8 @@ export interface AnswerRecord {
   responseTimeMs?: number
   tapCount?: number             // multi-step exercises (counter / collect)
   replayCount?: number          // in-exercise replays (e.g. subitise-flash re-shows)
+  answerMs?: number             // time-aware exercises: readable → tap (kept on the device; the baseline is derived from it)
+  pace?: 'fast' | 'slow'        // time-aware exercises: a correct answer judged on its time (engine/pace.ts); 'slow' did not move the score
   scoreBefore?: number          // the skill's score when the question was served —
                                 // explains which tier / mix the child was given
   meta?: Record<string, unknown> // what was shown (options, distractors, layout).

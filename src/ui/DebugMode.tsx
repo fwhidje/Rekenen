@@ -3,9 +3,11 @@ import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getExercisePlan } from '../curriculum/exercisePlan'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { pickTier } from '../exercises/tiers'
+import { UNLOCK_THRESHOLD } from '../engine/scoring'
 import { computeAnswer, problemOperands } from '../engine/answer'
 import { buildRetry } from '../engine/exerciseSelector'
 import { diagnostics } from '../engine/diagnostics'
+import { judgePace } from '../engine/pace'
 import { buildAnswerRecord } from '../engine/answerRecord'
 import { exerciseStats, STATS_WINDOW } from '../engine/exerciseStats'
 import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
@@ -16,7 +18,9 @@ import { SkillBalance } from './SkillBalance'
 
 import '../exercises/index'
 
-const SCORE_BRACKETS = [0, 20, 40, 60, 80, 100] as const
+// Every score in steps of 5: tiers start at 25, 35, 65 … and the generators
+// change at 60, so coarse brackets skipped whole tiers.
+const SCORE_STEPS = Array.from({ length: 21 }, (_, i) => i * 5)
 
 // Debug answers are recorded under a sentinel profile so they never pollute a
 // real child's mastery data.
@@ -73,11 +77,20 @@ export function DebugMode({ onClose }: Props) {
   }, [availableExercises, exerciseId])
 
   const freshQuestion: ExerciseQuestion | null = useMemo(() => {
-    if (!exerciseId) return null
+    // right after a skill change the chosen exercise may still be the previous
+    // skill's: wait for the effect above instead of feeding it a foreign problem
+    if (!exerciseId || !availableExercises.includes(exerciseId)) return null
     const def = getExercise(exerciseId)
     // Mirror the live selector: pass score into generate (score-gated facts)
     // and the problem into generateMeta (op-generic exercises read its op).
-    const problem = skill.generate({ score })
+    // …and, like the selector, skip the problems the exercise says it cannot
+    // show (isCompatible) — a few draws, then whatever came last.
+    let problem = skill.generate({ score })
+    for (let tries = 0; tries < 12 && def.isCompatible; tries++) {
+      const o = problemOperands(problem)
+      if (def.isCompatible(o.a, o.b, problem)) break
+      problem = skill.generate({ score })
+    }
     const { a, b } = problemOperands(problem)
     const meta = def.generateMeta(a, b, score, problem)
     return { exerciseId, skillId: skill.id, problem, operandA: a, operandB: b, op: problem.op, answer: computeAnswer(problem), meta }
@@ -102,7 +115,12 @@ export function DebugMode({ onClose }: Props) {
     if (feedback || !question) return
     setFeedback({ ok: correct, message: correct ? 'Goed!' : wrongFeedbackText(question, getExercise(question.exerciseId)) })
 
+    const pace = judgePace({
+      marginMs: (question.meta as { paceMarginMs?: number }).paceMarginMs,
+      answerMs: detail?.answerMs, isRetry: question.isRetry, correct,
+    }, diagnostics.getAll(DEBUG_PROFILE_ID))
     const record = buildAnswerRecord({
+      pace,
       profileId: DEBUG_PROFILE_ID,
       question,
       correct,
@@ -195,10 +213,31 @@ export function DebugMode({ onClose }: Props) {
 
           <Field label="Score">
             <select value={score} onChange={e => setScore(Number(e.target.value))} style={selectStyle}>
-              {SCORE_BRACKETS.map(b => (
-                <option key={b} value={b}>{b}</option>
-              ))}
+              {SCORE_STEPS.map(b => {
+                const starts = def ? def.tiers.filter(t => t.minScore === b).map(t => t.label || t.id) : []
+                const note = [...starts.map(l => `tier ${l}`), ...(b === UNLOCK_THRESHOLD ? ['unlock'] : [])]
+                return <option key={b} value={b}>{b}{note.length ? ` — ${note.join(', ')}` : ''}</option>
+              })}
             </select>
+            {/* The selected exercise's tiers: tap one to jump to the score it starts at. */}
+            {def && def.tiers.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                {[...def.tiers].sort((x, y) => x.minScore - y.minScore).map(t => {
+                  const on = activeTier?.id === t.id
+                  return (
+                    <button key={t.id} onClick={() => setScore(t.minScore)} title={t.description}
+                      style={{
+                        padding: '4px 10px', fontSize: 13, borderRadius: 999, cursor: 'pointer',
+                        fontFamily: 'Nunito, sans-serif', fontWeight: on ? 700 : 500,
+                        border: `1.5px solid ${INK}`, color: on ? 'white' : INK,
+                        background: on ? '#7a9a3a' : '#fbf6e6',
+                      }}>
+                      {t.minScore} · {t.label || t.id}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </Field>
 
           <Field label="Oefening">
@@ -288,6 +327,7 @@ export function DebugMode({ onClose }: Props) {
                   {r.errorType ? ` ${r.errorType}` : ''}
                   {r.tapCount !== undefined ? ` taps:${r.tapCount}` : ''}
                   {r.replayCount ? ` replays:${r.replayCount}` : ''}
+                  {r.pace ? ` ${r.pace}${r.answerMs !== undefined ? ` (${Math.round(r.answerMs / 100) / 10}s)` : ''}` : ''}
                   {r.variant ? ` [${r.variant}]` : ''}
                   {r.responseTimeMs !== undefined ? ` ${Math.round(r.responseTimeMs / 100) / 10}s` : ''}
                 </div>

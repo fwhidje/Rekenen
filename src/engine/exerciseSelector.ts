@@ -96,7 +96,7 @@ function buildQuestion(
     const { a, b } = problemOperands(problem)
     const filtered = candidates.filter(([exId]) => {
       const def = getExercise(exId)
-      return !def.isCompatible || def.isCompatible(a, b)
+      return !def.isCompatible || def.isCompatible(a, b, problem)
     })
     if (filtered.length === 0) continue
 
