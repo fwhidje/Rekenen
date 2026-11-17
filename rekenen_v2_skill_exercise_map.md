@@ -660,7 +660,7 @@ Accepted in this form. A visible limit with a longer second attempt — the orig
 - **Used by**: `getalfamilie-5`, entry and core; `tienvrienden` as "7 + . = 10".
 
 #### `numberline-gap` — how far from here to there
-- **About**: two marks on the number line and the jump between them. A third id on the `NumberLine` component.
+- **About**: two marks on the number line and the jump between them.
 - **Achieves**: aanvullend optellen — a difference found by going up from the smaller number, which the background document names as a Flemish strength worth keeping; and verschil as a distance.
 - **How it works**: variants, recorded. `aanvullen`: start mark and target flag, sum "2 + ? = 5". `verschil`: two owners' marks, sum "5 − 2 = ?". The jump is drawn as **one** bow, not as hops.
 - **Tiers**: `sprong-zien` 0 — the bow is drawn, hops faint under it, choice · `sprong-kaal` 40 — marks only, the bow appears with the answer, strip · `kale-lijn` 70 — sparse labels.
@@ -679,7 +679,7 @@ Accepted in this form. A visible limit with a longer second attempt — the orig
 #### `verschil-paren` — pair them off, the rest is the difference
 - **About**: two owners, two groups, "hoeveel meer?".
 - **Achieves**: the relational question itself; pairing off as the action that makes a difference visible; the − sum that belongs to it.
-- **How it works**: two 5-rows under each other, left-aligned, one per owner. Pairs link one by one; linked items dim; the ones without a partner stand out. Meanwhile the sum forms: the larger number, minus the ones that found a partner. Variants, recorded: `meer` ("Hoeveel heeft Anna er meer?"), `minder` ("Hoeveel heeft Tom er minder?"), and from 60 `gelijk` ("Hoeveel moet Tom er nog krijgen om evenveel te hebben?").
+- **How it works**: two 5-rows under each other, left-aligned, one per owner. An owner is a colour — its row has that colour and the question shows a chip of it ("Hoeveel heeft ● er meer?"), so no names have to be read. The pairs dim one by one; the ones without a partner stand out. Meanwhile the sum forms: the larger number, minus the ones that found a partner. Variants, recorded: `meer` ("Hoeveel heeft Anna er meer?"), `minder` ("Hoeveel heeft Tom er minder?"), and from 60 `gelijk` ("Hoeveel moet Tom er nog krijgen om evenveel te hebben?").
 - **Tiers**: `paren` 0 — the pairing plays, choice · `naast` 30 — rows aligned, no pairing shown, strip · `schuin` 55 — rows not aligned (different spacing, as in `compare-more-less`), so the difference cannot be read off the overhang · `getallen` 75 — two owners with a number each and the question; no groups.
 - **Choice distractors**: the larger group, the smaller group, both together.
 - **Retry**: one tier down; owners, variant and which group is larger stay.

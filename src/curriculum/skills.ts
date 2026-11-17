@@ -67,7 +67,8 @@ const EX = {
   // set — not built yet (skill map → "Exercise design for the next set").
   flitsSom:       'flits-som',        // picture flashes, then the sum — seen, not counted
   huisjeSom:      'huisje-som',       // the split is the aid: read the sum from the huisje
-  familieSommen:  'familie-sommen',   // one family, its sums (omkeer pair / all four)
+  omkeerSom:      'omkeer-som',       // a finished sum gives its reverse
+  familieSommen:  'familie-sommen',   // one family, its four sums
   puntoefening:   'puntoefening',     // 2 + . = 5 — the unknown before the = sign
   numberlineGap:  'numberline-gap',   // how far from a to b — aanvullen and verschil
   tekenKiezen:    'teken-kiezen',     // choose + or − for a situation or an equation
@@ -107,6 +108,20 @@ const OPTELLEN_TOT_5: [Extract<Problem, { op: '+' }>, number][] = (() => {
     ...plain.map(t => [{ op: '+' as const, terms: t }, 1] as [Extract<Problem, { op: '+' }>, number]),
     ...zero.map(t => [{ op: '+' as const, terms: t }, zeroWeight] as [Extract<Problem, { op: '+' }>, number]),
   ]
+})()
+
+const WEGNEMEN_TOT_5: [Extract<Problem, { op: '-' }>, number][] = (() => {
+  const plain: [number, number][] = []
+  const zero: [number, number][] = []
+  for (let whole = 1; whole <= 5; whole++) {
+    for (let part = 0; part <= whole; part++) {
+      ;(part === 0 || part === whole ? zero : plain).push([whole, part])
+    }
+  }
+  const zeroWeight = (ZERO_SHARE / (1 - ZERO_SHARE)) * plain.length / zero.length
+  const fact = ([whole, part]: [number, number], w: number) =>
+    [{ op: '-' as const, whole, part }, w] as [Extract<Problem, { op: '-' }>, number]
+  return [...plain.map(f => fact(f, 1)), ...zero.map(f => fact(f, zeroWeight))]
 })()
 
 // ─── Skills ───────────────────────────────────────────────────────────────────
@@ -567,20 +582,17 @@ export const SKILLS: SkillDefinition[] = [
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
       EX.flitsSom, EX.huisjeSom, EX.wegnemenCrossedOut,
-      EX.familieSommen, EX.tekenKiezen,
+      EX.omkeerSom, EX.tekenKiezen,
       EX.choice, EX.tf, EX.fillPlain,
       EX.splitsSomMatch, EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => {
-      const a = rnd(2, 5)
-      const b = rnd(1, a)
-      return { op: '-', whole: a, part: b }
-    },
+    // Fact space: every whole − part within 5, the two zero kinds included —
+    // a − 0 (nothing leaves) and a − a (alles weg) — down-weighted together.
+    generate: () => sampleFact(WEGNEMEN_TOT_5),
   },
 
   {
     id: 'aftrekken-verschil-5',
-    disabled: true,  // WIP gate — its exercises are designed, not built
     name: 'Aftrekken (verschil) tot 5',
     intent: 'Difference meaning — "Anna heeft 5, Tom heeft 2, hoeveel meer Anna?" Both groups still exist; nothing is removed.',
     // Didactics: see the note on splitsen-6-7.
@@ -602,16 +614,14 @@ export const SKILLS: SkillDefinition[] = [
       EX.verschilParen, EX.numberlineGap,
       EX.tekenKiezen, EX.rekenverhaal,
     ],
-    generate: () => {
-      const a = rnd(2, 5)
-      const b = rnd(1, a)
-      return { op: '-', whole: a, part: b }
-    },
+    // The facts of wegnemen, tagged as a comparison so that op-generic exercises
+    // show two groups, not a take-away. A difference of 0 (evenveel) stays in,
+    // but rarer: 4 of the 14 facts would otherwise be "0 meer".
+    generate: () => ({ ...sampleFact(reweight(enumerateMinus(5, [1, 2, 3, 4, 5]).filter(([f]) => f.whole >= 2), f => (f.whole === f.part ? 0.3 : 1))), form: 'verschil' as const }),
   },
 
   {
     id: 'getalfamilie-5',
-    disabled: true,  // WIP gate — its exercises are designed, not built
     name: 'Getalfamilies tot 5',
     intent: 'One family, every view: a whole and two parts, any one of them unknown, in any notation — the split, both sums, both differences and the puntoefening 2 + . = 5. Home of the missing-part meanings ("Tom heeft 2 en wil 5", "5 potloden, 2 zijn blauw, de rest rood"). Was aftrekken-aanvullen-5.',
     // Didactics: see the note on splitsen-6-7.
@@ -733,11 +743,7 @@ export const SKILLS: SkillDefinition[] = [
       EX.verschilParen, EX.numberlineGap,
       EX.tekenKiezen, EX.rekenverhaal,
     ],
-    generate: () => {
-      const a = rnd(2, 10)
-      const b = rnd(1, a)
-      return { op: '-', whole: a, part: b }
-    },
+    generate: () => ({ ...sampleFact(reweight(enumerateMinus(10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).filter(([f]) => f.whole >= 2), f => (f.whole === f.part ? 0.3 : 1))), form: 'verschil' as const }),
   },
 
   {

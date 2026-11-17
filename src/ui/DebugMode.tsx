@@ -77,7 +77,14 @@ export function DebugMode({ onClose }: Props) {
     const def = getExercise(exerciseId)
     // Mirror the live selector: pass score into generate (score-gated facts)
     // and the problem into generateMeta (op-generic exercises read its op).
-    const problem = skill.generate({ score })
+    // …and, like the selector, skip the problems the exercise says it cannot
+    // show (isCompatible) — a few draws, then whatever came last.
+    let problem = skill.generate({ score })
+    for (let tries = 0; tries < 12 && def.isCompatible; tries++) {
+      const o = problemOperands(problem)
+      if (def.isCompatible(o.a, o.b)) break
+      problem = skill.generate({ score })
+    }
     const { a, b } = problemOperands(problem)
     const meta = def.generateMeta(a, b, score, problem)
     return { exerciseId, skillId: skill.id, problem, operandA: a, operandB: b, op: problem.op, answer: computeAnswer(problem), meta }

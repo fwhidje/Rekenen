@@ -7,7 +7,7 @@ import { pickScene } from '../presentation/scenes'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { NumPad } from '../ui/components/NumPad'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
-import { opGlyph, opColor, equationText } from './opDisplay'
+import { opGlyph, opColor } from './opDisplay'
 import { useClosure } from '../presentation/useClosure'
 import { AnswerSlot } from '../presentation/components/AnswerSlot'
 import { FiveRow } from '../presentation/components/FiveRow'
@@ -38,7 +38,22 @@ const TIERS: ExerciseTier[] = [
   { id: 'tekst',     minScore: 80, label: 'enkel tekst', description: 'The story stands alone — no sum. The film exists only behind the ▶ tap. The words have to carry the operation.' },
 ]
 
-type Variant = 'erbij' | 'samenvoegen' | 'wegnemen'
+// erbij / samenvoegen / wegnemen: the + and − skills.
+// verschil: a comparison (− problems of the verschil skills).
+// aanvullen / deel-geheel: the two missing-part stories of a getalfamilie
+// (a split problem: operandA is the part that is told, operandB the one asked).
+type Variant = 'erbij' | 'samenvoegen' | 'wegnemen' | 'verschil' | 'aanvullen' | 'deel-geheel'
+
+// The sum that belongs to the story, and the number that is asked.
+function storySum(variant: Variant, a: number, b: number): { x: number; sign: '+' | '-'; y: number; res: number; hole: 'y' | 'res'; asked: number } {
+  switch (variant) {
+    case 'aanvullen':   return { x: a, sign: '+', y: b, res: a + b, hole: 'y', asked: b }
+    case 'deel-geheel': return { x: a + b, sign: '-', y: a, res: b, hole: 'res', asked: b }
+    case 'wegnemen':
+    case 'verschil':    return { x: a, sign: '-', y: b, res: a - b, hole: 'res', asked: a - b }
+    default:            return { x: a, sign: '+', y: b, res: a + b, hole: 'res', asked: a + b }
+  }
+}
 
 interface RekenverhaalMeta {
   variant: Variant
@@ -69,14 +84,30 @@ function sentences(variant: Variant, a: number, b: number): [string, string, str
       b === 1 ? 'Er gaat er 1 weg.' : `Er gaan er ${b} weg.`,
       'Hoeveel blijven er over?',
     ]
+    case 'verschil': return [
+      `Hier ${speelt(a)} ${vriendjes(a)}.`,
+      `Daar ${speelt(b)} ${vriendjes(b)}.`,
+      'Hoeveel zijn er hier meer?',
+    ]
+    case 'aanvullen': return [
+      `Er ${zit(a)} ${vriendjes(a)}.`,
+      `Er moeten er ${a + b} zijn.`,
+      'Hoeveel komen er nog bij?',
+    ]
+    case 'deel-geheel': return [
+      `Er ${a + b === 1 ? 'is' : 'zijn'} ${vriendjes(a + b)}.`,
+      a === 1 ? '1 is wakker.' : `${a} zijn wakker.`,
+      'Hoeveel slapen er?',
+    ]
   }
 }
 
 const STEP_DELAYS = [700, 1500, 1300]
 
 function RekenverhaalComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<RekenverhaalMeta>) {
-  const { operandA, operandB, answer, op, meta } = question
+  const { operandA, operandB, meta } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
+  const sum = storySum(meta.variant, operandA, operandB)
   const legacyScene = pickScene(meta.sceneIndex)
   const Counter = scene?.Counter
 
@@ -133,7 +164,7 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
     if (key === '✓') {
       if (input) {
         const given = parseInt(input, 10)
-        resolve(given === answer, { givenAnswer: given, replayCount: replays })
+        resolve(given === sum.asked, { givenAnswer: given, replayCount: replays })
       }
       return
     }
@@ -163,6 +194,38 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
     const actionDone = step >= 2
     const group = (n: number, total: number, render: (i: number) => React.ReactNode) =>
       <FiveRow n={n} total={total} item={32} gap={6} renderItem={render} />
+    if (meta.variant === 'verschil') {
+      // two groups under each other: both stay, nothing leaves
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+          <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>{group(operandA, operandA, () => creature(false))}</div>
+          <div style={{ opacity: actionDone ? 1 : 0, transition: 'opacity .3s' }}>{group(operandB, operandA, () => creature(false))}</div>
+        </div>
+      )
+    }
+    if (meta.variant === 'aanvullen') {
+      // the ones that are there; the places of the ones still to come stay empty
+      return (
+        <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+          {group(operandA + operandB, operandA + operandB, i => i < operandA ? creature(false) : (
+            <div style={{
+              width: 26, height: 26, boxSizing: 'border-box', borderRadius: '50%',
+              border: `2px dashed ${tokens.ink}77`, opacity: actionDone ? 1 : 0, transition: 'opacity .35s',
+            }} />
+          ))}
+        </div>
+      )
+    }
+    if (meta.variant === 'deel-geheel') {
+      // all of them; the ones that are not awake are dimmed (asleep), not crossed
+      return (
+        <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+          {group(operandA + operandB, operandA + operandB, i => (
+            <div style={{ opacity: actionDone && i >= operandA ? 0.35 : 1, transition: 'opacity .35s' }}>{creature(false)}</div>
+          ))}
+        </div>
+      )
+    }
     if (meta.variant === 'samenvoegen') {
       return (
         <div style={{ display: 'flex', gap: 18 }}>
@@ -226,13 +289,19 @@ function RekenverhaalComponent({ question, onResolve, disabled, scene }: Exercis
             has to be read to know what to type (the one sanctioned exception to
             "the equation is always visible"). */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38 }}>
+          {/* the answer box stands where the asked number belongs: at the end,
+              or in the middle for the aanvullen story ("2 + ? = 5") */}
           {showSum && <>
-            {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{operandA}</span>)}
-            {eqPiece(textStep >= 2, <span style={{ color: opColor(op, tokens) }}>{opGlyph(op)}</span>)}
-            {eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{operandB}</span>)}
-            {eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
+            {eqPiece(textStep >= 1, <span style={{ color: tokens.accentText }}>{sum.x}</span>)}
+            {eqPiece(textStep >= 2, <span style={{ color: opColor(sum.sign, tokens) }}>{opGlyph(sum.sign)}</span>)}
+            {sum.hole === 'res' && eqPiece(textStep >= 2, <span style={{ color: tokens.pop }}>{sum.y}</span>)}
+            {sum.hole === 'res' && eqPiece(textStep >= 3, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
           </>}
-          <AnswerSlot value={input} solved={solved} size={48} tokens={tokens} />
+          <AnswerSlot value={solved ? sum.asked : input} solved={solved} size={48} tokens={tokens} />
+          {showSum && sum.hole === 'y' && <>
+            {eqPiece(textStep >= 2, <span style={{ color: tokens.ink, opacity: 0.4, fontSize: 32 }}>=</span>)}
+            {eqPiece(textStep >= 2, <span style={{ color: tokens.accentText }}>{sum.res}</span>)}
+          </>}
         </div>
       </ExerciseStage>
 
@@ -256,14 +325,17 @@ const Rekenverhaal: ExerciseDefinition<RekenverhaalMeta> = {
   },
   // Retry: the SAME story (variant decides the sentences), now with the equation.
   retryStable: ['variant', 'sceneIndex'],
-  correctStatement: q => equationText(q.op, q.operandA, q.operandB),
+  correctStatement: q => { const s = storySum(q.meta.variant, q.operandA, q.operandB); return `${s.x} ${opGlyph(s.sign)} ${s.y} = ${s.res}` },
   // No zero term (a + 0, 0 + a, a − 0): a story in which nothing happens is not a story.
   isCompatible: (a, b) => a !== 0 && b !== 0,
   generateMeta(_operandA, _operandB, score, problem?: Problem, ctx?) {
     const tier = pickTier(TIERS, score)
     const op = problem?.op ?? '+'
-    const variant: Variant = ctx?.retryOf?.variant ??
-      (op === '-' ? 'wegnemen' : (Math.random() < 0.55 ? 'erbij' : 'samenvoegen'))
+    const variant: Variant = ctx?.retryOf?.variant ?? (
+      problem?.op === '-' && problem.form === 'verschil' ? 'verschil'
+      : op === '-' ? 'wegnemen'
+      : op === 'split' ? (Math.random() < 0.5 ? 'aanvullen' : 'deel-geheel')
+      : (Math.random() < 0.55 ? 'erbij' : 'samenvoegen'))
     return { variant, sceneIndex: ctx?.retryOf?.sceneIndex ?? Math.floor(Math.random() * 24), tierId: tier.id }
   },
   Component: RekenverhaalComponent,

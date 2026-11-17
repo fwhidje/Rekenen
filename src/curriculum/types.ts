@@ -13,7 +13,7 @@ export type Operation = '+' | '-' | 'split' | 'count' | 'half'
 // engine/answer.ts); new exercises should consume `question.problem`.
 export type Problem =
   | { op: '+';     terms: [number, number] }
-  | { op: '-';     whole: number; part: number }
+  | { op: '-';     whole: number; part: number; form?: SemanticForm }  // form: set by the verschil skills, so an exercise can tell a comparison from a take-away
   | { op: 'split'; partA: number; partB: number }
   | { op: 'count'; n: number }
   | { op: 'half';  total: number }

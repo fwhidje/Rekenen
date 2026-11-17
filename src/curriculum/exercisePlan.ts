@@ -144,7 +144,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'joins from 60 (wegnemen sentences; sum alongside at 60, text alone at 80, film on the ▶ tap). The generator serves the two "alles weg" → 0 facts damped below score 30. ' +
     'Weights are initial guesses pending playtesting.',
   'aftrekken-wegnemen-5':
-    'PLAN. Mirror of optellen-tot-5 with support for longer: the six new facts (−3, −4, more ' +
+    'Built except snel-weten (Nov 2026). Mirror of optellen-tot-5 with support for longer: the six new facts (−3, −4, more ' +
     '"alles weg") are exactly where counting back breaks, so wegneem-tap, doosje and ' +
     'numberline-jump-back are absent. Entry: flits-som (the crossed-out picture, flashed; gone ' +
     'by 70) and huisje-som (30 → 8; "5 is 3 en 2, dus 5 − 3 = 2"). wegnemen-crossed-out keeps ' +
@@ -152,25 +152,27 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'exercise: omkeer-som from 25 (a finished + sum gives its − reverse; its top tier tests ' +
     'the "one more gives one more" error on neighbouring − sums) and teken-kiezen from 20 ' +
     '(the sign is chosen, now that + and − rotate together). Middle and top as for +: ' +
-    'splits-som-match, tf (reversal, zero and sign traps), fill-plain, rekenverhaal, snel-weten. ' +
-    'a − 0 and a − a together run at about 15% of the draws.',
+    'splits-som-match, tf (reversal and zero traps), fill-plain, rekenverhaal, and snel-weten once ' +
+    'it is built. a − 0 and a − a together run at about 15% of the draws; omkeer-som and ' +
+    'teken-kiezen skip them. Weights are initial guesses pending playtesting.',
   'aftrekken-verschil-5':
-    'PLAN. A meaning skill: the facts are those of wegnemen, the question is new. So there is ' +
+    'Built (Nov 2026). A meaning skill: the facts are those of wegnemen, the question is new. So there is ' +
     'no bare sum here at all — "5 − 2" says nothing about verschil — and the meaning-carrying ' +
     'exercise stays the largest to the top. verschil-paren (60 → 25): two owners, two 5-rows ' +
-    'under each other; pairs link, the ones without a partner are the difference, and the − ' +
-    'sum forms meanwhile; from 55 the rows are no longer aligned, from 75 only numbers. ' +
+    'under each other (each owner is a colour, shown as a chip in the question); the pairs dim ' +
+    'one by one, the ones without a partner are the difference, and the − sum forms meanwhile; from 55 the rows are no longer aligned, from 75 only numbers. ' +
     'teken-kiezen from 15 (nothing leaves and it is still −), numberline-gap from 35 (the ' +
     'difference as a distance), rekenverhaal from 60 (the question in words alone). A ' +
-    'difference of 0 is kept: everyone has a partner, "evenveel".',
+    'difference of 0 is kept but made rarer: everyone has a partner. Weights are initial guesses.',
   'getalfamilie-5':
-    'PLAN. One family, every view. puntoefening owns the entry (40 → 15): "2 + . = 5" with the ' +
+    'Built except snel-weten and the third tier of familie-sommen (Nov 2026). One family, every view. puntoefening owns the entry (40 → 15): "2 + . = 5" with the ' +
     'target drawn (5 places, 2 filled), then flashed, then bare, then the open place first, ' +
     'then in a − sum. familie-sommen (25 → 30 → 20) is the core: a huisje, three number tiles ' +
-    'and the four sums to complete, later to lay, later to make yourself. ' +
+    'and the four sums to complete, later (40) to lay with both numbers before the = open. ' +
     'splits-ontbreken-rechts keeps a small share as the same question in split notation. ' +
     'numberline-gap from 20 (going up to find the difference), teken-kiezen low, rekenverhaal ' +
-    'from 60 with the deel-geheel and aanvullen stories, snel-weten from 65 asking any view.',
+    'from 60 with the deel-geheel and aanvullen stories; snel-weten is to join from 65, asking ' +
+    'any view. Weights are initial guesses pending playtesting.',
   '-1-2-tot-10': TODO,
   '-3-4-tot-10': TODO,
   'aftrekken-wegnemen-10': TODO,

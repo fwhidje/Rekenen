@@ -142,6 +142,48 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'splits-som-match':      [[40, 0], [65, 10], [100, 12]],
     'rekenverhaal':          [[60, 0], [80, 15], [100, 15]],
   },
+
+  // aftrekken-wegnemen-5: the shape of optellen-tot-5 with support for longer.
+  // The counting-back exercises (wegneem-tap, doosje, numberline-jump-back) are
+  // absent on purpose. New here: omkeer-som (the reverse of a known sum) and
+  // teken-kiezen (the sign is read). snel-weten joins when it is built.
+  // Initial guesses, to be tuned with playtesting.
+
+  'aftrekken-wegnemen-5': {
+    'huisje-som':            [[0, 30], [60, 25], [100, 8]],
+    'flits-som':             [[0, 30], [45, 15], [70, 0]],
+    'wegnemen-crossed-out':  [12, 5],
+    'omkeer-som':            [[25, 0], [50, 18], [100, 10]],
+    'teken-kiezen':          [[20, 0], [40, 10], [100, 6]],
+    'choice':                [10, 4],
+    'splits-som-match':      [[30, 0], [50, 12], [100, 8]],
+    'tf':                    [[40, 0], [65, 12], [100, 12]],
+    'fill-plain':            [[40, 0], [70, 18], [100, 18]],
+    'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+  },
+
+  // aftrekken-verschil-5: a meaning skill — the facts are those of wegnemen,
+  // the question is new. No bare sum (a bare 5 − 2 says nothing about
+  // verschil); the meaning-carrying exercise stays the largest to the top.
+
+  'aftrekken-verschil-5': {
+    'verschil-paren':  [[0, 60], [60, 35], [100, 25]],
+    'teken-kiezen':    [[15, 0], [35, 12], [100, 8]],
+    'numberline-gap':  [[35, 0], [55, 18], [100, 15]],
+    'rekenverhaal':    [[60, 0], [75, 20], [100, 25]],
+  },
+
+  // getalfamilie-5: one family, every view. puntoefening owns the entry,
+  // familie-sommen is the core; the rest are the same fact in other clothes.
+
+  'getalfamilie-5': {
+    'puntoefening':            [[0, 40], [60, 25], [100, 15]],
+    'familie-sommen':          [[0, 25], [40, 30], [100, 20]],
+    'splits-ontbreken-rechts': [[20, 12], [100, 8]],
+    'numberline-gap':          [[20, 0], [40, 12], [100, 8]],
+    'teken-kiezen':            [[30, 6], [100, 6]],
+    'rekenverhaal':            [[60, 0], [75, 12], [100, 12]],
+  },
 }
 
 // Validation hook: the explicit per-skill table ids (null when the skill falls
