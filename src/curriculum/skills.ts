@@ -111,6 +111,11 @@ const OPTELLEN_TOT_5: [Extract<Problem, { op: '+' }>, number][] = (() => {
   ]
 })()
 
+// ±1 / ±2 tot 10: the facts already covered by the tot-5 skills keep a 30%
+// refresh share (7 of the 17 sums, 9 of the 19 differences).
+const OLD_FACT_WEIGHT_PLUS = (0.3 / 0.7) * 10 / 7
+const OLD_FACT_WEIGHT_MINUS = (0.3 / 0.7) * 10 / 9
+
 const WEGNEMEN_TOT_5: [Extract<Problem, { op: '-' }>, number][] = (() => {
   const plain: [number, number][] = []
   const zero: [number, number][] = []
@@ -415,24 +420,37 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '+1-2-tot-10',
     name: '+1 / +2 tot 10',
-    intent: 'Add 1 or 2 within 10 — still counting on, but a wider range.',
+    intent: 'Add 1 or 2 anywhere in the row to 10: +1 is the next number, +2 one jump of two — known from the number row, across the 5 and up to 10, not counted from the start.',
+    // Didactics: sources in reference/flemish-curriculum/ (doortellen as the
+    // standaardmethode, 1 meer / juist erna and sprongen van 2 to 10); the
+    // pitfalls are reasoned, not sourced. Skill map → "+1-2-tot-10 and -1-2-tot-10".
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with optellen-tot-5 and getalbegrip-10: knows the sums within 5 without counting, reads + and the sum, and reads 6–10 from a 5-structured picture. Says the number row to 10 forwards and can name the number just after another. Has not yet added anything to a number above 5.',
+      goal: 'Any a + 1 or a + 2 with a sum up to 10 answered at once: +1 as the buurgetal erna, +2 as one jump of two — also across the 5 (4 + 2) and onto 10 (8 + 2, 9 + 1). A small-first sum (1 + 8, 2 + 7) is turned around instead of counted on from the small number. The start number is taken as given, never recounted.',
+      pitfalls: [
+        'Recounts the start group — with 7 things on screen the pull to count them all from 1 is stronger than it was with 3 (the dead-end strategy; a hidden or flashed start group takes the chance away).',
+        'Small-first sums counted the long way — 1 + 8 counted on from 1 is eight steps and many slips; at tot 5 the cost of not turning around was small, here it is large.',
+        '+2 as two separate steps — fine for 3 + 2, but across the 5 or near 10 the two ones are where the count slips (7 + 2 → 8, or → 10).',
+      ],
     },
     op: '+',
     unlockedBy: ['optellen-tot-5', 'getalbegrip-10'],
     unlocks: ['+3-4-tot-10'],
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
-      EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.erbijTap, EX.doosje, EX.numberlineJump,
+      EX.numberlineJump, EX.doosje, EX.flitsSom, EX.huisjeSom,
+      EX.choice, EX.tf, EX.fillPlain,
+      EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => {
-      const b = pickFrom([1, 2])
-      const a = rnd(1, 10 - b)
-      return { op: '+', terms: [a, b] }
+    generate: (ctx) => {
+      // 17 sums; the 7 with a sum within 5 are the +1-2-tot-5 facts and keep
+      // about a 30% refresh share — the skill's own content is above 5.
+      // Post-60 a share arrives small-term-first (1 + 8): turn it around.
+      const fact = sampleFact(reweight(enumeratePlus(10, [1, 2]), f => (f.terms[0] + f.terms[1] <= 5 ? OLD_FACT_WEIGHT_PLUS : 1)))
+      if ((ctx?.score ?? 0) >= 60 && fact.terms[0] > fact.terms[1] && Math.random() < 0.3) {
+        return { op: '+', terms: [fact.terms[1], fact.terms[0]] }
+      }
+      return fact
     },
   },
 
@@ -653,11 +671,16 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '-1-2-tot-10',
     name: '−1 / −2 tot 10',
-    intent: 'Take away 1 or 2 within 10.',
+    intent: 'Take away 1 or 2 anywhere in the row to 10: −1 is the number just before, −2 one jump of two back — the backward number row made secure above 5.',
+    // Didactics: see the note on +1-2-tot-10.
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with aftrekken-wegnemen-5 and getalbegrip-10: knows the differences within 5 without counting back, reads − as things leaving, and reads 6–10 from a 5-structured picture. Counts back from 10, but less surely than forwards — above 5 the backward row is the weak spot.',
+      goal: 'Any a − 1 or a − 2 with a up to 10 answered at once: −1 as the buurgetal ervoor, −2 as one jump of two back — also across the 5 (6 − 2, 7 − 2) and from 10. The whole is taken as given, never recounted, and the answer is the number reached, not the number of steps.',
+      pitfalls: [
+        'The backward row above 5 is not secure — 9 − 2 answered 8 or 6: a number skipped or said twice on the way back. More a number-row gap than a subtraction error.',
+        'Says the whole again for the first one that leaves (9 − 1 → 9; 9 − 2 → 8) — the boundary error of counting back, now with less familiar numbers.',
+        'Recounts what is left in the picture instead of stepping back — works, slowly, as long as there is a picture; stops working when there is none.',
+      ],
     },
     semanticForm: 'wegnemen',
     op: '-',
@@ -665,14 +688,14 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['-3-4-tot-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.doosje,
-      EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
+      EX.numberlineJumpBack, EX.doosje, EX.flitsSom, EX.huisjeSom,
+      EX.wegnemenCrossedOut, EX.omkeerSom,
+      EX.choice, EX.tf, EX.fillPlain,
+      EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => {
-      const b = pickFrom([1, 2])
-      const a = rnd(b, 10)
-      return { op: '-', whole: a, part: b }
-    },
+    // 19 differences; the 9 with a whole within 5 are the -1-2-tot-5 facts and
+    // keep about a 30% refresh share.
+    generate: () => sampleFact(reweight(enumerateMinus(10, [1, 2]), f => (f.whole <= 5 ? OLD_FACT_WEIGHT_MINUS : 1))),
   },
 
   {

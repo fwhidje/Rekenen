@@ -188,6 +188,40 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'snel-weten':              [[65, 0], [85, 20], [100, 25]],
   },
 
+  // ── ±1 / ±2 tot 10 ───────────────────────────────────────────────────────────
+  // Number-row skills: +1 / −1 is the neighbour, +2 / −2 a jump of two. The
+  // number line leads; doosje (hidden start group) and flits-som (a 5-structured
+  // picture for a moment) keep the start number from being recounted. The
+  // erbij / wegneem action exercises are not used — the meaning of the signs is
+  // known from tot 5. huisje-som and omkeer-som tie in the split bands from the
+  // middle. PLANNED weights (Nov 2026): never played, the skills are not open.
+
+  '+1-2-tot-10': {
+    'numberline-jump':  [[0, 30], [50, 15], [100, 5]],
+    'doosje':           [[0, 25], [50, 15], [100, 5]],
+    'flits-som':        [[0, 20], [40, 12], [70, 0]],
+    'choice':           [[0, 12], [60, 6], [100, 4]],
+    'huisje-som':       [[30, 0], [55, 15], [100, 8]],
+    'tf':               [[30, 0], [60, 12], [100, 12]],
+    'fill-plain':       [[30, 0], [60, 20], [100, 20]],
+    'rekenverhaal':     [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':       [[60, 0], [80, 25], [100, 35]],
+  },
+
+  '-1-2-tot-10': {
+    'numberline-jump-back':  [[0, 30], [50, 18], [100, 6]],
+    'doosje':                [[0, 25], [50, 15], [100, 5]],
+    'flits-som':             [[0, 20], [45, 12], [70, 0]],
+    'wegnemen-crossed-out':  [10, 4],
+    'choice':                [10, 4],
+    'omkeer-som':            [[30, 0], [55, 15], [100, 8]],
+    'huisje-som':            [[35, 0], [60, 12], [100, 8]],
+    'tf':                    [[40, 0], [65, 12], [100, 12]],
+    'fill-plain':            [[40, 0], [70, 18], [100, 18]],
+    'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':            [[65, 0], [85, 25], [100, 30]],
+  },
+
   // ── Splitsen 6–9, tienvrienden ───────────────────────────────────────────────
   // One curve for both bands: the picture first (splits-beeld, in the
   // 5-structure), the notations from 10–30, the neighbour step (splits-buren)

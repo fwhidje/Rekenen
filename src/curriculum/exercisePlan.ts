@@ -120,7 +120,18 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'terms (a + 0, 0 + a) run through the whole curve at about 15% of the draws; fill-vis, ' +
     'splits-som-match and rekenverhaal skip them (no picture or story for "nothing arrives"). ' +
     'Weights are initial guesses pending playtesting.',
-  '+1-2-tot-10': TODO,
+  '+1-2-tot-10':
+    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'A number-row skill: +1 is the next number, +2 one jump of two, now across the 5 and up to ' +
+    '10. The meaning of + is known from tot 5, so the erbij action exercises are absent. Entry: ' +
+    'numberline-jump (30 → 5) — the row itself, watched, then tapped, then with sparse labels — ' +
+    'and doosje (25 → 5), where the start group of 6, 7 or 8 sits in a closed box and cannot be ' +
+    'recounted; flits-som (20, gone by 70) shows the start group in the 5-structure for a ' +
+    'moment. Middle: choice, tf and fill-plain from 30, and huisje-som from 30 — "9 is 7 en 2" ' +
+    'ties these sums to the split bands that run alongside. Post-60: rekenverhaal, snel-weten, ' +
+    'and the generator serves small-first sums (1 + 8) to be turned around. About 30% of the ' +
+    'draws refresh the sums within 5. To do before it opens: the tot-10 number line has ' +
+    'cells of about 24 px on a phone — too small for the tap-the-landing tier.',
   '+3-4-tot-10': TODO,
   'optellen-tot-10': TODO,
   'dubbels-tot-10': TODO,
@@ -174,7 +185,16 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'numberline-gap from 20 (going up to find the difference), teken-kiezen low, rekenverhaal ' +
     'from 60 with the deel-geheel and aanvullen stories; snel-weten from 65, asking ' +
     'any view. Weights are initial guesses pending playtesting.',
-  '-1-2-tot-10': TODO,
+  '-1-2-tot-10':
+    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Mirror of +1-2-tot-10, leaning harder on the number line: the backward row above 5 is the ' +
+    'weak spot, and numberline-jump-back (30 → 6) is where it gets practised. doosje (25 → 5) ' +
+    'hides the whole, so stepping back from the number on the lid is the only route; flits-som ' +
+    'shows the crossed-out picture for a moment; wegnemen-crossed-out keeps a small share as ' +
+    'the standing picture. Middle: omkeer-som from 30 (7 + 2 = 9, dus 9 − 2) and huisje-som ' +
+    'from 35 tie the differences to sums and splits; choice, tf, fill-plain. Post-60: ' +
+    'rekenverhaal and snel-weten. About 30% of the draws refresh the differences within 5. ' +
+    'Same open point as the + skill: the tot-10 number line is too small to tap on a phone.',
   '-3-4-tot-10': TODO,
   'aftrekken-wegnemen-10': TODO,
   'aftrekken-verschil-10': TODO,

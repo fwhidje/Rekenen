@@ -77,7 +77,7 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 
 | Skill id | Gates | Lift when |
 |---|---|---|
-| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | built — lift after a DebugMode play-through by Filip |
+| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | built — lift after a DebugMode play-through by Filip. **Lifting it opens `+1-2-tot-10`** (planned, number line not fit for tapping yet) and behind it `+3-4-tot-10` (a stub): give those their own flag first, or finish them |
 | `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream (verschil-5 and getalfamilie-5 are built and carry no flag of their own — lifting this one opens them) | built — lift after a DebugMode play-through by Filip; needs `optellen-tot-5` lifted too |
 | `aftrekken-verschil-10`, `getalfamilie-10` | flagged themselves: no weight table, didactics `TODO` | their own tuning round |
 | `splitsen-6-7`, `splitsen-8-9` | `tienvrienden` (from 6–7), `optellen-tot-10`, `aftrekken-wegnemen-10` (both bands) downstream | built — lift after a DebugMode play-through by Filip |
@@ -137,12 +137,14 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `tienvrienden` | ✅ all 7 live (Nov 2026): `maak-tien`, `tien-paren` new; `splitshuisje`, `splits-ontbreken-*`, `puntoefening` checked at total 10; `snel-weten`. **Still gated** | 🟡 initial guesses |
 | `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap single tier, fill-vis picture-and-sum in step, doosje count-on, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 after a play-through review | 🟡 initial guesses |
 | `optellen-tot-5` | ✅ all 9 live (Nov 2026): `huisje-som`, `flits-som`, `snel-weten` new, zero terms in the generator (about 15% of the draws), `fill-vis` / `splits-som-match` / `rekenverhaal` skip zero terms. **Still gated** — not playtested by a child; lift the flag after a DebugMode play-through | 🟡 initial guesses |
-| `+1-2-tot-10`, `+3-4-tot-10`, `optellen-tot-10` | 🔲 own tuning rounds pending; didactics still `TODO` | 🔲 |
+| `+1-2-tot-10` | 📐 planned and wired (Nov 2026): didactics, a 9-exercise list of existing types (number line leads; no action exercises), generator with a 30% refresh share of the tot-5 sums and post-60 turn-arounds. Played once in a browser at 6–10; **the tot-10 number line is too small to tap on a phone — fix before it opens**. Gated only through `optellen-tot-5` | 📐 planned, never played |
+| `+3-4-tot-10`, `optellen-tot-10` | 🔲 own tuning rounds pending; didactics still `TODO` | 🔲 |
 | `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back twin, doosje count-back, fill-vis − grammar, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 | 🟡 initial guesses |
 | `aftrekken-wegnemen-5` | 🟡 10 of 11 live (Nov 2026): `omkeer-som` and `teken-kiezen` built, `huisje-som` / `flits-som` shared with optellen; a − 0 and a − a in the generator (about 15% together); `snel-weten`. **Still gated** — not playtested by a child | 🟡 initial guesses |
 | `aftrekken-verschil-5` | ✅ all 4 live (Nov 2026): `verschil-paren`, `numberline-gap`, `teken-kiezen`, `rekenverhaal` (verschil story). Problems carry `form: 'verschil'`; a difference of 0 is kept but made rarer. Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
 | `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | ✅ all 7 live (Nov 2026): `puntoefening`, `familie-sommen` (two of its three designed tiers), `numberline-gap`, `splits-ontbreken-rechts`, `teken-kiezen`, `rekenverhaal` (aanvullen / deel-geheel stories), `snel-weten` (asks any view of the family). Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
-| `-1-2-tot-10`, `-3-4-tot-10`, `aftrekken-wegnemen-10`, `aftrekken-verschil-10`, `getalfamilie-10` | 🔲 didactics still `TODO`; will reuse the new op-generic exercises | 🔲 |
+| `-1-2-tot-10` | 📐 planned and wired (Nov 2026): didactics, an 11-exercise list of existing types (number line back leads), generator with a 30% refresh share. Same number-line problem as `+1-2-tot-10`. Gated only through `aftrekken-wegnemen-5` | 📐 planned, never played |
+| `-3-4-tot-10`, `aftrekken-wegnemen-10`, `aftrekken-verschil-10`, `getalfamilie-10` | 🔲 didactics still `TODO`; will reuse the new op-generic exercises | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
 **Preliminary documentation run (Nov 2026)** for the next set — `splitsen-tot-10`, `tienvrienden`, `optellen-tot-5`, `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5`:

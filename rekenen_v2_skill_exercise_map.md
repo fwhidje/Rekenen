@@ -189,12 +189,13 @@ Two skills of the same shape — the former `splitsen-tot-10`, divided by total 
 - **Exercises**: *Exercise design for the next set → `optellen-tot-5`*
 
 #### `+1-2-tot-10`
-- **Intent**: add 1 or 2 within 10 — still counting on, but a wider range
+- **Intent**: add 1 or 2 anywhere in the row to 10: +1 is the next number, +2 one jump of two — known from the number row, across the 5 and up to 10
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) +1 as the buurgetal erna and +2 as one jump, instant, also across the 5 and onto 10; (2) the start number taken as given — with 7 things in view the pull to recount is stronger than at tot 5; (3) small-first sums turned around (1 + 8 is eight steps if counted on). *See "+1-2-tot-10 and -1-2-tot-10" below.*
 - **`unlocked_by`**: `optellen-tot-5`, `getalbegrip-10`
 - **`unlocks`**: `+3-4-tot-10`
 - **`subsumed_by`**: `optellen-tot-10`
-- **Generator**: a ∈ [1, 9], b ∈ {1, 2}, a + b ≤ 10
-- **Applicable exercise types**: as `+1-2-tot-5`
+- **Generator**: the 17 sums a + 1, a + 2 ≤ 10; the 7 with a sum within 5 keep a 30% refresh share; post-60 a share arrives small-first
+- **Exercises**: *"+1-2-tot-10 and -1-2-tot-10" below*
 
 #### `+3-4-tot-10`
 - **Intent**: add 3 or 4 within 10 — the stepping-stone where derived-fact reasoning (dubbels, near-dubbels) starts mattering
@@ -268,12 +269,13 @@ Two skills of the same shape — the former `splitsen-tot-10`, divided by total 
 - **Exercises**: *Exercise design for the next set → `getalfamilie-5`*
 
 #### `-1-2-tot-10`
-- **Intent**: take away 1 or 2 within 10
+- **Intent**: take away 1 or 2 anywhere in the row to 10: −1 is the number just before, −2 one jump of two back — the backward number row made secure above 5
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) the backward row above 5 — the real content of this skill; (2) −1 / −2 instant, also across the 5 and from 10; (3) the answer is the number reached, the whole is never recounted.
 - **`unlocked_by`**: `aftrekken-wegnemen-5`, `getalbegrip-10`
 - **`unlocks`**: `-3-4-tot-10`
 - **`subsumed_by`**: `aftrekken-wegnemen-10`
-- **Generator**: a ∈ [1, 10], b ∈ {1, 2}, b ≤ a
-- **Applicable exercise types**: as `-1-2-tot-5`
+- **Generator**: the 19 differences a − 1, a − 2 with a ≤ 10; the 9 with a whole within 5 keep a 30% refresh share
+- **Exercises**: *"+1-2-tot-10 and -1-2-tot-10" below*
 
 #### `-3-4-tot-10`
 - **Intent**: take away 3 or 4 within 10 — derived-fact reasoning starts mattering
@@ -852,6 +854,47 @@ The picture first, then every form, then mostly speed.
 | The pairs of 10 from both sides | `tien-paren` |
 | Known versus counted | `snel-weten` |
 | The meaning in words alone | `rekenverhaal` (existing, new variants) |
+
+### `+1-2-tot-10` and `-1-2-tot-10`
+
+Added after the set above was built. No new exercise type is needed.
+
+**What these skills are.** Not "the tot-5 skills with bigger numbers". At tot 5 the +1 / +2 skill introduced the sign and its meaning, and counting on was the method. Here the sign is known, and the child arrives from a skill whose point was to stop counting. So the question is what +1 and +2 should rest on at tot 10:
+
+- **The number row.** +1 is the number just after, −1 the number just before; ±2 is one jump of two. The Flemish sources put exactly this early: "1 meer en 1 minder, juist ervoor en juist erna bepalen … tot en met 10" and counting on and back from any number are kleuter goals (minimumdoel 2.1.10; GO! WI.266), jumps of 2 are first-year work (UCLL leerlijn getallenkennis), and the UCLL overview lists doortellen and terugtellen as the standard method with these very sums ("4. Twee erbij, 5, 6."). A fact read off the number row is known, not counted — counting ALL is the dead end, not stepping one or two along a row that is secure.
+- **Not the split table.** "9 is 7 en 2" also answers 7 + 2, and the bands run alongside. But ±1 and ±2 are the sums a child gets from the row long before the splits of 8 and 9 are known; making them wait for the bands would turn the easy facts into hard ones. The splits come in from the middle of the curve (`huisje-som`), as a second view, not as the entry.
+
+**So the exercises differ from the tot-5 twins:**
+
+| | tot 5 | tot 10 |
+|---|---|---|
+| Action exercises (`erbij-tap`, `wegneem-tap`, `fill-vis`) | the entry — they give the sign its meaning | not used: the meaning is known |
+| Number line | one of several | leads: it IS the number row |
+| `doosje` | makes counting on necessary | more important: a start group of 7 invites recounting |
+| `flits-som` | — | the start group in the 5-structure, for a moment |
+| `huisje-som`, `omkeer-som` | — | from 30–35: the tie to splits and to the reverse sum |
+| `snel-weten` | — | from 60 |
+
+**Curves** (planned; in `weightMatrix.ts`, never played):
+
+| `+1-2-tot-10` | Weight | | `-1-2-tot-10` | Weight |
+|---|---|---|---|---|
+| `numberline-jump` | 0: 30 · 50: 15 · 100: 5 | | `numberline-jump-back` | 0: 30 · 50: 18 · 100: 6 |
+| `doosje` | 0: 25 · 50: 15 · 100: 5 | | `doosje` | 0: 25 · 50: 15 · 100: 5 |
+| `flits-som` | 0: 20 · 40: 12 · 70: 0 | | `flits-som` | 0: 20 · 45: 12 · 70: 0 |
+| `choice` | 0: 12 · 60: 6 · 100: 4 | | `wegnemen-crossed-out`, `choice` | 10 → 4 each |
+| `huisje-som` | 30: 0 · 55: 15 · 100: 8 | | `omkeer-som` | 30: 0 · 55: 15 · 100: 8 |
+| `tf` | 30: 0 · 60: 12 | | `huisje-som` | 35: 0 · 60: 12 · 100: 8 |
+| `fill-plain` | 30: 0 · 60: 20 | | `tf` | 40: 0 · 65: 12 |
+| `rekenverhaal` | 60: 0 · 75: 10 | | `fill-plain` | 40: 0 · 70: 18 |
+| `snel-weten` | 60: 0 · 80: 25 · 100: 35 | | `rekenverhaal`, `snel-weten` | from 60 / 65 |
+
+**Seen when the existing exercises were played at 6–10 in a browser:** `doosje`, `flits-som`, `huisje-som`, `omkeer-som`, `choice`, `wegnemen-crossed-out`, `rekenverhaal` and `snel-weten` work as they are. The number line does not: on a phone the 0–10 line has cells of about 24 px, fine to look at and too small to tap — and tapping the landing is its middle tier.
+
+**Open:**
+1. The tot-10 number line needs larger tap targets (two rows of five? the number strip as the answer?) before these skills open.
+2. `huisje-som` uses splits of 6–10 that the child may not have met — the bands are not a prerequisite. Intended as a second view; if it turns out to be a wall, make `splitsen-6-7` a prerequisite or move the exercise later.
+3. The pitfalls are reasoned, not sourced.
 
 ### Suggested order of building
 
