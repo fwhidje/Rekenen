@@ -930,15 +930,15 @@ Added with the ±1 / ±2 skills. No new exercise type is used; one gap is named 
 
 **Seen when played at these numbers in a browser:** all listed exercises work. One fix was needed: `flits-som` drew 5 + 3 or 6 + 4 wider than a phone screen; its dots now shrink when both groups are wide.
 
-**The derived-fact routes — three exercises added:**
+**The derived-fact routes — exercises added:**
 
 - **`buur-som`** — "3 + 3 = 6, dus 3 + 4 = ?". The given line is an anchor one step away: a dubbel, a sum of 10, a sum of or with five, else the +2 sum the child has. Tiers: `buur-beeld` 0 (two colours on 5-rows; one dot arrives or is crossed) · `buur-kaal` 35 · `buur-zonder` 65 (the anchor without its outcome — it has to be known). Not served for a dubbel. `+3-4-tot-10`, from 20.
-- **`som-in-stappen`** — a sum that crosses the five, in two steps: "4 + 3": the 3 is split into 1 and 2, 4 + 1 = 5, 5 + 2 = 7; for −: 7 − 2 = 5, 5 − 1 = 4. Tiers: `stappen-zien` 0 (picture, split and first step given) · `eerst-vijf` 35 (both steps the child's: first "how many to five") · `drie-termen` 65 (the derivation as a **sum of three terms**, "4 + 1 + 2 = ?"). This is the brug procedure — first term kept, second term split — one size down. Both ±3/4 skills.
+- **`som-in-stappen`** — a sum that crosses the five, in two steps: "4 + 3": the 3 is split into 1 and 2, 4 + 1 = 5, 5 + 2 = 7; for −: 7 − 2 = 5, 5 − 1 = 4. Tiers: `stappen-zien` 0 (picture, split and first step given) · `eerst-vijf` 35 (both steps the child's: first "how many to five") · `drie-termen` 65 (the derivation as a **sum of three terms**, "4 + 1 + 2 = ?"). This is the brug procedure — first term kept, second term split — one size down. **Built, but not listed in any skill** (decision 20): kept for later skills (the brug over 10, sums of three terms).
 - **`dubbel-spiegel`** — for `dubbels-tot-10`: a row and the same row again under a mirror line. Tiers: `spiegel-zien` 0 · `spiegel-denk` 30 (the mirror row comes with the answer) · `woord` 60 ("het dubbel van 4").
 
-Going through the five for sums below 10 is not in the Flemish documents read (they say: from the splits). It follows from the 5-structure and rehearses the bridge; that is reasoning, not a source.
+Going through the five for sums below 10 is not in the Flemish documents read (they say: from the splits). It would follow from the 5-structure and rehearse the bridge — reasoning, not a source — so it was dropped from the ±3/4 skills (decision 20). The 5-row picture of `flits-som` and the other exercises stays: that is the getalbeeld, not a taught route.
 
-**Sums of three terms as a topic of their own** — splitting a whole into three parts and joining three parts within 10 are GO! goals (WI.268, WI.269). Here the three-term sum only appears as the written form of a derivation (`som-in-stappen`, top tier). A skill for it fits after `optellen-tot-10`; not designed.
+**Sums of three terms as a topic of their own** — splitting a whole into three parts and joining three parts within 10 are GO! goals (WI.268, WI.269). No live skill has a three-term sum now; `som-in-stappen`'s top tier writes one and can serve there. A skill for it fits after `optellen-tot-10`; not designed.
 
 **Open:**
 1. The anchors of `buur-som` are only as good as the child's knowledge of them; `buur-zonder` failing is a signal about the dubbels and the tienvrienden, not about the sum.
@@ -1051,6 +1051,7 @@ For Claude Code context — what was considered and chosen during the design con
 17. **Comparison with the compared amount unknown** ("3 meer dan"): not in the tot-5 range; later, as story problems at tot 10.
 18. **A difference of 0** stays in the verschil skills.
 19. **Exercise set for the tot-5 arithmetic, the split bands and tienvrienden** designed in one go — *Exercise design for the next set*. The time-aware exercise (`snel-weten`) is built in its soft form — no clock shown, slow-but-correct is not wrong; a visible limit may be added later as a higher tier.
+20. **`dubbels-tot-10` moved forward** — unlocks from `+1-2-tot-10`, next to `+3-4-tot-10`: the dubbels are the anchors of `buur-som`. **No two steps through the five** in the ±3/4 skills: `som-in-stappen` is built but listed in no skill (Filip, Nov 2026 — the route is not in the Flemish sources read). Kept in code for the brug over 10 and sums of three terms.
 12. **No trivial 0-splits**: splitsen generators produce a ≥ 1, b ≥ 1. A "split into 0 and n" carries no recognition signal and was previously confusing in visual exercises. Was previously `a ≥ 0`.
 
 ---

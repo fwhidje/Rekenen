@@ -143,11 +143,10 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'row and leave two. doosje keeps a small share that is gone by 50 — counting on as the ' +
     'fallback the child still has. No number line: hopping three or four cells is the counting ' +
     'this skill leaves behind. choice throughout, tf and fill-plain from 30–35, post-60 ' +
-    'rekenverhaal and snel-weten; the generator then serves small-first sums (3 + 6). The two ' +
-    'derived-fact routes have their own exercise: buur-som from 20 ("3 + 3 = 6, dus 3 + 4" — ' +
-    'from a dubbel, a sum of 10, a sum with five) and som-in-stappen from 15, for the sums ' +
-    'that cross the five (4 + 3 as 4 + 1 = 5, 5 + 2; at 65 written as the sum of three terms ' +
-    '4 + 1 + 2).',
+    'rekenverhaal and snel-weten; the generator then serves small-first sums (3 + 6). The ' +
+    'derived-fact route has its own exercise: buur-som from 20 ("3 + 3 = 6, dus 3 + 4" — ' +
+    'from a dubbel, a sum of 10, a sum with five). Going through the five in two steps ' +
+    '(som-in-stappen) is not used here: not in the Flemish sources read.',
   'optellen-tot-10': TODO,
   'dubbels-tot-10':
     'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
@@ -226,9 +225,8 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'answers the difference; its buur tier asks 9 − 3 after 9 − 4. flits-som shows the ' +
     'crossed-out picture in the 5-structure for a moment; wegnemen-crossed-out keeps a small ' +
     'share as the standing picture. teken-kiezen low, choice throughout, tf and fill-plain ' +
-    'from 40, post-60 rekenverhaal and snel-weten. som-in-stappen from 25 for the differences ' +
-    'that cross the five (7 − 3 as 7 − 2 = 5, 5 − 1). No number line and no doosje: both are ' +
-    'counting back.',
+    'from 40, post-60 rekenverhaal and snel-weten. No number line and no doosje: both are ' +
+    'counting back. No two steps through the five (som-in-stappen): not in the sources read.',
   'aftrekken-wegnemen-10': TODO,
   'aftrekken-verschil-10': TODO,
   'getalfamilie-10': TODO,
