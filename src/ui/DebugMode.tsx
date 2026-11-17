@@ -3,6 +3,7 @@ import { SKILLS, SKILLS_BY_ID } from '../curriculum/skills'
 import { getExercisePlan } from '../curriculum/exercisePlan'
 import { getExercise, getAllExerciseIds } from '../exercises/registry'
 import { pickTier } from '../exercises/tiers'
+import { UNLOCK_THRESHOLD } from '../engine/scoring'
 import { computeAnswer, problemOperands } from '../engine/answer'
 import { buildRetry } from '../engine/exerciseSelector'
 import { diagnostics } from '../engine/diagnostics'
@@ -17,7 +18,9 @@ import { SkillBalance } from './SkillBalance'
 
 import '../exercises/index'
 
-const SCORE_BRACKETS = [0, 20, 40, 60, 80, 100] as const
+// Every score in steps of 5: tiers start at 25, 35, 65 … and the generators
+// change at 60, so coarse brackets skipped whole tiers.
+const SCORE_STEPS = Array.from({ length: 21 }, (_, i) => i * 5)
 
 // Debug answers are recorded under a sentinel profile so they never pollute a
 // real child's mastery data.
@@ -210,10 +213,31 @@ export function DebugMode({ onClose }: Props) {
 
           <Field label="Score">
             <select value={score} onChange={e => setScore(Number(e.target.value))} style={selectStyle}>
-              {SCORE_BRACKETS.map(b => (
-                <option key={b} value={b}>{b}</option>
-              ))}
+              {SCORE_STEPS.map(b => {
+                const starts = def ? def.tiers.filter(t => t.minScore === b).map(t => t.label || t.id) : []
+                const note = [...starts.map(l => `tier ${l}`), ...(b === UNLOCK_THRESHOLD ? ['unlock'] : [])]
+                return <option key={b} value={b}>{b}{note.length ? ` — ${note.join(', ')}` : ''}</option>
+              })}
             </select>
+            {/* The selected exercise's tiers: tap one to jump to the score it starts at. */}
+            {def && def.tiers.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                {[...def.tiers].sort((x, y) => x.minScore - y.minScore).map(t => {
+                  const on = activeTier?.id === t.id
+                  return (
+                    <button key={t.id} onClick={() => setScore(t.minScore)} title={t.description}
+                      style={{
+                        padding: '4px 10px', fontSize: 13, borderRadius: 999, cursor: 'pointer',
+                        fontFamily: 'Nunito, sans-serif', fontWeight: on ? 700 : 500,
+                        border: `1.5px solid ${INK}`, color: on ? 'white' : INK,
+                        background: on ? '#7a9a3a' : '#fbf6e6',
+                      }}>
+                      {t.minScore} · {t.label || t.id}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </Field>
 
           <Field label="Oefening">
