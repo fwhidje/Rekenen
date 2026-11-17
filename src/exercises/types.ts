@@ -115,7 +115,8 @@ export interface ExerciseDefinition<Meta = Record<string, unknown>> {
   // Optional guard: if provided, the selector will skip this exercise when
   // the generated (a, b) pair doesn't satisfy it. Use to exclude degenerate
   // inputs (e.g. zero-splits for frame-based exercises).
-  isCompatible?: (a: number, b: number) => boolean
+  // `problem` is passed so a guard can depend on the operation (a − 0 vs a + 0).
+  isCompatible?: (a: number, b: number, problem?: Problem) => boolean
 
   Component: ComponentType<ExerciseComponentProps<Meta>>
 }

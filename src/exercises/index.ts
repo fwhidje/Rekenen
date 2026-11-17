@@ -48,6 +48,9 @@ import './SplitsBeeld'
 import './SplitsBuren'
 import './MaakTien'
 import './TienParen'
+import './SomInStappen'
+import './BuurSom'
+import './DubbelSpiegel'
 
 // Runs after every registerExercise() above (module execution order follows
 // import order): warns in dev when the curriculum lists disagree.

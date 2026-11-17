@@ -78,10 +78,12 @@ const EX = {
   maakTien:       'maak-tien',        // the empty places of a full ten are the partner
   tienParen:      'tien-paren',       // find the pairs that make 10
   snelWeten:      'snel-weten',       // one tap, time-aware — knowing versus counting
+  somInStappen:   'som-in-stappen',   // through the five in two steps; a sum of three terms
+  buurSom:        'buur-som',         // a sum from a neighbour you know (dubbel, 10, 5)
+  dubbelSpiegel:  'dubbel-spiegel',   // a row and its mirror image: het dubbel
 
   // Optellen extras
   rekenrekAdd:      'rekenrek-add',
-  dubbelRecognise:  'dubbel-recognise',
 
   // Aftrekken-specific presentations
   wegneemTap:            'wegneem-tap',
@@ -115,6 +117,9 @@ const OPTELLEN_TOT_5: [Extract<Problem, { op: '+' }>, number][] = (() => {
 // refresh share (7 of the 17 sums, 9 of the 19 differences).
 const OLD_FACT_WEIGHT_PLUS = (0.3 / 0.7) * 10 / 7
 const OLD_FACT_WEIGHT_MINUS = (0.3 / 0.7) * 10 / 9
+
+const DUBBELS: [Extract<Problem, { op: '+' }>, number][] =
+  [1, 2, 3, 4, 5].map(n => [{ op: '+' as const, terms: [n, n] as [number, number] }, n <= 2 ? 0.5 : 1])
 
 const WEGNEMEN_TOT_5: [Extract<Problem, { op: '-' }>, number][] = (() => {
   const plain: [number, number][] = []
@@ -435,7 +440,7 @@ export const SKILLS: SkillDefinition[] = [
     },
     op: '+',
     unlockedBy: ['optellen-tot-5', 'getalbegrip-10'],
-    unlocks: ['+3-4-tot-10'],
+    unlocks: ['+3-4-tot-10', 'dubbels-tot-10'],
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
       EX.numberlineJump, EX.doosje, EX.flitsSom, EX.huisjeSom,
@@ -476,7 +481,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['optellen-tot-10'],
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
-      EX.huisjeSom, EX.flitsSom, EX.doosje,
+      EX.huisjeSom, EX.flitsSom, EX.buurSom, EX.somInStappen, EX.doosje,
       EX.choice, EX.tf, EX.fillPlain,
       EX.rekenverhaal, EX.snelWeten,
     ],
@@ -502,7 +507,7 @@ export const SKILLS: SkillDefinition[] = [
     },
     op: '+',
     unlockedBy: ['+3-4-tot-10', 'splitsen-6-7', 'splitsen-8-9'],
-    unlocks: ['dubbels-tot-10', 'helften-tot-10'],
+    unlocks: ['helften-tot-10'],
     subsumedBy: null,
     applicableExercises: [
       EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
@@ -519,21 +524,31 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: 'dubbels-tot-10',
     name: 'Dubbels tot 10',
-    intent: 'Knows 1+1, 2+2, 3+3, 4+4, 5+5. Fact-recall drill.',
+    intent: 'Knows 1+1, 2+2, 3+3, 4+4, 5+5 at once — "het dubbel van". Fact-recall drill, never archived: the dubbels are the anchors of the neighbouring sums (3 + 4 is 3 + 3 and one more).',
+    // Didactics: "het dubbel" is a term of the Flemish goal sets (GO! WI.269;
+    // minimumdoelen 4th year); the near-dubbel use follows the background text.
+    // The pitfalls are reasoned, not sourced. Skill map → "dubbels-tot-10".
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with +1-2-tot-10: adds 1 and 2 anywhere in the row to 10 and knows the sums within 5 — so 1 + 1 and 2 + 2 are known already. Has not met the word "dubbel" in this app, and has not yet added 3, 4 or 5 to anything above 2.',
+      goal: 'The five dubbels to 10 come at once, as sums (4 + 4 = 8) and by their name ("het dubbel van 4 is 8"), without counting. A dubbel is understood as twice the same — a row and the same row again — so it can serve as the starting point for the sum next to it.',
+      pitfalls: [
+        'Dubbel taken as "one more" or "two more" — het dubbel van 3 → 4 or 5. The word is not yet "twice the same".',
+        'Counts the new ones — 1 + 1 and 2 + 2 are instant, 3 + 3, 4 + 4 and 5 + 5 are counted on. Right, slowly; only the time shows it.',
+        '4 + 4 and 3 + 3 one off (7, 9, 5) — counted, and slipped.',
+      ],
     },
     op: '+',
-    unlockedBy: ['optellen-tot-10'],
+    // From +1-2-tot-10, in parallel with +3-4-tot-10 (was: after optellen-tot-10).
+    // Not a prerequisite of +3-4: buur-som states the dubbel it starts from.
+    unlockedBy: ['+1-2-tot-10'],
     unlocks: [],
     subsumedBy: null,
-    applicableExercises: [EX.fillPlain, EX.choice, EX.tf, EX.dubbelRecognise],
-    generate: () => {
-      const a = rnd(1, 5)
-      return { op: '+', terms: [a, a] }
-    },
+    applicableExercises: [
+      EX.dubbelSpiegel, EX.flitsSom, EX.huisjeSom,
+      EX.choice, EX.tf, EX.fillPlain, EX.snelWeten,
+    ],
+    // 1 + 1 and 2 + 2 are known from tot 5 and come up less often.
+    generate: () => sampleFact(DUBBELS),
   },
 
   {
@@ -731,7 +746,7 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-wegnemen-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
-      EX.huisjeSom, EX.flitsSom, EX.omkeerSom,
+      EX.huisjeSom, EX.flitsSom, EX.omkeerSom, EX.somInStappen,
       EX.wegnemenCrossedOut, EX.tekenKiezen,
       EX.choice, EX.tf, EX.fillPlain,
       EX.rekenverhaal, EX.snelWeten,

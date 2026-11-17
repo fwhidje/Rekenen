@@ -130,8 +130,9 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'moment. Middle: choice, tf and fill-plain from 30, and huisje-som from 30 — "9 is 7 en 2" ' +
     'ties these sums to the split bands that run alongside. Post-60: rekenverhaal, snel-weten, ' +
     'and the generator serves small-first sums (1 + 8) to be turned around. About 30% of the ' +
-    'draws refresh the sums within 5. To do before it opens: the tot-10 number line has ' +
-    'cells of about 24 px on a phone — too small for the tap-the-landing tier.',
+    'draws refresh the sums within 5. On the tot-10 line the jump is one move under one bow ' +
+    '(+2 as a unit) and the landing is answered on the number strip — the cells are too small ' +
+    'to tap. Turned-around sums are not served to the number line or the doosje.',
   '+3-4-tot-10':
     'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
     'Three or four is too far to count on safely, so this is the skill where the sum has to ' +
@@ -142,10 +143,21 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'row and leave two. doosje keeps a small share that is gone by 50 — counting on as the ' +
     'fallback the child still has. No number line: hopping three or four cells is the counting ' +
     'this skill leaves behind. choice throughout, tf and fill-plain from 30–35, post-60 ' +
-    'rekenverhaal and snel-weten; the generator then serves small-first sums (3 + 6). Not ' +
-    'covered by any exercise yet: deriving a sum from a dubbel next door or through 10.',
+    'rekenverhaal and snel-weten; the generator then serves small-first sums (3 + 6). The two ' +
+    'derived-fact routes have their own exercise: buur-som from 20 ("3 + 3 = 6, dus 3 + 4" — ' +
+    'from a dubbel, a sum of 10, a sum with five) and som-in-stappen from 15, for the sums ' +
+    'that cross the five (4 + 3 as 4 + 1 = 5, 5 + 2; at 65 written as the sum of three terms ' +
+    '4 + 1 + 2).',
   'optellen-tot-10': TODO,
-  'dubbels-tot-10': TODO,
+  'dubbels-tot-10':
+    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Five facts, a picture and a word. Unlocks from +1-2-tot-10, next to +3-4-tot-10, because ' +
+    'the dubbels are the anchors the neighbouring sums are derived from. dubbel-spiegel owns ' +
+    'the entry (45 → 8): a row and the same row again under a mirror line, with the sum ' +
+    'n + n; from 30 the mirror row is left to the child, from 60 only "het dubbel van 4" is ' +
+    'asked. flits-som (gone by 50) and huisje-som (from 15) show the same facts in other ' +
+    'clothes; choice, tf and fill-plain; from 60 snel-weten reaches half of all questions — ' +
+    'this is a recall skill. 1 + 1 and 2 + 2 are known from tot 5 and come up half as often.',
   'helften-tot-10': TODO,
   '-1-2-tot-5':
     'Mirror of +1-2-tot-5 with a more concrete-heavy entry, because backward counting is ' +
@@ -205,7 +217,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'the standing picture. Middle: omkeer-som from 30 (7 + 2 = 9, dus 9 − 2) and huisje-som ' +
     'from 35 tie the differences to sums and splits; choice, tf, fill-plain. Post-60: ' +
     'rekenverhaal and snel-weten. About 30% of the draws refresh the differences within 5. ' +
-    'Same open point as the + skill: the tot-10 number line is too small to tap on a phone.',
+    'The tot-10 line works as for +: one bow, the landing answered on the number strip.',
   '-3-4-tot-10':
     'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
     'Counting back three or four is the weakest counting there is, so the difference comes ' +
@@ -214,7 +226,8 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'answers the difference; its buur tier asks 9 − 3 after 9 − 4. flits-som shows the ' +
     'crossed-out picture in the 5-structure for a moment; wegnemen-crossed-out keeps a small ' +
     'share as the standing picture. teken-kiezen low, choice throughout, tf and fill-plain ' +
-    'from 40, post-60 rekenverhaal and snel-weten. No number line and no doosje: both are ' +
+    'from 40, post-60 rekenverhaal and snel-weten. som-in-stappen from 25 for the differences ' +
+    'that cross the five (7 − 3 as 7 − 2 = 5, 5 − 1). No number line and no doosje: both are ' +
     'counting back.',
   'aftrekken-wegnemen-10': TODO,
   'aftrekken-verschil-10': TODO,

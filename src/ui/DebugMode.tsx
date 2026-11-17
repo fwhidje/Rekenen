@@ -85,7 +85,7 @@ export function DebugMode({ onClose }: Props) {
     let problem = skill.generate({ score })
     for (let tries = 0; tries < 12 && def.isCompatible; tries++) {
       const o = problemOperands(problem)
-      if (def.isCompatible(o.a, o.b)) break
+      if (def.isCompatible(o.a, o.b, problem)) break
       problem = skill.generate({ score })
     }
     const { a, b } = problemOperands(problem)

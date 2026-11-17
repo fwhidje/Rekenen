@@ -232,6 +232,8 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   '+3-4-tot-10': {
     'huisje-som':    [[0, 35], [60, 25], [100, 10]],
     'flits-som':     [[0, 30], [45, 15], [70, 0]],
+    'buur-som':      [[20, 0], [45, 18], [100, 10]],
+    'som-in-stappen': [[15, 0], [40, 15], [100, 8]],
     'doosje':        [[0, 10], [50, 0]],
     'choice':        [[0, 12], [60, 6], [100, 4]],
     'tf':            [[30, 0], [60, 12], [100, 12]],
@@ -244,6 +246,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'huisje-som':            [[0, 35], [60, 25], [100, 10]],
     'flits-som':             [[0, 28], [45, 15], [70, 0]],
     'omkeer-som':            [[15, 0], [40, 20], [100, 12]],
+    'som-in-stappen':        [[25, 0], [50, 15], [100, 8]],
     'wegnemen-crossed-out':  [10, 4],
     'teken-kiezen':          [[20, 0], [40, 8], [100, 5]],
     'choice':                [10, 4],
@@ -251,6 +254,20 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'fill-plain':            [[40, 0], [70, 18], [100, 18]],
     'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
     'snel-weten':            [[65, 0], [85, 25], [100, 30]],
+  },
+
+  // dubbels-tot-10: five facts, a picture and a word. dubbel-spiegel gives the
+  // idea (a row and its mirror image), the rest is the same facts in other
+  // clothes; from 60 it is mostly speed. PLANNED weights: never played.
+
+  'dubbels-tot-10': {
+    'dubbel-spiegel':  [[0, 45], [50, 20], [100, 8]],
+    'flits-som':       [[0, 20], [50, 0]],
+    'huisje-som':      [[15, 0], [40, 15], [100, 8]],
+    'choice':          [15, 5],
+    'tf':              [[30, 0], [60, 10], [100, 10]],
+    'fill-plain':      [[30, 0], [60, 15], [100, 15]],
+    'snel-weten':      [[60, 0], [75, 35], [100, 50]],
   },
 
   // ── Splitsen 6–9, tienvrienden ───────────────────────────────────────────────

@@ -76,9 +76,10 @@ The diagram below shows **unlock dependencies** only. Subsume relationships are 
         │              │  (+ splitsen-6-7 + splitsen-8-9)          │
         │              └─────────►  optellen-tot-10  ◄─────────────┘
         │                                  │
-        │                            ┌─────┴─────┐
-        │                            ▼           ▼
-        │                       dubbels-10   helften-10
+        │                                  ▼
+        │                             helften-10
+        │
+        │   (+1-2-tot-10 also unlocks dubbels-10, next to +3-4-tot-10)
         │
         │  (aftrekken-wegnemen-5 + getalbegrip-10)
         ├────────► -1-2-tot-10
@@ -209,18 +210,19 @@ Two skills of the same shape — the former `splitsen-tot-10`, divided by total 
 #### `optellen-tot-10`
 - **Intent**: any optelling within 10
 - **`unlocked_by`**: `+3-4-tot-10`, `splitsen-6-7`, `splitsen-8-9`
-- **`unlocks`**: `dubbels-tot-10`, `helften-tot-10`
+- **`unlocks`**: `helften-tot-10`
 - **`subsumed_by`**: `null` (would be `optellen-tot-20`)
 - **Generator**: a ∈ [1, 9], b ∈ [1, 10−a]
 - **Applicable exercise types**: full set
 
 #### `dubbels-tot-10`
-- **Intent**: knows 1+1, 2+2, 3+3, 4+4, 5+5
-- **`unlocked_by`**: `optellen-tot-10`
+- **Intent**: knows 1+1, 2+2, 3+3, 4+4, 5+5 at once — "het dubbel van"
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) the five dubbels instant, as sums and by name; (2) a dubbel understood as twice the same, so it can be the starting point of the sum next to it; (3) "dubbel" not read as one more or two more.
+- **`unlocked_by`**: `+1-2-tot-10` *(moved forward in November 2026 — was `optellen-tot-10`. The dubbels are the anchors of `buur-som` in `+3-4-tot-10`, so they must not come two skills after it. Not a prerequisite of `+3-4-tot-10`: `buur-som` states the dubbel it starts from.)*
 - **`unlocks`**: future `dubbels-tot-20`
 - **`subsumed_by`**: `null` — fact-recall drill
 - **Generator**: a = b ∈ [1, 5]
-- **Applicable exercise types**: `fill-plain`, `choice`, `tf`, `dubbel-recognise`
+- **Applicable exercise types**: `dubbel-spiegel` (entry), `flits-som`, `huisje-som`, `choice`, `tf`, `fill-plain`, `snel-weten` (from 60, up to half of all questions)
 
 #### `helften-tot-10`
 - **Intent**: knows half of 2, 4, 6, 8, 10
@@ -894,7 +896,7 @@ Added after the set above was built. No new exercise type is needed.
 **Seen when the existing exercises were played at 6–10 in a browser:** `doosje`, `flits-som`, `huisje-som`, `omkeer-som`, `choice`, `wegnemen-crossed-out`, `rekenverhaal` and `snel-weten` work as they are. The number line does not: on a phone the 0–10 line has cells of about 24 px, fine to look at and too small to tap — and tapping the landing is its middle tier.
 
 **Open:**
-1. The tot-10 number line needs larger tap targets (two rows of five? the number strip as the answer?) before these skills open.
+1. *Settled:* on the tot-10 line the jump is one move under one bow (+2 as a unit, not two hops) and the landing is answered on the number strip. A turned-around sum (1 + 9) is no longer served to the number line or the doosje.
 2. `huisje-som` uses splits of 6–10 that the child may not have met — the bands are not a prerequisite. Intended as a second view; if it turns out to be a wall, make `splitsen-6-7` a prerequisite or move the exercise later.
 3. The pitfalls are reasoned, not sourced.
 
@@ -928,8 +930,18 @@ Added with the ±1 / ±2 skills. No new exercise type is used; one gap is named 
 
 **Seen when played at these numbers in a browser:** all listed exercises work. One fix was needed: `flits-som` drew 5 + 3 or 6 + 4 wider than a phone screen; its dots now shrink when both groups are wide.
 
+**The derived-fact routes — three exercises added:**
+
+- **`buur-som`** — "3 + 3 = 6, dus 3 + 4 = ?". The given line is an anchor one step away: a dubbel, a sum of 10, a sum of or with five, else the +2 sum the child has. Tiers: `buur-beeld` 0 (two colours on 5-rows; one dot arrives or is crossed) · `buur-kaal` 35 · `buur-zonder` 65 (the anchor without its outcome — it has to be known). Not served for a dubbel. `+3-4-tot-10`, from 20.
+- **`som-in-stappen`** — a sum that crosses the five, in two steps: "4 + 3": the 3 is split into 1 and 2, 4 + 1 = 5, 5 + 2 = 7; for −: 7 − 2 = 5, 5 − 1 = 4. Tiers: `stappen-zien` 0 (picture, split and first step given) · `eerst-vijf` 35 (both steps the child's: first "how many to five") · `drie-termen` 65 (the derivation as a **sum of three terms**, "4 + 1 + 2 = ?"). This is the brug procedure — first term kept, second term split — one size down. Both ±3/4 skills.
+- **`dubbel-spiegel`** — for `dubbels-tot-10`: a row and the same row again under a mirror line. Tiers: `spiegel-zien` 0 · `spiegel-denk` 30 (the mirror row comes with the answer) · `woord` 60 ("het dubbel van 4").
+
+Going through the five for sums below 10 is not in the Flemish documents read (they say: from the splits). It follows from the 5-structure and rehearses the bridge; that is reasoning, not a source.
+
+**Sums of three terms as a topic of their own** — splitting a whole into three parts and joining three parts within 10 are GO! goals (WI.268, WI.269). Here the three-term sum only appears as the written form of a derivation (`som-in-stappen`, top tier). A skill for it fits after `optellen-tot-10`; not designed.
+
 **Open:**
-1. **No exercise for the derived-fact routes.** Reading the sum from a house is one route. "3 + 4 is 3 + 3 and one more" and "6 + 4: that is 10" have no exercise of their own; `splits-buren` does the neighbour step for splits only. A sum-neighbour exercise ("3 + 3 = 6, dus 3 + 4 = ?") would be the natural addition — `omkeer-som`'s `buur` tier already does this for −.
+1. The anchors of `buur-som` are only as good as the child's knowledge of them; `buur-zonder` failing is a signal about the dubbels and the tienvrienden, not about the sum.
 2. With the house always given at the entry, a child could lean on it without learning the families. The flash tier (30) and `snel-weten` are what should show that; whether they do is a question for play data.
 3. The pitfalls are reasoned, not sourced.
 
