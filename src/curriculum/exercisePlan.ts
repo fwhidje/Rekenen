@@ -80,42 +80,43 @@ export const EXERCISE_PLAN: Record<string, string> = {
 
   // Later branches — fill as exercises are built.
   // ── Designed, not built (Nov 2026) ───────────────────────────────────────────
-  // The plans below that start with PLAN describe INTENDED curves: no weight
-  // table yet, and most of the exercises they name do not exist. The design, with a
+  // All seven skills below are built and still gated (not yet played by a child). The design, with a
   // first-guess weight per exercise, is in the skill map → "Exercise design for
   // the next set". Rewrite each plan when its skill is built and tuned.
   'splitsen-6-7':
-    'PLAN. Recognition first, the notations from the middle, organisation and speed at the top — ' +
-    'the herken → noteren arc of tot 5 inside one skill, drawn in the 5-structure throughout ' +
-    '(two-colour 5-rows; no dice above 5). Entry: splits-frame (35, part + "?" with a flash tier ' +
-    'at the top) and splits-build-it (25, a bead row coloured per five — cut it yourself). ' +
-    'splitshuisje joins at 10 and carries the middle; splits-ontbreken-rechts and splitsbenen ' +
-    'follow from 25–30. splits-buren (from 20, peak 20 at 50) is the new one: a split derived ' +
-    'from its neighbour, one part up and the other down — the way back that is not counting. ' +
-    'Post-60: ontbreken-links, splits-vrij, splits-alle (the table) and snel-weten (one tap, ' +
-    'time-aware) ramping to the largest share.',
+    'Built, gated (Nov 2026). The picture first, the notations from the middle, the neighbour ' +
+    'step and speed at the top — the herken → noteren arc of tot 5 inside one skill, in the ' +
+    '5-structure throughout. splits-beeld owns the entry (45 → 6): the whole on 5-rows in two ' +
+    'colours, then one part under a cover, then the picture only for a moment. splitshuisje ' +
+    'joins at 10 and carries the middle; splits-ontbreken-rechts and splitsbenen follow from ' +
+    '25–30. splits-buren (from 20, peak 20 at 50) is the new idea: a split derived from its ' +
+    'neighbour, one part down and the other up — the way back that is not counting. Post-60: ' +
+    'ontbreken-links, splits-vrij, and snel-weten (one tap, time-aware) ramping to the largest ' +
+    'share. Not here: the dice exercises of tot 5 (dice stop at 6) and splits-alle (the table ' +
+    'of 8 or 9 does not fit the screen). Weights are initial guesses pending playtesting.',
   'splitsen-8-9':
-    'PLAN. Same curve as splitsen-6-7 — the two bands unlock together and differ only in their ' +
-    'totals. splits-alle needs a layout check here: the table of 9 has ten rows.',
+    'Built, gated (Nov 2026). Same curve as splitsen-6-7 — the two bands unlock together and ' +
+    'differ only in their totals.',
   'tienvrienden':
-    'PLAN. The picture first, then every form, then mostly speed. maak-tien owns the entry ' +
-    '(45 → 8): a full ten with some places taken — on a tienveld the empty places ARE the ' +
-    'partner, on two hands the fingers that are down; it flashes from 30 and is only a ' +
-    'confirmation from 55. tien-paren (from 10) asks for the pair from either side, with ' +
-    'one-off decoys from 60. The forms come in through the middle: the house of 10, ' +
-    '"10 is 7 en ?" (splits-ontbreken-rechts) and "7 + . = 10" (puntoefening). From 60 ' +
-    'snel-weten takes over and reaches half of all questions — speed is this skill\'s goal, ' +
-    'and it is the only exercise that can see it.',
+    'Built, gated (Nov 2026). The picture first, then every form, then mostly speed. maak-tien ' +
+    'owns the entry (45 → 8): a full ten with some places taken — on a tienveld the empty ' +
+    'places ARE the partner, on two hands the fingers that are down; it flashes from 30 and is ' +
+    'only a confirmation from 55. tien-paren (from 10) asks for the pair from either side, ' +
+    'with two cards that belong to nobody from 60. The forms come in through the middle: the ' +
+    'house of 10, "10 is 7 en ?" (splits-ontbreken-rechts) and "7 + ? = 10" (puntoefening). ' +
+    'From 60 snel-weten takes over and reaches half of all questions — speed is this skill\'s ' +
+    'goal, and it is the only exercise that can see it. Weights are initial guesses.',
   'optellen-tot-5':
-    'Built except snel-weten (Nov 2026). The skill adds no new sums over +1-2-tot-5; it changes the method, from counting on ' +
+    'Built, gated (Nov 2026). The skill adds no new sums over +1-2-tot-5; it changes the method, from counting on ' +
     'to reading the sum off the split. So the counting exercises of the previous skill ' +
     '(erbij-tap, doosje, numberline-jump) are absent on purpose. Entry: flits-som (30, gone by ' +
     '65) — the picture of the sum flashes, too briefly to count — and huisje-som (30 → 8), the ' +
     'main exercise: a filled splitshuisje beside the sum, later flashed, later only shown as ' +
     'confirmation; its twee-sommen tier (2 + 3 and 3 + 2 from one house) is where van plaats ' +
     'wisselen is taught. fill-vis keeps a small fading share for continuity. Middle: ' +
-    'splits-som-match from 20, tf and fill-plain from 30. Post-60: rekenverhaal, and — once it is ' +
-    'built — snel-weten (one tap, time-aware), which is to ramp to the largest share. Zero ' +
+    'splits-som-match from 20, tf and fill-plain from 30. Post-60: rekenverhaal and snel-weten ' +
+    '(one tap, time-aware — a slow correct answer does not move the score), which ramps to the ' +
+    'largest share. Zero ' +
     'terms (a + 0, 0 + a) run through the whole curve at about 15% of the draws; fill-vis, ' +
     'splits-som-match and rekenverhaal skip them (no picture or story for "nothing arrives"). ' +
     'Weights are initial guesses pending playtesting.',
@@ -144,7 +145,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'joins from 60 (wegnemen sentences; sum alongside at 60, text alone at 80, film on the ▶ tap). The generator serves the two "alles weg" → 0 facts damped below score 30. ' +
     'Weights are initial guesses pending playtesting.',
   'aftrekken-wegnemen-5':
-    'Built except snel-weten (Nov 2026). Mirror of optellen-tot-5 with support for longer: the six new facts (−3, −4, more ' +
+    'Built, gated (Nov 2026). Mirror of optellen-tot-5 with support for longer: the six new facts (−3, −4, more ' +
     '"alles weg") are exactly where counting back breaks, so wegneem-tap, doosje and ' +
     'numberline-jump-back are absent. Entry: flits-som (the crossed-out picture, flashed; gone ' +
     'by 70) and huisje-som (30 → 8; "5 is 3 en 2, dus 5 − 3 = 2"). wegnemen-crossed-out keeps ' +
@@ -152,8 +153,8 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'exercise: omkeer-som from 25 (a finished + sum gives its − reverse; its top tier tests ' +
     'the "one more gives one more" error on neighbouring − sums) and teken-kiezen from 20 ' +
     '(the sign is chosen, now that + and − rotate together). Middle and top as for +: ' +
-    'splits-som-match, tf (reversal and zero traps), fill-plain, rekenverhaal, and snel-weten once ' +
-    'it is built. a − 0 and a − a together run at about 15% of the draws; omkeer-som and ' +
+    'splits-som-match, tf (reversal and zero traps), fill-plain, rekenverhaal, and snel-weten ' +
+    'from 65. a − 0 and a − a together run at about 15% of the draws; omkeer-som and ' +
     'teken-kiezen skip them. Weights are initial guesses pending playtesting.',
   'aftrekken-verschil-5':
     'Built (Nov 2026). A meaning skill: the facts are those of wegnemen, the question is new. So there is ' +
@@ -165,13 +166,13 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'difference as a distance), rekenverhaal from 60 (the question in words alone). A ' +
     'difference of 0 is kept but made rarer: everyone has a partner. Weights are initial guesses.',
   'getalfamilie-5':
-    'Built except snel-weten and the third tier of familie-sommen (Nov 2026). One family, every view. puntoefening owns the entry (40 → 15): "2 + . = 5" with the ' +
+    'Built except the third tier of familie-sommen; gated (Nov 2026). One family, every view. puntoefening owns the entry (40 → 15): "2 + . = 5" with the ' +
     'target drawn (5 places, 2 filled), then flashed, then bare, then the open place first, ' +
     'then in a − sum. familie-sommen (25 → 30 → 20) is the core: a huisje, three number tiles ' +
     'and the four sums to complete, later (40) to lay with both numbers before the = open. ' +
     'splits-ontbreken-rechts keeps a small share as the same question in split notation. ' +
     'numberline-gap from 20 (going up to find the difference), teken-kiezen low, rekenverhaal ' +
-    'from 60 with the deel-geheel and aanvullen stories; snel-weten is to join from 65, asking ' +
+    'from 60 with the deel-geheel and aanvullen stories; snel-weten from 65, asking ' +
     'any view. Weights are initial guesses pending playtesting.',
   '-1-2-tot-10': TODO,
   '-3-4-tot-10': TODO,

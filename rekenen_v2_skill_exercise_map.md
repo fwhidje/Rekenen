@@ -592,7 +592,7 @@ A countable picture comes back only on a retry, as the step down.
 - Only above score 60, so it cannot hold up an unlock. It can hold a skill between 60 and 100 — which is the intended meaning of "not yet automatised".
 - The retry of a wrong answer is the same fact one tier down: untimed, with the huisje back.
 
-Accepted in this form. A visible limit with a longer second attempt — the original idea — can be added later as a higher tier. Open, to settle when it is built and tested: where the baseline comes from (candidate: the median time of the child's correct answers in `dot-pattern-recognise`, which stays in rotation; otherwise a short "tik de 7" warm-up inside the exercise); whether slow should cost something.
+Accepted in this form. A visible limit with a longer second attempt — the original idea — can be added later as a higher tier. As built: the baseline is the fast quarter of the child's own recent correct answers in time-aware questions (the answers he knew, which cost only reading and tapping), clamped, with a default of 1.5 s until there are eight of them; the margins on top of it are 1.5 s and 0.8 s. There is no extra beat for a fast answer — the feedback is identical either way. Still open: whether slow should cost something, and whether these numbers fit a real child.
 
 **5. Conventions.** W / R / C / L / Q apply as everywhere. Quantities are 5-rows (two rows for 6–10) or, up to 5, die patterns. A picture that disappears is covered, not removed, so the stage keeps its size.
 
@@ -721,6 +721,8 @@ Accepted in this form. A visible limit with a longer second attempt — the orig
 - **Used by**: every fact skill of the set from 60; not `aftrekken-verschil-5`, whose facts are those of wegnemen.
 
 ### Existing exercises that stretch
+
+*Changed when the bands were built:* `splits-frame`, `splits-build-it` and `splits-match` draw dice, which stop at 6, and were not stretched. A new exercise, **`splits-beeld`**, does the picture job for 6–10 in the 5-structure (both parts in view → one part under a cover → the picture for a moment). "Make the split yourself" has no exercise in the bands. `splits-alle` is left out too: the table of 8 or 9 does not fit a phone screen.
 
 | Exercise | Change | For |
 |---|---|---|

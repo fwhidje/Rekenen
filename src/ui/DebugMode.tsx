@@ -6,6 +6,7 @@ import { pickTier } from '../exercises/tiers'
 import { computeAnswer, problemOperands } from '../engine/answer'
 import { buildRetry } from '../engine/exerciseSelector'
 import { diagnostics } from '../engine/diagnostics'
+import { judgePace } from '../engine/pace'
 import { buildAnswerRecord } from '../engine/answerRecord'
 import { exerciseStats, STATS_WINDOW } from '../engine/exerciseStats'
 import { exerciseFactors, FACTOR_CAP } from '../engine/weightFactors'
@@ -73,7 +74,9 @@ export function DebugMode({ onClose }: Props) {
   }, [availableExercises, exerciseId])
 
   const freshQuestion: ExerciseQuestion | null = useMemo(() => {
-    if (!exerciseId) return null
+    // right after a skill change the chosen exercise may still be the previous
+    // skill's: wait for the effect above instead of feeding it a foreign problem
+    if (!exerciseId || !availableExercises.includes(exerciseId)) return null
     const def = getExercise(exerciseId)
     // Mirror the live selector: pass score into generate (score-gated facts)
     // and the problem into generateMeta (op-generic exercises read its op).
@@ -109,7 +112,12 @@ export function DebugMode({ onClose }: Props) {
     if (feedback || !question) return
     setFeedback({ ok: correct, message: correct ? 'Goed!' : wrongFeedbackText(question, getExercise(question.exerciseId)) })
 
+    const pace = judgePace({
+      marginMs: (question.meta as { paceMarginMs?: number }).paceMarginMs,
+      answerMs: detail?.answerMs, isRetry: question.isRetry, correct,
+    }, diagnostics.getAll(DEBUG_PROFILE_ID))
     const record = buildAnswerRecord({
+      pace,
       profileId: DEBUG_PROFILE_ID,
       question,
       correct,
@@ -295,6 +303,7 @@ export function DebugMode({ onClose }: Props) {
                   {r.errorType ? ` ${r.errorType}` : ''}
                   {r.tapCount !== undefined ? ` taps:${r.tapCount}` : ''}
                   {r.replayCount ? ` replays:${r.replayCount}` : ''}
+                  {r.pace ? ` ${r.pace}${r.answerMs !== undefined ? ` (${Math.round(r.answerMs / 100) / 10}s)` : ''}` : ''}
                   {r.variant ? ` [${r.variant}]` : ''}
                   {r.responseTimeMs !== undefined ? ` ${Math.round(r.responseTimeMs / 100) / 10}s` : ''}
                 </div>

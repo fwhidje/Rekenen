@@ -43,6 +43,11 @@ import './VerschilParen'
 import './NumberlineGap'
 import './Puntoefening'
 import './FamilieSommen'
+import './SnelWeten'
+import './SplitsBeeld'
+import './SplitsBuren'
+import './MaakTien'
+import './TienParen'
 
 // Runs after every registerExercise() above (module execution order follows
 // import order): warns in dev when the curriculum lists disagree.

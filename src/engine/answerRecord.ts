@@ -32,6 +32,7 @@ export interface AnswerRecordInput {
   scene?: AnswerScene
   viewport?: { w: number; h: number }
   flag?: AnswerFlag
+  pace?: 'fast' | 'slow'        // engine/pace.ts — set by the caller for time-aware questions
   now?: number
 }
 
@@ -42,7 +43,7 @@ export function currentViewport(): { w: number; h: number } | undefined {
 }
 
 export function buildAnswerRecord(input: AnswerRecordInput): AnswerRecord {
-  const { profileId, question, correct, detail, scoreBefore, semanticForm, startedAt, scene, viewport, flag } = input
+  const { profileId, question, correct, detail, scoreBefore, semanticForm, startedAt, scene, viewport, flag, pace } = input
   const now = input.now ?? Date.now()
   const given = detail?.givenAnswer
   const meta = question.meta as { tierId?: string; variant?: string }
@@ -56,7 +57,9 @@ export function buildAnswerRecord(input: AnswerRecordInput): AnswerRecord {
     skillId: question.skillId,
     exerciseId: question.exerciseId,
     tierId: meta.tierId,
-    variant: meta.variant,
+    // A time-aware answer has no variant of its own: its pace rides in that
+    // column, so it reaches the account without a schema change.
+    variant: meta.variant ?? pace,
     isRetry: question.isRetry,
     op: question.op,
     semanticForm,
@@ -75,6 +78,8 @@ export function buildAnswerRecord(input: AnswerRecordInput): AnswerRecord {
     responseTimeMs: now - startedAt,
     tapCount: detail?.tapCount,
     replayCount: detail?.replayCount,
+    answerMs: detail?.answerMs,
+    pace,
     meta: question.meta as Record<string, unknown>,
     scene,
     viewport,

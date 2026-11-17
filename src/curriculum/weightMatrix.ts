@@ -110,7 +110,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // exercises of that skill (erbij-tap, doosje, numberline-jump) are absent on
   // purpose. Entry: the picture flashes (flits-som) and the split is the aid
   // (huisje-som, the main exercise). Middle: the split alone, then nothing.
-  // snel-weten (time-aware, from 60) is designed and joins when it is built.
+  // Top: snel-weten (one tap, time-aware) takes the largest share.
   // Initial guesses, to be tuned with playtesting.
 
   'optellen-tot-5': {
@@ -122,6 +122,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'tf':               [[30, 0], [60, 12], [100, 12]],
     'fill-plain':       [[30, 0], [60, 20], [100, 20]],
     'rekenverhaal':     [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':       [[60, 0], [80, 25], [100, 35]],
   },
 
   // ── Aftrekken ────────────────────────────────────────────────────────────────
@@ -146,7 +147,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // aftrekken-wegnemen-5: the shape of optellen-tot-5 with support for longer.
   // The counting-back exercises (wegneem-tap, doosje, numberline-jump-back) are
   // absent on purpose. New here: omkeer-som (the reverse of a known sum) and
-  // teken-kiezen (the sign is read). snel-weten joins when it is built.
+  // teken-kiezen (the sign is read). snel-weten from 65.
   // Initial guesses, to be tuned with playtesting.
 
   'aftrekken-wegnemen-5': {
@@ -160,6 +161,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'tf':                    [[40, 0], [65, 12], [100, 12]],
     'fill-plain':            [[40, 0], [70, 18], [100, 18]],
     'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':            [[65, 0], [85, 25], [100, 30]],
   },
 
   // aftrekken-verschil-5: a meaning skill — the facts are those of wegnemen,
@@ -183,6 +185,47 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'numberline-gap':          [[20, 0], [40, 12], [100, 8]],
     'teken-kiezen':            [[30, 6], [100, 6]],
     'rekenverhaal':            [[60, 0], [75, 12], [100, 12]],
+    'snel-weten':              [[65, 0], [85, 20], [100, 25]],
+  },
+
+  // ── Splitsen 6–9, tienvrienden ───────────────────────────────────────────────
+  // One curve for both bands: the picture first (splits-beeld, in the
+  // 5-structure), the notations from 10–30, the neighbour step (splits-buren)
+  // through the middle, depth and speed post-60. Initial guesses.
+
+  'splitsen-6-7': {
+    'splits-beeld':            [[0, 45], [50, 18], [100, 6]],
+    'splitshuisje':            [[10, 10], [40, 22], [100, 12]],
+    'splits-buren':            [[20, 0], [50, 20], [100, 12]],
+    'splits-ontbreken-rechts': [[25, 0], [55, 20], [100, 12]],
+    'splitsbenen':             [[30, 0], [55, 12], [100, 8]],
+    'splits-ontbreken-links':  [[60, 0], [75, 10], [100, 10]],
+    'splits-vrij':             [[60, 0], [75, 8], [100, 8]],
+    'snel-weten':              [[60, 0], [80, 25], [100, 35]],
+  },
+
+  'splitsen-8-9': {
+    'splits-beeld':            [[0, 45], [50, 18], [100, 6]],
+    'splitshuisje':            [[10, 10], [40, 22], [100, 12]],
+    'splits-buren':            [[20, 0], [50, 20], [100, 12]],
+    'splits-ontbreken-rechts': [[25, 0], [55, 20], [100, 12]],
+    'splitsbenen':             [[30, 0], [55, 12], [100, 8]],
+    'splits-ontbreken-links':  [[60, 0], [75, 10], [100, 10]],
+    'splits-vrij':             [[60, 0], [75, 8], [100, 8]],
+    'snel-weten':              [[60, 0], [80, 25], [100, 35]],
+  },
+
+  // tienvrienden: the pairs seen (maak-tien), from both sides (tien-paren),
+  // in every form through the middle, then mostly speed — the goal of the skill.
+
+  'tienvrienden': {
+    'maak-tien':               [[0, 45], [50, 20], [100, 8]],
+    'tien-paren':              [[10, 10], [40, 20], [100, 12]],
+    'splitshuisje':            [[20, 0], [45, 12], [100, 6]],
+    'splits-ontbreken-rechts': [[25, 0], [50, 15], [100, 8]],
+    'puntoefening':            [[30, 0], [55, 15], [100, 8]],
+    'splits-ontbreken-links':  [[60, 8], [100, 8]],
+    'snel-weten':              [[60, 0], [75, 35], [100, 50]],
   },
 }
 

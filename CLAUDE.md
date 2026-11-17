@@ -77,11 +77,11 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 
 | Skill id | Gates | Lift when |
 |---|---|---|
-| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | built except `snel-weten` — lift after a DebugMode play-through by Filip |
-| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream (verschil-5 and getalfamilie-5 are built and carry no flag of their own — lifting this one opens them) | built except `snel-weten` — lift after a DebugMode play-through by Filip; needs `optellen-tot-5` lifted too |
+| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | built — lift after a DebugMode play-through by Filip |
+| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream (verschil-5 and getalfamilie-5 are built and carry no flag of their own — lifting this one opens them) | built — lift after a DebugMode play-through by Filip; needs `optellen-tot-5` lifted too |
 | `aftrekken-verschil-10`, `getalfamilie-10` | flagged themselves: no weight table, didactics `TODO` | their own tuning round |
-| `splitsen-6-7`, `splitsen-8-9` | `tienvrienden` (from 6–7), `optellen-tot-10`, `aftrekken-wegnemen-10` (both bands) downstream | split exercises stretched to 6–10 + `splits-buren` built |
-| `tienvrienden` | tienvrienden drill | `maak-tien` / `tien-paren` built |
+| `splitsen-6-7`, `splitsen-8-9` | `tienvrienden` (from 6–7), `optellen-tot-10`, `aftrekken-wegnemen-10` (both bands) downstream | built — lift after a DebugMode play-through by Filip |
+| `tienvrienden` | nothing downstream | built — lift after a play-through, once `splitsen-6-7` is live |
 | `optellen-tot-10` | `dubbels-tot-10`, `helften-tot-10` (also unlocked from this) | optellen-tot-10 verified end-to-end |
 | `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
 
@@ -133,15 +133,15 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
 | `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
-| `splitsen-6-7`, `splitsen-8-9` *(replace `splitsen-tot-10`)* | 📐 designed (Nov 2026), none built — 10 existing split exercises to stretch to 6–10, `splits-buren` and `snel-weten` new | 📐 first-guess curve in the skill map |
-| `tienvrienden` | 📐 designed, none built — `maak-tien`, `tien-paren` new | 📐 first guess |
+| `splitsen-6-7`, `splitsen-8-9` *(replace `splitsen-tot-10`)* | ✅ all 8 live (Nov 2026): `splits-beeld` and `splits-buren` new, `splitshuisje` / `splitsbenen` / `splits-ontbreken-*` / `splits-vrij` checked at 6–9 in a browser, `snel-weten`. Not used: the dice exercises and `splits-alle` (table too tall). **Still gated** — not playtested by a child | 🟡 initial guesses, one curve for both |
+| `tienvrienden` | ✅ all 7 live (Nov 2026): `maak-tien`, `tien-paren` new; `splitshuisje`, `splits-ontbreken-*`, `puntoefening` checked at total 10; `snel-weten`. **Still gated** | 🟡 initial guesses |
 | `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap single tier, fill-vis picture-and-sum in step, doosje count-on, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 after a play-through review | 🟡 initial guesses |
-| `optellen-tot-5` | 🟡 8 of 9 live (Nov 2026): `huisje-som` and `flits-som` built, zero terms in the generator (about 15% of the draws), `fill-vis` / `splits-som-match` / `rekenverhaal` skip zero terms; `snel-weten` not built. **Still gated** — not playtested by a child; lift the flag after a DebugMode play-through | 🟡 initial guesses (no `snel-weten` row yet) |
+| `optellen-tot-5` | ✅ all 9 live (Nov 2026): `huisje-som`, `flits-som`, `snel-weten` new, zero terms in the generator (about 15% of the draws), `fill-vis` / `splits-som-match` / `rekenverhaal` skip zero terms. **Still gated** — not playtested by a child; lift the flag after a DebugMode play-through | 🟡 initial guesses |
 | `+1-2-tot-10`, `+3-4-tot-10`, `optellen-tot-10` | 🔲 own tuning rounds pending; didactics still `TODO` | 🔲 |
 | `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back twin, doosje count-back, fill-vis − grammar, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 | 🟡 initial guesses |
-| `aftrekken-wegnemen-5` | 🟡 10 of 11 live (Nov 2026): `omkeer-som` and `teken-kiezen` built, `huisje-som` / `flits-som` shared with optellen; a − 0 and a − a in the generator (about 15% together); `snel-weten` not built. **Still gated** — not playtested by a child | 🟡 initial guesses (no `snel-weten` row yet) |
+| `aftrekken-wegnemen-5` | 🟡 10 of 11 live (Nov 2026): `omkeer-som` and `teken-kiezen` built, `huisje-som` / `flits-som` shared with optellen; a − 0 and a − a in the generator (about 15% together); `snel-weten`. **Still gated** — not playtested by a child | 🟡 initial guesses |
 | `aftrekken-verschil-5` | ✅ all 4 live (Nov 2026): `verschil-paren`, `numberline-gap`, `teken-kiezen`, `rekenverhaal` (verschil story). Problems carry `form: 'verschil'`; a difference of 0 is kept but made rarer. Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
-| `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | 🟡 6 of 7 live (Nov 2026): `puntoefening`, `familie-sommen` (two of its three designed tiers), `numberline-gap`, `splits-ontbreken-rechts`, `teken-kiezen`, `rekenverhaal` (aanvullen / deel-geheel stories); `snel-weten` not built. Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
+| `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | ✅ all 7 live (Nov 2026): `puntoefening`, `familie-sommen` (two of its three designed tiers), `numberline-gap`, `splits-ontbreken-rechts`, `teken-kiezen`, `rekenverhaal` (aanvullen / deel-geheel stories), `snel-weten` (asks any view of the family). Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
 | `-1-2-tot-10`, `-3-4-tot-10`, `aftrekken-wegnemen-10`, `aftrekken-verschil-10`, `getalfamilie-10` | 🔲 didactics still `TODO`; will reuse the new op-generic exercises | 🔲 |
 | `dubbels-tot-10`, `helften-tot-10` | 🔲 Pass 4 / Pass 6 | 🔲 |
 
@@ -155,7 +155,8 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 - **Graph changed in `skills.ts`**: `splitsen-tot-10` → `splitsen-6-7` + `splitsen-8-9` (unlock together); `tienvrienden` unlocks from `splitsen-6-7` and now also teaches the splits of 10; `aftrekken-aanvullen-*` → `getalfamilie-*` (a split problem; the exercise picks the view); `splitsen-herken-5` / `splitsen-noteren-5` no longer archive. All affected skills are gated, so nothing changes in play. No profile held progress in the removed ids unless set by hand.
 - **Designed, not built**: 12 new exercise types and the changes to existing ones — skill map → *Exercise design for the next set* (what each is for, how it works, tiers, pitfalls, first-guess weights, shared rules, what else must be built, a build order). The ids are reserved in `skills.ts` (`EX`) and listed in `applicableExercises`; no weight tables yet.
 - **Decided**: the time-aware exercise `snel-weten` is built in its soft form (no clock shown; slow-but-correct is not wrong and never shown as slow). A visible time limit with a longer retry can be added later as a higher tier.
-- **Still open after the build runs**: `snel-weten` with the third answer outcome in the engine; the split bands and `tienvrienden`; the `zelf` tier of `familie-sommen`; error classification for family questions (a wrong puntoefening answer is classified as a split: an echoed part is tagged `reversal`, the rest `unclassified`).
+- **All seven skills are built (Nov 2026) and all are still gated**: none has been played by a child, and every weight is a first guess. Lift the gates one at a time after a DebugMode play-through.
+- **Still open**: the `zelf` tier of `familie-sommen` and the `rij` tier of `splits-buren` (designed, not built); a "make the split yourself" exercise for 6–9; error classification for family questions (a wrong puntoefening answer is classified as a split: an echoed part is tagged `reversal`, the rest `unclassified`); the pace numbers (`engine/pace.ts`) have never met real data.
 
 ### Exercise file status
 
@@ -209,10 +210,11 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `numberline-gap` | `NumberlineGap.tsx` | ✅ done (Nov 2026; two marks and one bow between them. A family is served as aanvullen ("2 + ? = 5"), a − problem as verschil ("5 − 2 = ?"). Tiers sprong-zien 0 (bow drawn, small steps under it; choice) / sprong-kaal 40 (bow comes with the answer; strip) / kale-lijn 70 (only the ends labelled). A difference of 0 puts both marks on one cell) |
 | `teken-kiezen` | `TekenKiezen.tsx` | ✅ done (Nov 2026; "5 ○ 2 = 3", two buttons + / −. Tiers film 0 (a scene plays: arrive / leave / two groups paired for verschil) / som 40 / zin 70 (cue sentence, outcome hidden until the sign is chosen). For a family the sign varies per question; skips zero terms. No `givenAnswer` is recorded — the answer is a sign) |
 | `verschil-paren` | `VerschilParen.tsx` | ✅ done (Nov 2026; two owners as two colours — a row each and a chip in the question; questions meer / minder / "hoeveel moet ● er nog" recorded as `variant`. Tiers paren 0 (pairs dim one by one, the − sum forms; choice with both groups and their total as distractors) / naast 30 / schuin 55 (rows with different spacing) / getallen 75 (two numbers)) |
-| `splits-buren` | — | 📐 designed — one part up, the other down (split bands) |
-| `maak-tien` | — | 📐 designed — tienveld / vingers, the empty places are the partner; replaces `tienveld-fill` / `rekenrek-make-ten` |
-| `tien-paren` | — | 📐 designed — tap the pairs that make 10, one-off decoys at the top |
-| `snel-weten` | — | 📐 designed — one tap on a fixed number strip, time-aware; needs a third answer outcome in the engine |
+| `splits-beeld` | `SplitsBeeld.tsx` | ✅ done (Nov 2026; not in the original design — replaces the dice exercises for 6–10. The whole on 5-rows in two colours, with the statement "8 is 5 en ?". Tiers zien 0 (both parts in view; choice) / bedekt 25 (one part under a cover of fixed size; strip) / flits 50 (the picture for 1.5 s). A retry shows the whole picture) |
+| `splits-buren` | `SplitsBuren.tsx` | 🟡 three of four tiers (Nov 2026; "7 is 5 en 2 — 7 is 4 en ?". Tiers schuif-zien 0 (a bead row coloured per five; the gap between the parts moves one bead; choice incl. "both parts moved the same way") / twee-regels 35 (strip) / sprong 70 (two steps away). The designed `rij` tier — three rows of the table — is not built) |
+| `maak-tien` | `MaakTien.tsx` | ✅ done (Nov 2026; "7 en ? is 10" with a tienveld or two hands, recorded as `variant`. Tiers zien 0 (picture stays; choice) / flits 30 (1.4 s; strip) / denk 55 (no picture until the answer is in). Only for the splits of 10) |
+| `tien-paren` | `TienParen.tsx` | ✅ done (Nov 2026; number cards, tap two that make 10; a wrong pair ends the question. Tiers open 0 (six cards with a small tienveld each) / getallen 35 / lokkers 60 (eight cards: three pairs and two that belong to nobody). A card-grid exercise without a stage) |
+| `snel-weten` | `SnelWeten.tsx` | ✅ done (Nov 2026; one bare fact, one tap on the number strip, no clock. Reports `answerMs` and a margin per tier; the engine judges the pace (`engine/pace.ts`): a slow correct answer gets the normal praise and does not move the score. Tiers rustig 60 (tap baseline + 1.5 s) / vlot 80 (+ 0.8 s); met-huisje is the untimed retry with the family's house. Asks a split as a split, a getalfamilie in any of four views. Never played by a child — the limits are guesses) |
 | splits-helft | — | 🔲 not built |
 
 ### Per-exercise ritual
@@ -252,6 +254,8 @@ Status rots when it lives in more than one place. The rules:
 
 ## Core model (read first)
 
+*One exception to "+1 on correct" (Nov 2026):* in the time-aware exercise `snel-weten` a correct answer that took longer than the child's own tap time plus a margin leaves the score unchanged (`engine/pace.ts`). The child sees no clock and gets the same praise. It applies only above score 60, so it cannot hold up an unlock. The answer record carries `answerMs` and `pace`; for upload the pace rides in the `variant` column (no migration).
+
 Skills are narrow and atomic. Each carries a 0–100 score that is both the **scaffolding dial** (which exercise type via the weight matrix, which tier within it — never the math the skill covers) **and the unlock gate**. Score moves +1 on correct, −3 on wrong; prerequisites must be unlocked and at score ≥ 60 (`UNLOCK_THRESHOLD`, `engine/scoring.ts`).
 
 ### Score model rationale (why the scalar gate is sound)
@@ -286,7 +290,8 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/curriculum/validate.ts` | Dev-time consistency checks across applicableExercises × registry × weight tables × EXERCISE_PLAN; runs after exercise registration |
 | `src/engine/scoring.ts` | applyCorrect / applyWrong / SCORE_MAX / UNLOCK_THRESHOLD (dial + unlock gate) |
 | `src/engine/exerciseStats.ts` | Per-exercise recent attempts / accuracy / median-RT reporting kernel (feeds the DebugMode mix monitor; nothing gates on it) |
-| `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants |
+| `src/engine/weightFactors.ts` | Dynamic error-chasing weight factor — pure fold over the answer stream; tweakable constants; a correct-but-slow answer is skipped |
+| `src/engine/pace.ts` | Time-aware answers: `tapBaselineMs` (the fast quarter of the child's own recent timed correct answers, clamped, default 1.5 s) and `judgePace` (fast / slow for a correct first attempt of a question that names a margin). Pure fold; constants at the top |
 | `src/engine/diagnostics.ts` | `AnswerRecord` (the long-term schema; incl. `scene`, `viewport`, review `flag`), `AnswerScene`, `AnswerFlag`, `ErrorType`, `classifyError`, `DiagnosticsSink` + persisted singleton `diagnostics` |
 | `src/engine/answerRecord.ts` | `buildAnswerRecord` — the one place an `AnswerRecord` is assembled (KidMode + DebugMode); `APP_VERSION` (build commit via `vite.config.ts`), `SESSION_ID`, `currentViewport()`; scene / viewport / flag are passed in by the caller (KidMode only); test tripwires JSON-safety, size and that the profile name never enters a record |
 | `src/engine/unlockEvaluator.ts` | Multi-prereq AND unlock evaluator (unlocked + score ≥ UNLOCK_THRESHOLD) |
@@ -321,6 +326,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/exercises/FlitsSom.tsx` | `flits-som` — op-generic: the picture of a sum flashes, the sum stays |
 | `src/exercises/HuisjeSom.tsx` | `huisje-som` — op-generic: the sum read from a filled splitshuisje |
 | `src/exercises/OmkeerSom.tsx`, `TekenKiezen.tsx`, `VerschilParen.tsx`, `NumberlineGap.tsx`, `Puntoefening.tsx`, `FamilieSommen.tsx` | The exercises of the aftrekken skills and the getalfamilie skill (`omkeer-som`, `teken-kiezen`, `verschil-paren`, `numberline-gap`, `puntoefening`, `familie-sommen`) — see Exercise file status |
+| `src/exercises/SnelWeten.tsx`, `SplitsBeeld.tsx`, `SplitsBuren.tsx`, `MaakTien.tsx`, `TienParen.tsx` | `snel-weten` (time-aware), and the exercises of the split bands and tienvrienden — see Exercise file status |
 | `src/exercises/opDisplay.ts` | Shared operator glyph + colour (`opGlyph`, `opColor`) for every bare-equation exercise |
 | `src/exercises/Doosje.tsx` | `doosje` — op-generic count-on / count-back from a group hidden in a box (replaces the collect-counter pair) |
 | `src/exercises/NumberLine.tsx` | `numberline-jump` — number line + choice buttons |

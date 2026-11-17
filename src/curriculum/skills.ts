@@ -73,6 +73,7 @@ const EX = {
   numberlineGap:  'numberline-gap',   // how far from a to b — aanvullen and verschil
   tekenKiezen:    'teken-kiezen',     // choose + or − for a situation or an equation
   verschilParen:  'verschil-paren',   // pair off two groups, the rest is the difference
+  splitsBeeld:    'splits-beeld',     // a split of 6–10 as a two-colour picture on 5-rows
   splitsBuren:    'splits-buren',     // one part up, the other down
   maakTien:       'maak-tien',        // the empty places of a full ten are the partner
   tienParen:      'tien-paren',       // find the pairs that make 10
@@ -270,10 +271,10 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['tienvrienden', 'optellen-tot-10', 'aftrekken-wegnemen-10'],
     subsumedBy: null,
     applicableExercises: [
-      EX.splitsFrame, EX.splitsBuildIt, EX.splitsBuren,
+      EX.splitsBeeld, EX.splitsBuren,
       EX.splitshuisje, EX.splitsbenen,
       EX.splitsOntbrekenRechts, EX.splitsOntbrekenLinks,
-      EX.splitsVrij, EX.splitsAlle, EX.splitsMatch,
+      EX.splitsVrij,
       EX.snelWeten,
     ],
     // Fact-proportional over the band's 11 ordered splits (no 0-splits yet —
@@ -303,10 +304,10 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['optellen-tot-10', 'aftrekken-wegnemen-10'],
     subsumedBy: null,
     applicableExercises: [
-      EX.splitsFrame, EX.splitsBuildIt, EX.splitsBuren,
+      EX.splitsBeeld, EX.splitsBuren,
       EX.splitshuisje, EX.splitsbenen,
       EX.splitsOntbrekenRechts, EX.splitsOntbrekenLinks,
-      EX.splitsVrij, EX.splitsAlle, EX.splitsMatch,
+      EX.splitsVrij,
       EX.snelWeten,
     ],
     // Fact-proportional over the band's 15 ordered splits (no 0-splits yet —
@@ -645,7 +646,8 @@ export const SKILLS: SkillDefinition[] = [
       EX.splitsOntbrekenRechts, EX.tekenKiezen,
       EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => sampleFact(enumerateSplits(2, 5)),
+    // tagged as a family: exercises may ask any view of it
+    generate: () => ({ ...sampleFact(enumerateSplits(2, 5)), family: true }),
   },
 
   {
@@ -765,7 +767,7 @@ export const SKILLS: SkillDefinition[] = [
       EX.splitsOntbrekenRechts, EX.tekenKiezen,
       EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => sampleFact(enumerateSplits(6, 10)),
+    generate: () => ({ ...sampleFact(enumerateSplits(6, 10)), family: true }),
   },
 ]
 
