@@ -198,7 +198,8 @@ Two skills of the same shape — the former `splitsen-tot-10`, divided by total 
 - **Exercises**: *"+1-2-tot-10 and -1-2-tot-10" below*
 
 #### `+3-4-tot-10`
-- **Intent**: add 3 or 4 within 10 — the stepping-stone where derived-fact reasoning (dubbels, near-dubbels) starts mattering
+- **Intent**: add 3 or 4 within 10 — too far to count on safely, so the sum comes from structure: the split, the five, a dubbel next door, or the sum turned around
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) the sum read from the family instead of counted on; (2) the five and 10 used as structure; (3) small-first sums turned around. *See "+3-4-tot-10 and -3-4-tot-10" below.*
 - **`unlocked_by`**: `+1-2-tot-10`
 - **`unlocks`**: `optellen-tot-10`
 - **`subsumed_by`**: `optellen-tot-10`
@@ -278,7 +279,8 @@ Two skills of the same shape — the former `splitsen-tot-10`, divided by total 
 - **Exercises**: *"+1-2-tot-10 and -1-2-tot-10" below*
 
 #### `-3-4-tot-10`
-- **Intent**: take away 3 or 4 within 10 — derived-fact reasoning starts mattering
+- **Intent**: take away 3 or 4 within 10 — counting back that far breaks, so the difference comes from the family
+- **Key to achieve** *(goal and pitfalls in full: `skills.ts`)*: (1) the difference read from the family; (2) the known sum used for it (omgekeerde bewerking); (3) the five, tienvrienden and halved dubbels as shortcuts. *See "+3-4-tot-10 and -3-4-tot-10" below.*
 - **`unlocked_by`**: `-1-2-tot-10`
 - **`unlocks`**: `aftrekken-wegnemen-10`
 - **`subsumed_by`**: `aftrekken-wegnemen-10`
@@ -894,6 +896,41 @@ Added after the set above was built. No new exercise type is needed.
 **Open:**
 1. The tot-10 number line needs larger tap targets (two rows of five? the number strip as the answer?) before these skills open.
 2. `huisje-som` uses splits of 6–10 that the child may not have met — the bands are not a prerequisite. Intended as a second view; if it turns out to be a wall, make `splitsen-6-7` a prerequisite or move the exercise later.
+3. The pitfalls are reasoned, not sourced.
+
+### `+3-4-tot-10` and `-3-4-tot-10`
+
+Added with the ±1 / ±2 skills. No new exercise type is used; one gap is named below.
+
+**What these skills are.** The step where counting stops being an option. Adding or taking away 1 or 2 can be read off the number row; three or four steps mean two counts at once — the steps taken and the number reached — and that is where counting on, and above all counting back, slips. So here the sum has to come from structure. The Flemish line says how: sums and differences below 10 "op basis van splitsen" (UCLL), added and subtracted "door parate kennis van de getalfamilies" (GO! WI.274, WI.278). The other routes — through the five, from a dubbel next door (3 + 4 as 3 + 3 and one more), through a tienvriend (6 + 4, 10 − 3) — come from the background text, not from the documents read.
+
+**The split bands are not a prerequisite, and need not be.** `huisje-som` puts the family's house beside the sum, so the split is read there, not recalled; the house then flashes, and from 70 it only confirms. The skill teaches these families through their sums while the bands teach them as splits.
+
+**So the exercises are those of `optellen-tot-5` / `aftrekken-wegnemen-5`, not of the ±1 / ±2 skills:**
+
+- `huisje-som` leads in both; `flits-som` shows the sum in the 5-structure for a moment.
+- No number line. Hopping three or four cells is the counting these skills leave behind.
+- `doosje` only for +, small and gone by 50 — the fallback the child still has. Not for −.
+- `omkeer-som` comes early in the − skill: the known sum is the fastest way to the difference.
+
+**Curves** (planned; in `weightMatrix.ts`, never played):
+
+| `+3-4-tot-10` | Weight | | `-3-4-tot-10` | Weight |
+|---|---|---|---|---|
+| `huisje-som` | 0: 35 · 60: 25 · 100: 10 | | `huisje-som` | 0: 35 · 60: 25 · 100: 10 |
+| `flits-som` | 0: 30 · 45: 15 · 70: 0 | | `flits-som` | 0: 28 · 45: 15 · 70: 0 |
+| `doosje` | 0: 10 · 50: 0 | | `omkeer-som` | 15: 0 · 40: 20 · 100: 12 |
+| `choice` | 0: 12 · 60: 6 · 100: 4 | | `wegnemen-crossed-out`, `choice` | 10 → 4 each |
+| `tf` | 30: 0 · 60: 12 | | `teken-kiezen` | 20: 0 · 40: 8 · 100: 5 |
+| `fill-plain` | 35: 0 · 65: 20 | | `tf` | 40: 0 · 65: 12 |
+| `rekenverhaal` | 60: 0 · 75: 10 | | `fill-plain` | 40: 0 · 70: 18 |
+| `snel-weten` | 60: 0 · 80: 25 · 100: 35 | | `rekenverhaal`, `snel-weten` | from 60 / 65 |
+
+**Seen when played at these numbers in a browser:** all listed exercises work. One fix was needed: `flits-som` drew 5 + 3 or 6 + 4 wider than a phone screen; its dots now shrink when both groups are wide.
+
+**Open:**
+1. **No exercise for the derived-fact routes.** Reading the sum from a house is one route. "3 + 4 is 3 + 3 and one more" and "6 + 4: that is 10" have no exercise of their own; `splits-buren` does the neighbour step for splits only. A sum-neighbour exercise ("3 + 3 = 6, dus 3 + 4 = ?") would be the natural addition — `omkeer-som`'s `buur` tier already does this for −.
+2. With the house always given at the entry, a child could lean on it without learning the families. The flash tier (30) and `snel-weten` are what should show that; whether they do is a question for play data.
 3. The pitfalls are reasoned, not sourced.
 
 ### Suggested order of building

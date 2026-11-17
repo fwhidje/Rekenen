@@ -222,6 +222,37 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'snel-weten':            [[65, 0], [85, 25], [100, 30]],
   },
 
+  // ── ±3 / ±4 tot 10 ───────────────────────────────────────────────────────────
+  // Too far to count: the sum comes from structure. huisje-som leads (the house
+  // is given, so the split need not be known yet), flits-som shows the sum in
+  // the 5-structure for a moment. No number line — hopping three or four cells
+  // is the counting these skills leave behind. doosje keeps a small, fading
+  // share for + as the fallback. PLANNED weights (Nov 2026): never played.
+
+  '+3-4-tot-10': {
+    'huisje-som':    [[0, 35], [60, 25], [100, 10]],
+    'flits-som':     [[0, 30], [45, 15], [70, 0]],
+    'doosje':        [[0, 10], [50, 0]],
+    'choice':        [[0, 12], [60, 6], [100, 4]],
+    'tf':            [[30, 0], [60, 12], [100, 12]],
+    'fill-plain':    [[35, 0], [65, 20], [100, 20]],
+    'rekenverhaal':  [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':    [[60, 0], [80, 25], [100, 35]],
+  },
+
+  '-3-4-tot-10': {
+    'huisje-som':            [[0, 35], [60, 25], [100, 10]],
+    'flits-som':             [[0, 28], [45, 15], [70, 0]],
+    'omkeer-som':            [[15, 0], [40, 20], [100, 12]],
+    'wegnemen-crossed-out':  [10, 4],
+    'teken-kiezen':          [[20, 0], [40, 8], [100, 5]],
+    'choice':                [10, 4],
+    'tf':                    [[40, 0], [65, 12], [100, 12]],
+    'fill-plain':            [[40, 0], [70, 18], [100, 18]],
+    'rekenverhaal':          [[60, 0], [75, 10], [100, 10]],
+    'snel-weten':            [[65, 0], [85, 25], [100, 30]],
+  },
+
   // ── Splitsen 6–9, tienvrienden ───────────────────────────────────────────────
   // One curve for both bands: the picture first (splits-beeld, in the
   // 5-structure), the notations from 10–30, the neighbour step (splits-buren)

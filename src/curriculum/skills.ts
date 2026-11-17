@@ -457,24 +457,37 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '+3-4-tot-10',
     name: '+3 / +4 tot 10',
-    intent: 'Add 3 or 4 within 10 — derived-fact reasoning (dubbels, near-dubbels) starts mattering.',
+    intent: 'Add 3 or 4 within 10 — too far to count on safely, so the sum comes from structure: the split, the five, a dubbel next door, or the sum turned around.',
+    // Didactics: sources in reference/flemish-curriculum/ (sums below 10 "op
+    // basis van splitsen", getalfamilies); the derived-fact routes and the
+    // pitfalls follow the background text and are not sourced beyond it.
+    // Skill map → "+3-4-tot-10 and -3-4-tot-10".
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with +1-2-tot-10: +1 and +2 are instant anywhere in the row to 10, a small-first sum is turned around, and the start number is never recounted. Knows the sums within 5 from the splits. Is meeting the splits of 6–9 in the bands that run alongside — they are not required first.',
+      goal: 'Any a + 3 or a + 4 with a sum up to 10 answered without counting on by ones: read from the split ("7 is 4 en 3"), seen through the five (4 + 3 fills the row and leaves 2), taken from a dubbel next door (3 + 4 is 3 + 3 and one more) or from a tienvriend (6 + 4, 7 + 3), and turned around when the small number comes first (3 + 6). Counting on stays possible, but is no longer what the child reaches for.',
+      pitfalls: [
+        'Counts on three or four steps — two counts to keep at once (the steps taken and the number reached), so the answer is one off or the count is lost. Right often enough to hide behind the score; only the time shows it.',
+        'One off around the five and around 10 — 4 + 3 → 6 or 8, 6 + 4 → 9: the structure that would give the answer at once (fill the five, the tienvriend) is not used.',
+        'Small-first sums counted the long way — 3 + 6 counted on from 3 is six steps; and 3 + 4 / 4 + 3 are treated as two different sums.',
+      ],
     },
     op: '+',
     unlockedBy: ['+1-2-tot-10'],
     unlocks: ['optellen-tot-10'],
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
-      EX.fillVis, EX.fillPlain, EX.choice, EX.tf,
-      EX.doosje, EX.numberlineJump, EX.rekenrekAdd,
+      EX.huisjeSom, EX.flitsSom, EX.doosje,
+      EX.choice, EX.tf, EX.fillPlain,
+      EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => {
-      const b = pickFrom([3, 4])
-      const a = rnd(1, 10 - b)
-      return { op: '+', terms: [a, b] }
+    generate: (ctx) => {
+      // 13 sums; the 3 with a sum within 5 keep a small refresh share.
+      // Post-60 a share arrives small-term-first (3 + 6): turn it around.
+      const fact = sampleFact(reweight(enumeratePlus(10, [3, 4]), f => (f.terms[0] + f.terms[1] <= 5 ? 0.6 : 1)))
+      if ((ctx?.score ?? 0) >= 60 && fact.terms[0] > fact.terms[1] && Math.random() < 0.3) {
+        return { op: '+', terms: [fact.terms[1], fact.terms[0]] }
+      }
+      return fact
     },
   },
 
@@ -701,11 +714,16 @@ export const SKILLS: SkillDefinition[] = [
   {
     id: '-3-4-tot-10',
     name: '−3 / −4 tot 10',
-    intent: 'Take away 3 or 4 within 10 — derived-fact reasoning starts mattering.',
+    intent: 'Take away 3 or 4 within 10 — counting back that far breaks, so the difference comes from the family: the split, the sum turned round, the five, a tienvriend.',
+    // Didactics: see the note on +3-4-tot-10.
     didactics: {
-      startingPoint: 'TODO',
-      goal: 'TODO',
-      pitfalls: [],
+      startingPoint: 'Secure with -1-2-tot-10: −1 and −2 are instant anywhere in the row to 10 and the backward row above 5 holds. Knows the differences within 5 from the getalfamilie and that + and − undo each other. Is meeting the splits of 6–9 in the bands that run alongside.',
+      goal: 'Any a − 3 or a − 4 with a up to 10 answered without counting back by ones: read from the split ("9 is 4 en 5, dus 9 − 4 = 5"), from the sum the child knows (5 + 4 = 9), through the five (7 − 3: two off to reach five, one more), or as a tienvriend (10 − 3, 10 − 4) or a halved dubbel (8 − 4, 6 − 3). Counting back three or four is the fallback, not the method.',
+      pitfalls: [
+        'Counts back three or four — the weakest counting there is: backwards, with a second count running. One off in either direction, or the whole said again for the first step.',
+        'Sum and difference not connected — knows 5 + 4 = 9 and still counts 9 − 4 back; the family is not used as a tool at this size.',
+        'Answers the number taken away, or the sum — when the count is lost the child falls back on a number that is on screen (9 − 4 → 4) or on the more familiar operation (→ 13, out of range, so it shows as a guess).',
+      ],
     },
     semanticForm: 'wegnemen',
     op: '-',
@@ -713,14 +731,13 @@ export const SKILLS: SkillDefinition[] = [
     unlocks: ['aftrekken-wegnemen-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
-      EX.wegnemenCrossedOut, EX.doosje,
-      EX.numberlineJumpBack, EX.fillPlain, EX.choice, EX.tf,
+      EX.huisjeSom, EX.flitsSom, EX.omkeerSom,
+      EX.wegnemenCrossedOut, EX.tekenKiezen,
+      EX.choice, EX.tf, EX.fillPlain,
+      EX.rekenverhaal, EX.snelWeten,
     ],
-    generate: () => {
-      const b = pickFrom([3, 4])
-      const a = rnd(b, 10)
-      return { op: '-', whole: a, part: b }
-    },
+    // 15 differences; the 5 with a whole within 5 keep a small refresh share.
+    generate: () => sampleFact(reweight(enumerateMinus(10, [3, 4]), f => (f.whole <= 5 ? 0.5 : 1))),
   },
 
   {

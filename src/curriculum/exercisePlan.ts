@@ -132,7 +132,18 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'and the generator serves small-first sums (1 + 8) to be turned around. About 30% of the ' +
     'draws refresh the sums within 5. To do before it opens: the tot-10 number line has ' +
     'cells of about 24 px on a phone — too small for the tap-the-landing tier.',
-  '+3-4-tot-10': TODO,
+  '+3-4-tot-10':
+    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Three or four is too far to count on safely, so this is the skill where the sum has to ' +
+    'come from structure. huisje-som leads (35 → 10): the house of the family stands beside ' +
+    'the sum, so "7 is 4 en 3" is read, not required — the split bands run alongside and are ' +
+    'not a prerequisite; its twee-sommen tier gives 3 + 4 and 4 + 3 from one house. flits-som ' +
+    '(30, gone by 70) shows the sum in the 5-structure for a moment: 4 + 3 is seen to fill the ' +
+    'row and leave two. doosje keeps a small share that is gone by 50 — counting on as the ' +
+    'fallback the child still has. No number line: hopping three or four cells is the counting ' +
+    'this skill leaves behind. choice throughout, tf and fill-plain from 30–35, post-60 ' +
+    'rekenverhaal and snel-weten; the generator then serves small-first sums (3 + 6). Not ' +
+    'covered by any exercise yet: deriving a sum from a dubbel next door or through 10.',
   'optellen-tot-10': TODO,
   'dubbels-tot-10': TODO,
   'helften-tot-10': TODO,
@@ -195,7 +206,16 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'from 35 tie the differences to sums and splits; choice, tf, fill-plain. Post-60: ' +
     'rekenverhaal and snel-weten. About 30% of the draws refresh the differences within 5. ' +
     'Same open point as the + skill: the tot-10 number line is too small to tap on a phone.',
-  '-3-4-tot-10': TODO,
+  '-3-4-tot-10':
+    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Counting back three or four is the weakest counting there is, so the difference comes ' +
+    'from the family. huisje-som leads (35 → 10): "9 is 4 en 5, dus 9 − 4 = 5", the house given. ' +
+    'omkeer-som comes early (from 15, 20 at 40): 5 + 4 = 9, dus 9 − 4 — the sum the child knows ' +
+    'answers the difference; its buur tier asks 9 − 3 after 9 − 4. flits-som shows the ' +
+    'crossed-out picture in the 5-structure for a moment; wegnemen-crossed-out keeps a small ' +
+    'share as the standing picture. teken-kiezen low, choice throughout, tf and fill-plain ' +
+    'from 40, post-60 rekenverhaal and snel-weten. No number line and no doosje: both are ' +
+    'counting back.',
   'aftrekken-wegnemen-10': TODO,
   'aftrekken-verschil-10': TODO,
   'getalfamilie-10': TODO,

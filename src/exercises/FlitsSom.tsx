@@ -46,12 +46,15 @@ interface FlitsSomMeta {
   tierId: string
 }
 
-const ITEM = 30
-const GAP = 6
+// Dot size by how wide the picture gets: two full 5-rows side by side (6 + 4)
+// must still fit a phone screen.
+function dotSize(cols: number): { item: number; gap: number } {
+  return cols <= 6 ? { item: 30, gap: 6 } : cols <= 8 ? { item: 24, gap: 5 } : { item: 20, gap: 4 }
+}
 
 // One group as a 5-row. A group of 0 is drawn as one empty place — "nothing
 // here" must be visible as a place where something could have been.
-function Group({ n, color, crossed = 0, ink }: { n: number; color: string; crossed?: number; ink: string }) {
+function Group({ n, color, crossed = 0, ink, item: ITEM, gap: GAP }: { n: number; color: string; crossed?: number; ink: string; item: number; gap: number }) {
   if (n === 0) {
     return (
       <FiveRow n={1} item={ITEM} gap={GAP} renderItem={() => (
@@ -70,7 +73,7 @@ function Group({ n, color, crossed = 0, ink }: { n: number; color: string; cross
           {isCrossed && (
             <span style={{
               position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Fredoka One, cursive', fontSize: 24, lineHeight: 1, color: ink,
+              fontFamily: 'Fredoka One, cursive', fontSize: Math.round(ITEM * 0.8), lineHeight: 1, color: ink,
             }}>✕</span>
           )}
         </div>
@@ -107,7 +110,9 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
   }
 
   // The picture's box is sized for the picture; the cover lies over it.
-  const rowH = fiveRowSize(Math.max(operandA, operandB, 1), ITEM, GAP).height
+  const cols = minus ? Math.min(operandA, 5) : Math.min(Math.max(operandA, 1), 5) + Math.min(Math.max(operandB, 1), 5)
+  const size = dotSize(cols)
+  const rowH = fiveRowSize(Math.max(operandA, operandB, 1), size.item, size.gap).height
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
@@ -127,12 +132,12 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
         {/* The picture, and the cover that lies over it most of the time */}
         <div style={{ position: 'relative', padding: '10px 14px', minHeight: rowH, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
           {minus ? (
-            <Group n={operandA} color={meta.colorA} crossed={operandB} ink={ink} />
+            <Group n={operandA} color={meta.colorA} crossed={operandB} ink={ink} {...size} />
           ) : (
             <>
-              <Group n={operandA} color={meta.colorA} ink={ink} />
+              <Group n={operandA} color={meta.colorA} ink={ink} {...size} />
               <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 26, color: glyphColor }}>{glyph}</span>
-              <Group n={operandB} color={meta.colorB} ink={ink} />
+              <Group n={operandB} color={meta.colorB} ink={ink} {...size} />
             </>
           )}
           <div aria-hidden style={{
