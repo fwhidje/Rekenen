@@ -92,7 +92,7 @@ function SplitsbenenComponent({ question, onResolve, disabled, scene }: Exercise
   const missingDisplay = solved ? String(missing) : meta.tierId === 'been-pad' ? (input || '?') : '?'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Vul de splitsing aan!</ExerciseTitle>
 
       <ExerciseStage tokens={tokens}>

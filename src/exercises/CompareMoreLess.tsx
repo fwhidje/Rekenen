@@ -4,7 +4,11 @@ import { pickTier } from './tiers'
 import type { CounterProps } from '../presentation/nature/Counters'
 import type { ComponentType } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { useEffect, useState } from 'react'
+import { ExerciseTitle, heldStyle } from '../presentation/components/ExerciseFrame'
+import { FiveRow } from '../presentation/components/FiveRow'
+import { useClosure } from '../presentation/useClosure'
+import type { ExerciseQuestion } from './types'
 
 const TIERS: ExerciseTier[] = [
   { id: 'twee',     minScore: 0,  label: 'twee groepen',  description: 'Two counter groups, "Welke is meer/minder?" — the comparative between two quantities, no numerals. Counter size and spacing vary per group so row length is not a valid cue.' },
@@ -29,21 +33,10 @@ const shuffle = <T,>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
 
 // ─── Counter group ────────────────────────────────────────────────────────────
 
+// A 5-row (convention Q). Size and gap vary per group on purpose: row length
+// must not give the answer away.
 function CounterGroup({ n, Counter, size, gap }: { n: number; Counter: ComponentType<CounterProps>; size: number; gap: number }) {
-  const row1 = Math.min(n, 5)
-  const row2 = n - row1
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap }}>
-        {Array.from({ length: row1 }, (_, i) => <Counter key={i} size={size} />)}
-      </div>
-      {row2 > 0 && (
-        <div style={{ display: 'flex', gap }}>
-          {Array.from({ length: row2 }, (_, i) => <Counter key={5 + i} size={size} />)}
-        </div>
-      )}
-    </div>
-  )
+  return <FiveRow n={n} item={size} gap={gap} renderItem={() => <Counter size={size} />} />
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -51,24 +44,32 @@ function CounterGroup({ n, Counter, size, gap }: { n: number; Counter: Component
 function CompareMoreLessComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<CompareMoreLessMeta>) {
   const { meta } = question
   const { values, askMost, sizes, gaps, style } = meta
-  const { ink, cream } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, cream } = tokens
   const Counter = scene?.Counter
 
   const winnerVal = askMost ? Math.max(...values) : Math.min(...values)
+  // Closure: the chosen group is held with the confirm frame.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
+  const locked = disabled || answered
 
   const prompt = values.length === 2
     ? (askMost ? 'Welke is meer?' : 'Welke is minder?')
     : (askMost ? 'Welke is meest?' : 'Welke is minst?')
 
-  const GroupPanel = ({ val, size, gap }: { val: number; size: number; gap: number }) => (
-    <div onClick={() => { if (!disabled) onResolve(val === winnerVal) }} style={{
+  const groupPanel = (val: number, size: number, gap: number, i: number) => (
+    <div key={i}
+      onClick={() => { if (!locked) { setPicked(val); resolve(val === winnerVal, { givenAnswer: val }) } }} style={{
       minHeight: style === 'getallen' ? 80 : values.length === 2 ? 104 : 88,
       background: cream, border: `2px solid ${ink}`, borderRadius: 18,
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', gap: 6, padding: '8px 10px',
-      cursor: disabled ? 'default' : 'pointer',
+      cursor: locked ? 'default' : 'pointer',
       boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-      userSelect: 'none',
+      userSelect: 'none', transition: 'box-shadow .15s, border-color .15s',
+      ...(solved && val === picked ? heldStyle(tokens) : {}),
     }}>
       {style === 'getallen' ? (
         <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 56, color: ink, lineHeight: 1 }}>
@@ -97,9 +98,7 @@ function CompareMoreLessComponent({ question, onResolve, disabled, scene }: Exer
         {prompt}
       </ExerciseTitle>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 380 }}>
-        {values.map((val, i) => (
-          <GroupPanel key={i} val={val} size={sizes[i]} gap={gaps[i]} />
-        ))}
+        {values.map((val, i) => groupPanel(val, sizes[i], gaps[i], i))}
       </div>
     </div>
   )
@@ -121,21 +120,41 @@ const CompareMoreLess: ExerciseDefinition<CompareMoreLessMeta> = {
     ],
     progression: 'twee (two groups, comparative, image only) → drie (three groups, superlative, image + numeral) → getallen (three bare numerals). Two ladders at once: comparative → superlative, and image → symbol.',
   },
-  generateMeta(operandA, _b, score) {
+  // Retry: the same direction (meer/meest or minder/minst) and the same groups
+  // — down from three groups to two, the winner stays in.
+  retryStable: ['askMost'],
+  correctStatement: (q: ExerciseQuestion<CompareMoreLessMeta>) => {
+    const { values, askMost } = q.meta
+    const win = askMost ? Math.max(...values) : Math.min(...values)
+    if (values.length === 2) {
+      const other = values.find(v => v !== win)
+      return `${win} is ${askMost ? 'meer' : 'minder'} dan ${other}`
+    }
+    return `${win} is het ${askMost ? 'meest' : 'minst'}`
+  },
+  generateMeta(operandA, _b, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
     const style = tier.id as Style
     const max = operandA <= 5 ? 5 : 10
     const groupCount = style === 'twee' ? 2 : 3
+    const prev = ctx?.retryOf
 
     const pool = shuffle(Array.from({ length: max }, (_, i) => i + 1).filter(n => n !== operandA))
-    const values = shuffle([operandA, ...pool.slice(0, groupCount - 1)])
+    let values = shuffle([operandA, ...pool.slice(0, groupCount - 1)])
+    if (prev) {
+      const win = prev.askMost ? Math.max(...prev.values) : Math.min(...prev.values)
+      values = prev.values.length === groupCount
+        ? prev.values
+        // three groups → two: keep the winner and one of the others, in their order
+        : prev.values.filter(v => v === win || v === prev.values.find(o => o !== win))
+    }
 
     // Per-group random size/gap so visual length is decoupled from count.
     const big = groupCount === 2
     const sizes = values.map(() => big ? rnd(32, 48) : rnd(26, 40))
     const gaps  = values.map(() => rnd(2, 12))
 
-    const askMost = Math.random() < 0.6
+    const askMost = prev?.askMost ?? Math.random() < 0.6
     const variant = groupCount === 2 ? (askMost ? 'meer' : 'minder') : (askMost ? 'meest' : 'minst')
     return { values, askMost, sizes, gaps, style, variant, tierId: tier.id }
   },

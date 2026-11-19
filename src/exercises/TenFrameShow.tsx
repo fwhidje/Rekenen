@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { FEEDBACK } from '../presentation/feedback'
+
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
@@ -52,13 +56,21 @@ function TenFrame({ n, ink, paper }: { n: number; ink: string; paper: string }) 
 
 function TenFrameShowComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<TenFrameShowMeta>) {
   const { operandA, answer, meta } = question
-  const { ink, paper } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper } = tokens
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <ExerciseTitle tokens={scene?.tokens}>Hoeveel?</ExerciseTitle>
-      <TenFrame n={operandA} ink={ink} paper={paper} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <ExerciseTitle tokens={tokens}>Hoeveel?</ExerciseTitle>
+      <ExerciseStage tokens={tokens}>
+        <TenFrame n={operandA} ink={ink} paper={paper} />
+      </ExerciseStage>
+      <ChoiceButtons options={meta.options}
+        onPick={v => { setPicked(v); resolve(v === answer, { givenAnswer: v }) }}
+        disabled={disabled || answered} picked={picked} solved={solved} tokens={tokens} />
     </div>
   )
 }
@@ -78,7 +90,12 @@ const TenFrameShow: ExerciseDefinition<TenFrameShowMeta> = {
     ],
     progression: 'Single tier; the ten-frame itself is the structural scaffold.',
   },
-  generateMeta(operandA) { return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' } },
+  // Retry: the same frame with the same four options.
+  retryStable: ['options'],
+  correctStatement: q => FEEDBACK.wrongMessage(q.answer),
+  generateMeta(operandA, _b, _score, _problem, ctx) {
+    return { options: ctx?.retryOf?.options ?? makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' }
+  },
   Component: TenFrameShowComponent,
 }
 

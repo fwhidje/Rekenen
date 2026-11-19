@@ -8,8 +8,16 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions } from './choiceOptions'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
+import { heldStyle } from '../presentation/components/ExerciseFrame'
+import { splitText } from './opDisplay'
 
-const CELL = 54   // cell size (px)
+const CELL = 48   // cell size (px) — 5 cells + the whole fit a 375px screen
+// A correct answer first plays reveal → merge (the parts become the whole);
+// the closure's own hold follows, so the merged frame is seen ~1.5 s in all.
+const MERGE_AT = 500
+const RESOLVE_AT = 700
 
 type Stage = 'die-keuze' | 'getal-keuze' | 'num-pad'
 type Phase = 'ask' | 'reveal' | 'merge'
@@ -128,7 +136,10 @@ function Frame({ knownVal, unknownVal, knownColour, unknownCol, mergeColour, ink
 function SplitsFrameComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsFrameMeta>) {
   const { operandA, operandB, meta } = question
   const { showA, stage, options } = meta
-  const { ink, paper, cream, accentText, confirm, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, cream, accentText, confirm, refuse, dot } = tokens
+  const { answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
 
   const total       = operandA + operandB
   const knownVal    = showA ? operandA : operandB
@@ -142,21 +153,25 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
   useEffect(() => {
     setPhase('ask')
     setInput('')
-  }, [operandA, operandB, showA, stage])
+    setPicked(null)
+  }, [question])
 
+  // Closure: the reveal-and-merge IS the completed state; it plays, then the
+  // shared closure holds it before the overlay.
   const answer = (given: number) => {
-    if (disabled || phase !== 'ask') return
+    if (disabled || answered || phase !== 'ask') return
+    setPicked(given)
     if (given === unknownVal) {
       setPhase('reveal')
-      setTimeout(() => setPhase('merge'), 500)
-      setTimeout(() => onResolve(true, { givenAnswer: given }), 1500)
+      setTimeout(() => setPhase('merge'), MERGE_AT)
+      setTimeout(() => resolve(true, { givenAnswer: given }), RESOLVE_AT)
     } else {
-      onResolve(false, { givenAnswer: given })
+      resolve(false, { givenAnswer: given })
     }
   }
 
   const handleKey = (key: string) => {
-    if (disabled || phase !== 'ask') return
+    if (disabled || answered || phase !== 'ask') return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
     if (key === '✓') { if (input) answer(parseInt(input, 10)); return }
     if (input.length < 2) setInput(v => v + key)
@@ -177,7 +192,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
       <ExerciseTitle tokens={scene?.tokens}>{prompt}</ExerciseTitle>
 
       {/* Puzzle stage */}
-      <ExerciseStage tokens={scene?.tokens}>
+      <ExerciseStage tokens={scene?.tokens} style={{ padding: '18px 14px' }}>
         {stage === 'die-keuze' && (
           <SplitDie total={total} splitAt={operandA} colourA={refuse} colourB={dot}
             ink={ink} paper={paper} size={90} />
@@ -203,15 +218,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
         </div>
 
         {stage === 'num-pad' && (
-          <div style={{
-            width: 70, height: 52,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? unknownCol : `${unknownCol}33`,
-            color: input ? 'white' : unknownCol,
-            borderRadius: 12, border: `2px solid ${ink}`,
-            fontFamily: 'Fredoka One, cursive', fontSize: 32,
-            transition: 'background .18s',
-          }}>{input || '?'}</div>
+          <AnswerSlot value={solved ? unknownVal : input} solved={solved} size={52} tokens={tokens} />
         )}
       </ExerciseStage>
 
@@ -224,7 +231,8 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
               padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: disabled || solved ? 'default' : 'pointer',
               boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-              opacity: disabled && !solved ? 0.45 : 1, userSelect: 'none',
+              opacity: disabled && !solved ? 0.45 : 1, userSelect: 'none', transition: 'box-shadow .15s',
+              ...(solved && v === picked ? heldStyle(tokens) : {}),
             }}>
               <DieDots count={v} colours={Array(v).fill(unknownCol)} size={56} />
             </div>
@@ -232,7 +240,7 @@ function SplitsFrameComponent({ question, onResolve, disabled, scene }: Exercise
         </div>
       )}
       {stage === 'getal-keuze' && (
-        <ChoiceButtons options={options} onPick={answer} disabled={disabled || solved} tokens={scene?.tokens} />
+        <ChoiceButtons options={options} onPick={answer} disabled={disabled || solved || answered} picked={picked} solved={solved} tokens={tokens} />
       )}
       {stage === 'num-pad' && (
         <NumPad onKey={handleKey} disabled={disabled || solved} tokens={scene?.tokens} />
@@ -258,15 +266,23 @@ const SplitsFrame: ExerciseDefinition<SplitsFrameMeta> = {
     progression: 'die-keuze (split die + dot-tile options — perceptual matching, but a real decision) → getal-keuze (split statement + numeral choice — the part must be derived) → num-pad (typed, no choice scaffold). The merge animation plays at every tier: composition stays visible while the scaffolds fade.',
   },
   isCompatible: (a, b) => a > 0 && b > 0,
-  generateMeta(a, b, score) {
+  // Retry: the same part is given and the same options are offered.
+  retryStable: ['showA', 'options'],
+  // The split statement, completed: "5 is 2 en 3" (the given part first).
+  correctStatement: q => {
+    const total = q.operandA + q.operandB
+    return q.meta.showA ? splitText(total, q.operandA, q.operandB) : splitText(total, q.operandB, q.operandA)
+  },
+  generateMeta(a, b, score, _problem, ctx) {
     const stage = pickTier(TIERS, score).id as Stage
-    const showA = Math.random() < 0.5
+    const prev = ctx?.retryOf
+    const showA = prev?.showA ?? Math.random() < 0.5
     const unknown = showA ? b : a
     return {
       showA,
       stage,
       // Parts in tot-5 run 1..4 — keep distractors in that range.
-      options: makeNumeralOptions(unknown, 4),
+      options: prev?.options ?? makeNumeralOptions(unknown, 4),
       tierId: stage,
     }
   },

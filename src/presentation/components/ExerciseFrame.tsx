@@ -81,6 +81,13 @@ export function Reserve({ show, children, style }: { show: boolean; children: Re
   )
 }
 
+// The held look of a chosen card / tile / cell during the closure (convention
+// C): the confirm colour as a thick frame. One look for every exercise whose
+// options are cards rather than ChoiceButtons.
+export function heldStyle(tokens: SceneTokens = NATURE_TOKENS): CSSProperties {
+  return { borderColor: tokens.confirm, boxShadow: `0 0 0 3px ${tokens.confirm}`, opacity: 1 }
+}
+
 interface FrameProps {
   title: ReactNode
   children: ReactNode

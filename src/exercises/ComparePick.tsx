@@ -5,7 +5,10 @@ import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import type { CounterProps } from '../presentation/nature/Counters'
 import type { ComponentType } from 'react'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { useEffect, useState } from 'react'
+import { ExerciseTitle, ExerciseStage, heldStyle } from '../presentation/components/ExerciseFrame'
+import { FiveRow } from '../presentation/components/FiveRow'
+import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'beeld', minScore: 0,  label: 'met beeld',   description: 'Anchor shown as numeral + counter group; the four options are counter groups (sizes vary so length is no cue). The relation is judged on visible quantities.' },
@@ -34,21 +37,10 @@ const satisfies = (relation: Relation, b: number, a: number): boolean =>
 
 // ─── Counter group (rows of 5) ───────────────────────────────────────────────
 
+// A 5-row (convention Q). Size and gap vary per group on purpose: row length
+// must not give the answer away.
 function CounterGroup({ n, Counter, size, gap }: { n: number; Counter: ComponentType<CounterProps>; size: number; gap: number }) {
-  const row1 = Math.min(n, 5)
-  const row2 = n - row1
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap }}>
-        {Array.from({ length: row1 }, (_, i) => <Counter key={i} size={size} />)}
-      </div>
-      {row2 > 0 && (
-        <div style={{ display: 'flex', gap }}>
-          {Array.from({ length: row2 }, (_, i) => <Counter key={5 + i} size={size} />)}
-        </div>
-      )}
-    </div>
-  )
+  return <FiveRow n={n} item={size} gap={gap} renderItem={() => <Counter size={size} />} />
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -56,12 +48,20 @@ function CounterGroup({ n, Counter, size, gap }: { n: number; Counter: Component
 function ComparePickComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<ComparePickMeta>) {
   const { operandA, meta } = question
   const { relation, correctB, options, optionSizes, optionGaps, style } = meta
-  const { ink, paper, cream, accentText } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, cream, accentText } = tokens
   const Counter = scene?.Counter
 
+  // Closure: the chosen option is held (confirm frame / confirm button).
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
+  const locked = disabled || answered
+
   const pick = (v: number) => {
-    if (disabled) return
-    onResolve(v === correctB, { givenAnswer: v })
+    if (locked) return
+    setPicked(v)
+    resolve(v === correctB, { givenAnswer: v })
   }
 
   const relationWord = relation === 'evenveel' ? 'Evenveel als' : relation === 'meer' ? 'Meer dan' : 'Minder dan'
@@ -72,23 +72,19 @@ function ComparePickComponent({ question, onResolve, disabled, scene }: Exercise
         <span style={{ color: accentText }}>{relationWord}</span> {operandA}
       </ExerciseTitle>
 
-      {/* Anchor */}
-      <div style={{
-        background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-        padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 14,
-        boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-      }}>
+      {/* Anchor — on the exercise stage */}
+      <ExerciseStage tokens={tokens} style={{ flexDirection: 'row', gap: 14, padding: '12px 20px' }}>
         <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: ink, lineHeight: 1 }}>
           {operandA}
         </div>
         {style === 'beeld' && Counter && (
           <CounterGroup n={operandA} Counter={Counter} size={30} gap={5} />
         )}
-      </div>
+      </ExerciseStage>
 
       {/* Options */}
       {style === 'getal' || !Counter ? (
-        <ChoiceButtons options={options} onPick={pick} disabled={disabled} tokens={scene?.tokens} />
+        <ChoiceButtons options={options} onPick={pick} disabled={locked} picked={picked} solved={solved} tokens={tokens} />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%', maxWidth: 380 }}>
           {options.map((val, i) => (
@@ -97,9 +93,10 @@ function ComparePickComponent({ question, onResolve, disabled, scene }: Exercise
               background: cream, border: `2px solid ${ink}`, borderRadius: 16,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: '8px 6px',
-              cursor: disabled ? 'default' : 'pointer',
+              cursor: locked ? 'default' : 'pointer',
               boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-              opacity: disabled ? 0.45 : 1, userSelect: 'none',
+              opacity: locked ? 0.45 : 1, userSelect: 'none', transition: 'box-shadow .15s, border-color .15s',
+              ...(solved && val === picked ? heldStyle(tokens) : {}),
             }}>
               <CounterGroup n={val} Counter={Counter} size={optionSizes[i]} gap={optionGaps[i]} />
             </div>
@@ -126,9 +123,23 @@ const ComparePick: ExerciseDefinition<ComparePickMeta> = {
     ],
     progression: 'beeld (anchor and options as visible quantities) → getal (bare numerals). The relation vocabulary stays constant; the representation abstracts.',
   },
-  generateMeta(operandA, _b, score) {
+  // Retry: the same relation, the same answer, the same options — now as
+  // pictures (getal → beeld).
+  retryStable: ['relation', 'correctB', 'options', 'variant'],
+  correctStatement: q => `${q.meta.correctB} is ${q.meta.relation === 'evenveel' ? 'evenveel als' : q.meta.relation === 'meer' ? 'meer dan' : 'minder dan'} ${q.operandA}`,
+  generateMeta(operandA, _b, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
     const max = operandA <= 5 ? 5 : 10
+    const prev = ctx?.retryOf
+    if (prev) {
+      return {
+        ...prev,
+        optionSizes: prev.optionSizes ?? prev.options.map(() => rnd(16, 24)),
+        optionGaps: prev.optionGaps ?? prev.options.map(() => rnd(2, 7)),
+        style: tier.id as Style,
+        tierId: tier.id,
+      }
+    }
 
     // A relation is offered only when a correct B exists AND three violating
     // distractors exist within range — "exactly one satisfying option" must hold.
@@ -151,8 +162,10 @@ const ComparePick: ExerciseDefinition<ComparePickMeta> = {
       relation,
       correctB,
       options,
-      optionSizes: options.map(() => rnd(24, 38)),
-      optionGaps: options.map(() => rnd(2, 10)),
+      // A 5-row does not shrink, so a full row must fit half a phone width
+      // (≤ 150px): sizes 16–24, gaps 2–7. Still varied per card — length is no cue.
+      optionSizes: options.map(() => rnd(16, 24)),
+      optionGaps: options.map(() => rnd(2, 7)),
       style: tier.id as Style,
       variant: relation,
       tierId: tier.id,

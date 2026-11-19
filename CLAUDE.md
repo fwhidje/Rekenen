@@ -345,7 +345,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
 | `src/presentation/useFlash.ts` | Hook for an aid shown for a set time and then covered in place (`showing`, `seen`, `replay`, `replays`; `hold` keeps it visible on a retry) |
 | `src/presentation/components/FiveRow.tsx` | The 5-row: the layout for any quantity that changes (convention Q); DotGroup and SceneGroup are built on it |
-| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later, and `ExerciseTitle`'s `warning`, a notice drawn on the band without resizing it), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later, `heldStyle`, the held look of a chosen card during the closure, and `ExerciseTitle`'s `warning`, a notice drawn on the band without resizing it), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/deviceSettings.ts` | Per-device preferences (not per profile, never synced) — today only the ⚑ review-flag button toggle |
@@ -367,7 +367,7 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/admin/skillTreeLayout.ts` | Derived tree layout (row = longest prereq chain, order = parent barycenter then track) — never hand-placed |
 | `src/presentation/components/Equation.tsx` | "x ± y = res" with one place open (`hole`: x / y / res / sign) and a `shown` step for reveals; `eqText` for the wrong-answer overlay — the sum of the family exercises |
 | `src/presentation/components/Huisje.tsx` | The splitshuisje as a shared component (roof + two rooms as strings; `activeCell`, unsplit `dieAid`, `lit` places, `good` answer place) — used by `splitshuisje` and `huisje-som` |
-| `src/ui/components/` | NumPad (`compact` for tall stages), ChoiceButtons, TFButtons (`picked` stays lit during the closure), **NumberStrip** (one tap on a number at a fixed place: 0, then 1–5, for tot 10 a second row 6–10; no confirm, no option set — the input of the "know it" exercises) |
+| `src/ui/components/` | NumPad (`compact` for tall stages), ChoiceButtons and TFButtons (`picked` — with `solved` for ChoiceButtons — keeps the chosen answer lit during the closure), KlaarButton (the shared "✓ Klaar" of the build-it-yourself exercises), **NumberStrip** (one tap on a number at a fixed place: 0, then 1–5, for tot 10 a second row 6–10; no confirm, no option set — the input of the "know it" exercises) |
 
 ## Unified exercise shell (locked)
 
@@ -427,7 +427,7 @@ Five rules every exercise follows, so the child meets the same behaviour everywh
 
 **Warnings that are not errors.** A repeated split (`splits-vrij` nog-een, twee-huisjes) and a duplicate left number (`splits-alle`) are refused with a notice on the title band (`<ExerciseTitle warning=…>`) and another try. They are never counted wrong and never resolve the question.
 
-**Audit status.** The exercises of `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` follow W / R / C / L / Q (Nov 2026; L measured in a browser at both sizes). The others — the getalbegrip and splitsen-herken exercises — predate the conventions and are **not yet checked**: they are listed in `PENDING_AUDIT` in `conventions.test.ts`, which is the to-do list (code is authoritative; no copy here). **A later run must go through that list**: bring each exercise in line, declare `retryStable` + `correctStatement`, route answers through `useClosure`, draw quantities per Q, verify L in a browser, remove its id from the list. Until then they only get the safe default of W. A new exercise never goes on the list.
+**Audit status.** Every registered exercise follows W / R / C / L / Q: the `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` exercises since the first round, the getalbegrip and splitsen-herken exercises since a second round (Nov 2026; L measured in a browser at both sizes). `PENDING_AUDIT` in `conventions.test.ts` is empty and stays empty: a new exercise is built to the conventions from the start.
 
 ## Adding a new exercise type
 

@@ -3,7 +3,10 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { useEffect, useState } from 'react'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import type { ExerciseQuestion } from './types'
 import type { SceneTokens } from '../presentation/tokens'
 import { DOT_POS } from '../presentation/diePatterns'
 
@@ -155,38 +158,37 @@ function SameSplitOrDifferentComponent({ question, onResolve, disabled, scene }:
   const { operandA, operandB, meta } = question
   const { isSame, leftRep, rightRep, rightSplit } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
-  const { ink, paper } = tokens
+  const { ink } = tokens
 
   const correctValue = isSame ? 1 : 0
+  // Closure: the chosen judgement stays lit before the overlay.
+  const { answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
+
+  // Both splits on one stage, side by side; each picture carries its own
+  // frame (die face, house), so the groups around them stay transparent.
+  const slot: React.CSSProperties = { minWidth: 104, minHeight: 104, display: 'flex', alignItems: 'center', justifyContent: 'center' }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22, width: '100%' }}>
-      <ExerciseTitle tokens={scene?.tokens}>Zelfde splitsing?</ExerciseTitle>
+      <ExerciseTitle tokens={tokens}>Zelfde splitsing?</ExerciseTitle>
 
-      <div style={{ display: 'flex', gap: 28, justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{
-          background: paper, border: `2px solid ${ink}`, borderRadius: 16,
-          padding: 14, minWidth: 120, minHeight: 120,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        }}>
+      <ExerciseStage tokens={tokens} style={{ flexDirection: 'row', gap: 18, padding: '16px 18px' }}>
+        <div style={slot}>
           <SplitView kind={leftRep} a={operandA} b={operandB} size={100} tokens={tokens} />
         </div>
         <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 28, color: ink, opacity: 0.5 }}>?</span>
-        <div style={{
-          background: paper, border: `2px solid ${ink}`, borderRadius: 16,
-          padding: 14, minWidth: 120, minHeight: 120,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-        }}>
+        <div style={slot}>
           <SplitView kind={rightRep} a={rightSplit[0]} b={rightSplit[1]} size={100} tokens={tokens} />
         </div>
-      </div>
+      </ExerciseStage>
 
       <TFButtons
-        onPick={v => onResolve(v === correctValue)}
-        disabled={disabled}
-        tokens={scene?.tokens}
+        onPick={v => { if (!answered) { setPicked(v); resolve(v === correctValue) } }}
+        disabled={disabled || answered}
+        picked={picked}
+        tokens={tokens}
       />
     </div>
   )
@@ -206,8 +208,21 @@ const SameSplitOrDifferent: ExerciseDefinition<SameSplitOrDifferentMeta> = {
     ],
     progression: 'aligned (same representation, equivalence visible from visual similarity) → cross-rep (different representations, equivalence has to be derived through abstraction). Surface similarity falls away as score rises.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same two splits; one tier down both are drawn in the left one's style.
+  retryStable: ['isSame', 'rightSplit', 'leftRep'],
+  correctStatement: (q: ExerciseQuestion<SameSplitOrDifferentMeta>) => {
+    const [c, d] = q.meta.rightSplit
+    return `${q.operandA} en ${q.operandB} is ${q.meta.isSame ? '' : 'niet '}hetzelfde als ${c} en ${d}`
+  },
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tierId = pickTier(TIERS, score).id
+    const prev = ctx?.retryOf
+    if (prev) {
+      return {
+        tierId, isSame: prev.isSame, rightSplit: prev.rightSplit, leftRep: prev.leftRep,
+        rightRep: tierId === 'aligned' ? prev.leftRep : prev.rightRep,
+      }
+    }
     const isSame = Math.random() < 0.5
     let rightSplit: [number, number]
     if (isSame) {

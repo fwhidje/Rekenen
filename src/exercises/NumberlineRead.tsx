@@ -7,6 +7,9 @@ import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { makeNumeralOptions } from './choiceOptions'
+import { useClosure } from '../presentation/useClosure'
+import { AnswerSlot } from '../presentation/components/AnswerSlot'
+import { FEEDBACK } from '../presentation/feedback'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choice', minScore: 0,  label: 'kiezen',   description: 'Number line with one cell highlighted; kid picks the numeral from a strip of 4 options.' },
@@ -22,15 +25,16 @@ interface NumberlineReadMeta {
 
 // ─── Read-only number line with a highlighted cell ──────────────────────────
 
-function NumberLineStrip({ target, max, ink, paper, accent }: {
+function NumberLineStrip({ target, max, ink, paper, accent, solvedColour }: {
   target: number; max: number; ink: string; paper: string; accent: string
+  solvedColour: string | null   // closure: the target cell shows its number in this colour
 }) {
   const numbers = Array.from({ length: max + 1 }, (_, i) => i)
   const cellW = Math.max(26, Math.min(42, Math.floor(300 / (max + 1))))
 
   // Sparse anchor labels; the highlighted target is never labelled.
   const labelFor = (n: number) => {
-    if (n === target) return ''
+    if (n === target) return solvedColour ? String(n) : ''
     if (n === 0 || n === max || n % 5 === 0) return String(n)
     return ''
   }
@@ -50,18 +54,19 @@ function NumberLineStrip({ target, max, ink, paper, accent }: {
           <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{
               height: 26, fontSize: 22, color: accent, lineHeight: 1,
-              animation: isTarget ? 'nlr-bounce 0.9s ease-in-out infinite' : undefined,
+              animation: isTarget && !solvedColour ? 'nlr-bounce 0.9s ease-in-out infinite' : undefined,
             }}>{isTarget ? '▼' : ''}</div>
             <div style={{
-              animation: isTarget ? 'nlr-pulse 1.4s ease-in-out infinite' : undefined,
+              animation: isTarget && !solvedColour ? 'nlr-pulse 1.4s ease-in-out infinite' : undefined,
               width: cellW, height: cellW,
-              background: isTarget ? accent : paper,
+              background: isTarget ? (solvedColour ?? accent) : paper,
+              color: isTarget && solvedColour ? 'white' : ink,
               borderTop:    `2px solid ${ink}`, borderBottom: `2px solid ${ink}`,
               borderLeft:   `2px solid ${ink}`,
               borderRight:  isLast ? `2px solid ${ink}` : 'none',
               borderRadius: isFirst ? '10px 0 0 10px' : isLast ? '0 10px 10px 0' : 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Fredoka One, cursive', fontSize: Math.floor(cellW * 0.42), color: ink,
+              fontFamily: 'Fredoka One, cursive', fontSize: Math.floor(cellW * 0.42),
               boxSizing: 'border-box', userSelect: 'none',
             }}>{labelFor(n)}</div>
           </div>
@@ -80,12 +85,15 @@ function NumberlineReadComponent({ question, onResolve, disabled, scene }: Exerc
   const { ink, paper, accent, confirm } = tokens
 
   const [input, setInput] = useState('')
-  useEffect(() => { setInput('') }, [operandA, tierId])
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setInput(''); setPicked(null) }, [question])
+  // Closure: the marked cell shows its number; the answer is held.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
   const handleKey = (key: string) => {
-    if (disabled) return
+    if (disabled || answered) return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
-    if (key === '✓') { if (input) { const g = parseInt(input, 10); onResolve(g === operandA, { givenAnswer: g }) } return }
+    if (key === '✓') { if (input) { const g = parseInt(input, 10); resolve(g === operandA, { givenAnswer: g }) } return }
     if (input.length < 2) setInput(v => v + key)
   }
 
@@ -93,23 +101,18 @@ function NumberlineReadComponent({ question, onResolve, disabled, scene }: Exerc
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Welk getal staat hier?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ maxWidth: '100%', overflowX: 'auto' }}>
-        <NumberLineStrip target={operandA} max={max} ink={ink} paper={paper} accent={accent} />
+      <ExerciseStage tokens={tokens} style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
+        <NumberLineStrip target={operandA} max={max} ink={ink} paper={paper} accent={accent} solvedColour={solved ? confirm : null} />
+        {/* typed tier: the answer slot sits on the stage, under the line */}
+        {tierId !== 'choice' && <AnswerSlot value={solved ? operandA : input} solved={solved} size={52} tokens={tokens} />}
       </ExerciseStage>
 
       {tierId === 'choice' ? (
-        <ChoiceButtons options={options} onPick={v => onResolve(v === operandA, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
+        <ChoiceButtons options={options}
+          onPick={v => { setPicked(v); resolve(v === operandA, { givenAnswer: v }) }}
+          disabled={disabled || answered} picked={picked} solved={solved} tokens={tokens} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
-          <div style={{
-            minWidth: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: input ? confirm : accent, color: 'white',
-            borderRadius: 12, border: `2px solid ${ink}`,
-            fontFamily: 'Fredoka One, cursive', fontSize: 34,
-            boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)', transition: 'background .18s',
-          }}>{input || '?'}</div>
-          <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-        </div>
+        <NumPad onKey={handleKey} disabled={disabled || answered} tokens={tokens} />
       )}
     </div>
   )
@@ -129,9 +132,12 @@ const NumberlineRead: ExerciseDefinition<NumberlineReadMeta> = {
     ],
     progression: 'choice (constrained answer set) → typed (full numpad, free production). The standard choice → production scaffolding fade.',
   },
-  generateMeta(operandA, _b, score) {
+  // Retry: the same line and the same options, now to choose from.
+  retryStable: ['max', 'options'],
+  correctStatement: q => FEEDBACK.wrongMessage(q.answer),
+  generateMeta(operandA, _b, score, _problem, ctx) {
     const max = operandA <= 5 ? 5 : 10
-    return { max, options: makeNumeralOptions(operandA, max, 0), tierId: pickTier(TIERS, score).id }
+    return { max, options: ctx?.retryOf?.options ?? makeNumeralOptions(operandA, max, 0), tierId: pickTier(TIERS, score).id }
   },
   Component: NumberlineReadComponent,
 }

@@ -4,7 +4,7 @@ import { pickTier } from './tiers'
 import type { Problem } from '../curriculum/types'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { SplitView, type SplitRepKind } from './SameSplitOrDifferent'
-import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, heldStyle } from '../presentation/components/ExerciseFrame'
 import { useEffect, useState } from 'react'
 import { opGlyph, opColor, equationText } from './opDisplay'
 import { useClosure } from '../presentation/useClosure'
@@ -103,7 +103,7 @@ function SplitsSomMatchComponent({ question, onResolve, disabled, scene }: Exerc
   const optionStyle = (i: number): React.CSSProperties => ({
     ...tileStyle,
     cursor: disabled || answered ? 'default' : 'pointer',
-    ...(solved && picked === i ? { borderColor: tokens.confirm, boxShadow: `0 0 0 3px ${tokens.confirm}` } : {}),
+    ...(solved && picked === i ? heldStyle(tokens) : {}),
   })
 
   const prompt = meta.tierId === 'omgekeerd' ? 'Welke splitsing hoort erbij?' : 'Welke som hoort erbij?'

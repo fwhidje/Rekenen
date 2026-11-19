@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { FEEDBACK } from '../presentation/feedback'
+
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
@@ -36,6 +40,7 @@ function DieSquare({ n, color, size }: { n: number; color: string; size: number 
   )
 }
 
+// The pattern sits on the exercise stage; a 1–5 pattern keeps its own die face.
 function DotPattern({ n, ink, paper, dot, refuse }: { n: number; ink: string; paper: string; dot: string; refuse: string }) {
   if (n <= 5) {
     return (
@@ -64,13 +69,21 @@ function DotPattern({ n, ink, paper, dot, refuse }: { n: number; ink: string; pa
 
 function DotPatternRecogniseComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DotPatternRecogniseMeta>) {
   const { operandA, answer, meta } = question
-  const { ink, paper, dot, refuse } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, dot, refuse } = tokens
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  useEffect(() => { setPicked(null) }, [question])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <ExerciseTitle tokens={scene?.tokens}>Hoeveel?</ExerciseTitle>
-      <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
-      <ChoiceButtons options={meta.options} onPick={v => onResolve(v === answer, { givenAnswer: v })} disabled={disabled} tokens={scene?.tokens} />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <ExerciseTitle tokens={tokens}>Hoeveel?</ExerciseTitle>
+      <ExerciseStage tokens={tokens}>
+        <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
+      </ExerciseStage>
+      <ChoiceButtons options={meta.options}
+        onPick={v => { setPicked(v); resolve(v === answer, { givenAnswer: v }) }}
+        disabled={disabled || answered} picked={picked} solved={solved} tokens={tokens} />
     </div>
   )
 }
@@ -90,7 +103,12 @@ const DotPatternRecognise: ExerciseDefinition<DotPatternRecogniseMeta> = {
     ],
     progression: 'Single tier; difficulty scales with the quantity, leaning on the 5-structure for 6–10.',
   },
-  generateMeta(operandA) { return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' } },
+  // Retry: the same pattern with the same four options.
+  retryStable: ['options'],
+  correctStatement: q => FEEDBACK.wrongMessage(q.answer),
+  generateMeta(operandA, _b, _score, _problem, ctx) {
+    return { options: ctx?.retryOf?.options ?? makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: 'recognise' }
+  },
   Component: DotPatternRecogniseComponent,
 }
 
