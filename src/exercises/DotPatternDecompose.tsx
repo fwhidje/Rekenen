@@ -5,6 +5,10 @@ import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
+import { useClosure } from '../presentation/useClosure'
+import { heldStyle } from '../presentation/components/ExerciseFrame'
+import { splitText } from './opDisplay'
+import type { SceneTokens } from '../presentation/tokens'
 
 
 const SLOT = 62
@@ -118,23 +122,27 @@ function NumSlot({ value, colour, ink, paper }: {
   )
 }
 
-function QuestionSlot({ colour, paper }: { colour: string; paper: string }) {
+// The "?" slot; once solved it holds the answer in the confirm colour (closure).
+function QuestionSlot({ colour, paper, solvedValue, confirm }: { colour: string; paper: string; solvedValue: number | null; confirm: string }) {
+  const solved = solvedValue !== null
   return (
     <div style={{
-      width: SLOT, height: SLOT, flexShrink: 0,
-      background: paper, border: `2px dashed ${colour}`, borderRadius: 10,
+      width: SLOT, height: SLOT, flexShrink: 0, boxSizing: 'border-box',
+      background: solved ? confirm : paper, border: `2px ${solved ? 'solid' : 'dashed'} ${solved ? confirm : colour}`, borderRadius: 10,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Fredoka One, cursive', fontSize: 28, color: colour,
-    }}>?</div>
+      fontFamily: 'Fredoka One, cursive', fontSize: 28, color: solved ? 'white' : colour,
+      transition: 'background .15s',
+    }}>{solved ? solvedValue : '?'}</div>
   )
 }
 
 // ─── Choice button ───────────────────────────────────────────────────────────
 
-function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick, disabled }: {
+function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick, disabled, held, tokens }: {
   value: number; colour: string; ink: string; paper: string
   showDie: boolean; showNumber: boolean
   onClick: () => void; disabled: boolean
+  held: boolean; tokens: SceneTokens
 }) {
   const dieSize = showNumber ? 46 : 50
   return (
@@ -149,7 +157,8 @@ function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
         cursor: disabled ? 'default' : 'pointer',
         boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-        opacity: disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
+        opacity: disabled ? 0.45 : 1, transition: 'transform .1s, box-shadow .15s', userSelect: 'none',
+        ...(held ? heldStyle(tokens) : {}),
       }}>
       {showDie    && <PartDie n={value} colour={colour} ink={ink} paper={paper} size={dieSize} />}
       {showNumber && <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 24, color: ink, lineHeight: 1 }}>{value}</span>}
@@ -162,7 +171,11 @@ function ChoiceButton({ value, colour, ink, paper, showDie, showNumber, onClick,
 function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DotPatternDecomposeMeta>) {
   const { operandA, operandB, meta } = question
   const { showA, options, stage } = meta
-  const { ink, paper, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, refuse, dot, confirm } = tokens
+  // Closure: the "?" fills with the answer and the chosen option is held.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
 
   const total       = operandA + operandB
   const colourA     = refuse
@@ -187,6 +200,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   const [step, setStep] = useState(0)
   useEffect(() => {
     setStep(0)
+    setPicked(null)
     const timers: ReturnType<typeof setTimeout>[] = []
     timers.push(setTimeout(() => setStep(1), 900))
     timers.push(setTimeout(() => setStep(2), 2000))
@@ -194,7 +208,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
       timers.push(setTimeout(() => setStep(3 + i), 3100 + i * 220))
     })
     return () => timers.forEach(clearTimeout)
-  }, [operandA, operandB, showA, stage, options])
+  }, [question, options])
 
   const showGiven     = step >= 1
   const showQ         = step >= 2
@@ -257,7 +271,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
             }
           </div>
           <div style={{ opacity: showQ ? 1 : 0, transition: 'opacity 0.3s' }}>
-            <QuestionSlot colour={unknownCol} paper={paper} />
+            <QuestionSlot colour={unknownCol} paper={paper} solvedValue={solved ? unknownVal : null} confirm={confirm} />
           </div>
         </div>
       </ExerciseStage>
@@ -274,8 +288,9 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
               value={opt} colour={unknownCol}
               ink={ink} paper={paper}
               showDie={showChoiceDie} showNumber={showChoiceNum}
-              onClick={() => onResolve(opt === unknownVal, { givenAnswer: opt })}
-              disabled={disabled || !fullyRevealed}
+              onClick={() => { setPicked(opt); resolve(opt === unknownVal, { givenAnswer: opt }) }}
+              disabled={disabled || answered || !fullyRevealed}
+              held={solved && opt === picked} tokens={tokens}
             />
           </div>
         ))}
@@ -306,14 +321,22 @@ const DotPatternDecompose: ExerciseDefinition<DotPatternDecomposeMeta> = {
     ],
     progression: 'die-die (both sides as dots — fully perceptual) → die-numchoice (dots for total, numeral for answer — first symbol enters) → num-num (given part as numeral, total still as dots — half-symbolic) → all-num (everything symbolic, dots gone). The visual fades out of the question as score rises.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same part is given and the same options are offered.
+  retryStable: ['showA', 'options'],
+  // The title's statement, completed: "5 is 2 en 3" (the given part first).
+  correctStatement: q => {
+    const total = q.operandA + q.operandB
+    return q.meta.showA ? splitText(total, q.operandA, q.operandB) : splitText(total, q.operandB, q.operandA)
+  },
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const stage = pickTier(TIERS, score).id as Stage
-    const showA = stage === 'die-die' ? true : Math.random() < 0.5
+    const prev = ctx?.retryOf
+    const showA = prev?.showA ?? (stage === 'die-die' ? true : Math.random() < 0.5)
     const unknown = showA ? operandB : operandA
     const total = operandA + operandB
     return {
       showA,
-      options: makeOptions(unknown, total),
+      options: prev?.options ?? makeOptions(unknown, total),
       stage,
       tierId: stage,
     }

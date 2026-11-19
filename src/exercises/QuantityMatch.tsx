@@ -4,7 +4,8 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { HandSVG } from '../presentation/components/HandSVG'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, heldStyle } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
 import { DOT_POS } from '../presentation/diePatterns'
 import type { SceneTokens } from '../presentation/tokens'
 
@@ -119,15 +120,20 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
   const [lock, setLock] = useState(false)
   const [wrongFlash, setWrongFlash] = useState(false)
   const mismatchRef = useRef(0)
+  // Closure: the chosen card (choose) or the completed grid (match / pairs)
+  // is held before the overlay.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  const locked = disabled || answered
 
   useEffect(() => {
-    setSelected([]); setMatched(new Set()); setLock(false); setWrongFlash(false)
+    setSelected([]); setMatched(new Set()); setLock(false); setWrongFlash(false); setPicked(null)
     mismatchRef.current = 0
-  }, [operandA, tierId])
+  }, [question])
 
   // Tap handler — shared between match (always face-up) and pairs (memory: hide on flip-back).
   const tapTile = (i: number) => {
-    if (disabled || lock || matched.has(i) || selected.includes(i)) return
+    if (locked || lock || matched.has(i) || selected.includes(i)) return
     const ns = [...selected, i]
     setSelected(ns)
     if (ns.length < 2) return
@@ -137,7 +143,7 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
       setTimeout(() => {
         const nm = new Set(matched); nm.add(a); nm.add(b)
         setMatched(nm); setSelected([]); setLock(false)
-        if (nm.size === tiles.length) onResolve(true, { tapCount: mismatchRef.current })
+        if (nm.size === tiles.length) resolve(true, { tapCount: mismatchRef.current })
       }, 500)
     } else {
       mismatchRef.current += 1
@@ -147,7 +153,7 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
         setWrongFlash(true)
         setTimeout(() => {
           setWrongFlash(false); setSelected([]); setLock(false)
-          onResolve(false, { tapCount: mismatchRef.current })
+          resolve(false, { tapCount: mismatchRef.current })
         }, WRONG_FLASH_MS)
       } else {
         // pairs (memory): forgiving — flip back and let the kid keep trying.
@@ -165,27 +171,23 @@ function QuantityMatchComponent({ question, onResolve, disabled, scene }: Exerci
 
       {tierId === 'choose' ? (
         <>
-          <div style={{
-            background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-            padding: 18, minWidth: 150, minHeight: 130,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-          }}>
+          <ExerciseStage tokens={tokens} style={{ minWidth: 150, minHeight: 130, justifyContent: 'center', boxSizing: 'border-box' }}>
             <RepView kind={targetRep} n={operandA} size={120} tokens={tokens} />
-          </div>
+          </ExerciseStage>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 320, width: '100%' }}>
             {options.map((opt, i) => (
               <button key={i}
-                onClick={() => !disabled && onResolve(opt.count === operandA, { givenAnswer: opt.count })}
-                onPointerDown={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.94)' }}
+                onClick={() => { if (!locked) { setPicked(i); resolve(opt.count === operandA, { givenAnswer: opt.count }) } }}
+                onPointerDown={e => { if (!locked) e.currentTarget.style.transform = 'scale(0.94)' }}
                 onPointerUp={e =>   { e.currentTarget.style.transform = 'scale(1)' }}
                 onPointerLeave={e =>{ e.currentTarget.style.transform = 'scale(1)' }}
                 style={{
                   height: 110, background: paper, border: `2px solid ${ink}`, borderRadius: 16,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: disabled ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-                  opacity: disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
+                  cursor: locked ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
+                  opacity: locked ? 0.45 : 1, transition: 'transform .1s, box-shadow .15s', userSelect: 'none',
+                  ...(solved && picked === i ? heldStyle(tokens) : {}),
                 }}>
                 <RepView kind={opt.rep} n={opt.count} size={84} tokens={tokens} />
               </button>
@@ -245,9 +247,16 @@ const QuantityMatch: ExerciseDefinition<QuantityMatchMeta> = {
     ],
     progression: 'choose (single-shot, 4 options, one match) → match (3×2 grid all face-up, pair them — a wrong pair is a logged mistake and ends the question) → pairs (same 3×2 grid but face-down; memory format, forgiving). Cognitive demand grows from match-now → match-without-mistakes → match-with-recall.',
   },
-  generateMeta(operandA, _b, score) {
+  // Retry: the same cards — the pairing grid face-up instead of hidden, or
+  // the single choice instead of the pairing.
+  retryStable: ['targetRep', 'options', 'tiles'],
+  // One match → the shared quantity; a grid of pairs has no single answer.
+  correctStatement: q => (q.meta.tierId === 'choose' ? `Allebei ${q.operandA}` : null),
+  generateMeta(operandA, _b, score, _problem, ctx) {
     const tierId = pickTier(TIERS, score).id
     const max = operandA <= 5 ? 5 : 10
+    const prev = ctx?.retryOf
+    if (prev) return { tierId, targetRep: prev.targetRep, options: prev.options, tiles: prev.tiles }
 
     // choose: target rep + 4 options spanning all 4 reps; correct option in a
     // different representation than the target (that's the transfer the exercise tests).

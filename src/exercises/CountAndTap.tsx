@@ -7,7 +7,10 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
-import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { FiveRow } from '../presentation/components/FiveRow'
+import { useClosure } from '../presentation/useClosure'
+import { FEEDBACK } from '../presentation/feedback'
 
 const TIERS: ExerciseTier[] = [
   { id: 'emoji', minScore: 0,  label: 'voorwerpen', description: 'Tap themed counters one by one (running count shown), then name the total from 4 numerals — the cardinality probe.' },
@@ -20,6 +23,11 @@ interface CountAndTapMeta {
   options: number[]
   tierId: string
 }
+
+// Item size of the counters tier, and the fixed height of the stage's picture
+// area: the tallest thing it ever holds (a die square, the "?" box).
+const ITEM = 42
+const AREA_H = 130
 
 // ─── Counter chip ─────────────────────────────────────────────────────────────
 
@@ -76,8 +84,11 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
   const { ink, paper, dot, refuse } = tokens
 
   const done = tapped.size === operandA
+  // Closure: the "?" becomes the number and the chosen button is held.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
 
-  useEffect(() => { setTapped(new Set()); setPhase('tap') }, [operandA, meta])
+  useEffect(() => { setTapped(new Set()); setPhase('tap'); setPicked(null) }, [question])
 
   useEffect(() => {
     if (done && phase === 'tap') {
@@ -104,7 +115,7 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
     }
     return Counter ? (
       <div key={i} onClick={() => tap(i)} style={itemStyle}>
-        <Counter size={42} />
+        <Counter size={ITEM} />
       </div>
     ) : (
       <span key={i} onClick={() => tap(i)} style={{ fontSize: 38, display: 'inline-block', ...itemStyle }}>
@@ -130,30 +141,24 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
     )
   }
 
-  const row1 = Math.min(operandA, 5)
-  const row2 = operandA - row1
   const right = operandA - 5
 
   // One stage across both phases and both tiers; inner tap groups are
   // transparent so the single stage colour shows throughout.
   const stageBody = phase === 'howmany' ? (
-    // Cardinality question — items gone, chip hidden.
+    // Cardinality question — items gone, chip hidden. On a correct answer the
+    // "?" becomes the number (closure).
     <div style={{
-      width: 130, height: 130, borderRadius: 16, border: `2px dashed ${ink}55`,
+      width: 130, height: 130, boxSizing: 'border-box', borderRadius: 16,
+      border: `2px ${solved ? 'solid' : 'dashed'} ${solved ? tokens.confirm : `${ink}55`}`,
+      background: solved ? tokens.confirm : 'transparent',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Fredoka One, cursive', fontSize: 48, color: `${ink}40`,
-    }}>?</div>
+      fontFamily: 'Fredoka One, cursive', fontSize: 48, color: solved ? 'white' : `${ink}40`,
+      transition: 'background .15s',
+    }}>{solved ? operandA : '?'}</div>
   ) : meta.style === 'emoji' ? (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap: 10 }}>
-        {Array.from({ length: row1 }, (_, i) => renderItem(i))}
-      </div>
-      {row2 > 0 && (
-        <div style={{ display: 'flex', gap: 10 }}>
-          {Array.from({ length: row2 }, (_, j) => renderItem(5 + j))}
-        </div>
-      )}
-    </div>
+    // a 5-row (convention Q): 6–10 continue on a second row
+    <FiveRow n={operandA} item={ITEM} gap={10} renderItem={renderItem} />
   ) : operandA <= 5 ? (
     <div style={{ position: 'relative', width: 130, height: 130 }}>
       {renderDieSquare(operandA, dot, 0, 130)}
@@ -172,22 +177,28 @@ function CountAndTapComponent({ question, onResolve, disabled, scene }: Exercise
       <ExerciseTitle tokens={tokens}>{phase === 'tap' ? 'Tel maar!' : 'Hoeveel waren er?'}</ExerciseTitle>
 
       <ExerciseStage tokens={tokens}>
-        {/* Running count chip — only while tapping; reserve height so the
+        {/* Running count chip — only while tapping; fixed height so the
             visual never shifts */}
-        <div style={{ minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {phase === 'tap' && <CounterChip count={tapped.size} ink={ink} paper={paper} />}
         </div>
-        {stageBody}
+        {/* One area of fixed height for the items and for the "?" that
+            replaces them (convention L) */}
+        <div style={{ height: AREA_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {stageBody}
+        </div>
       </ExerciseStage>
 
-      {phase === 'howmany' && (
+      {/* The answer buttons' space is held from the start (convention L). */}
+      <Reserve show={phase === 'howmany'}>
         <ChoiceButtons
           options={meta.options}
-          onPick={v => onResolve(v === operandA, { givenAnswer: v, tapCount: operandA })}
-          disabled={disabled}
+          onPick={v => { setPicked(v); resolve(v === operandA, { givenAnswer: v, tapCount: operandA }) }}
+          disabled={disabled || answered || phase !== 'howmany'}
+          picked={picked} solved={solved}
           tokens={scene?.tokens}
         />
-      )}
+      </Reserve>
     </div>
   )
 }
@@ -208,12 +219,16 @@ const CountAndTap: ExerciseDefinition<CountAndTapMeta> = {
     ],
     progression: 'Themed counters at low score (concrete, recognisable items to count) shift to die-pattern dots at higher score — the same count, but the pattern starts doing the seeing for the child. First step out of counting toward subitising.',
   },
-  generateMeta(operandA, _b, score) {
+  // Retry: the same creatures and the same four options (counters tier).
+  retryStable: ['sceneIndex', 'options'],
+  correctStatement: q => FEEDBACK.wrongMessage(q.answer),
+  generateMeta(operandA, _b, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
+    const prev = ctx?.retryOf
     return {
       style: tier.id as CountAndTapMeta['style'],
-      sceneIndex: Math.floor(Math.random() * 24),
-      options: makeNumeralOptions(operandA, numeralRangeMax(operandA)),
+      sceneIndex: prev?.sceneIndex ?? Math.floor(Math.random() * 24),
+      options: prev?.options ?? makeNumeralOptions(operandA, numeralRangeMax(operandA)),
       tierId: tier.id,
     }
   },

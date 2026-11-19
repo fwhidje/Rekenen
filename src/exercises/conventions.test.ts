@@ -25,13 +25,8 @@ import type { ExerciseQuestion } from './types'
 // never goes on this list.
 
 const PENDING_AUDIT = new Set<string>([
-  // getalbegrip
-  'count-and-tap', 'dot-pattern-recognise', 'finger-pattern-recognise', 'numberline-place',
-  'compare-more-less', 'compare-pick', 'ten-frame-show', 'number-sequence-order',
-  'show-me-on-ten-frame', 'numberline-read', 'quantity-match', 'subitise-flash',
-  // splitsen herkennen
-  'dot-pattern-decompose', 'splits-frame', 'splits-herken-huisje', 'splits-build-it',
-  'splits-shuffle', 'same-split-or-different', 'splits-match',
+  // empty since Nov 2026: every registered exercise has been checked. A new
+  // exercise never goes on this list.
 ])
 
 const registered = getAllExerciseIds()

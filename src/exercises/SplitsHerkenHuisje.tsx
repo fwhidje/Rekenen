@@ -5,6 +5,9 @@ import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { DOT_POS } from '../presentation/diePatterns'
+import { useClosure } from '../presentation/useClosure'
+import { splitText } from './opDisplay'
+import type { ExerciseQuestion } from './types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -131,18 +134,20 @@ function Roof({ total, operandA, colourA, colourB, stage, ink, paper }: {
 
 // ─── Room cell ────────────────────────────────────────────────────────────────
 
-function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, paper, refCb, tint }: {
+function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, paper, refCb, tint, held }: {
   value: number; colour: string
   isEmpty: boolean; isGiven: boolean
   givenStyle: 'die' | 'num'
   isLeft: boolean; ink: string; paper: string
   refCb: (el: HTMLDivElement | null) => void
   tint: boolean   // colour tint on empty cell (stage 1)
+  held: string | null   // closure: a filled room takes this tint once solved
 }) {
   return (
     <div ref={refCb} style={{
       width: ROOM, height: ROOM,
-      background: (isEmpty && tint) ? `${colour}25` : paper,
+      background: held ?? ((isEmpty && tint) ? `${colour}25` : paper),
+      transition: 'background .15s',
       borderRight: isLeft ? `2px solid ${ink}` : 'none',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
@@ -177,7 +182,7 @@ function DragTile({ value, colour, ink, paper, variant, faded, onPD, onPM, onPU 
     <div
       onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}
       style={{
-        width: DRAG, height: DRAG,
+        width: DRAG, height: DRAG, boxSizing: 'border-box',   // = the placeholder left behind
         background: paper, border: `2px solid ${ink}`, borderRadius: 12,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: 2, cursor: 'grab', userSelect: 'none', touchAction: 'none',
@@ -198,8 +203,10 @@ function DragTile({ value, colour, ink, paper, variant, faded, onPD, onPM, onPU 
 function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsHerkenHuisjeMeta>) {
   const { operandA, operandB, meta } = question
   const { stage, showA, givenRows, options } = meta
-  const { ink, paper, refuse, dot } = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, refuse, dot, confirm } = scene?.tokens ?? NATURE_TOKENS
   const total = operandA + operandB
+  // Closure: the dropped parts stay in their rooms, tinted, before the overlay.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
   const colourA = refuse, colourB = dot
 
   // drag state: which option index, current pointer pos
@@ -211,7 +218,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
   useEffect(() => {
     setDrag(null)
     setPlaced({})
-  }, [operandA, operandB, showA, stage])
+  }, [question])
   const roomRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const placedIndices = new Set(Object.values(placed))
 
@@ -230,14 +237,15 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
     const next = { ...placed, [roomId]: optIdx }
     setPlaced(next)
 
+    // The drop itself is the answer; the closure holds the filled house.
     if (stage === 'die-both') {
       if (next['left'] !== undefined && next['right'] !== undefined) {
-        setTimeout(() => onResolve(true), 300)  // always correct: colour-coded
+        resolve(true)  // always correct: colour-coded
       }
     } else if (stage === 'die-one' || stage === 'die-numaid') {
       const emptyRoom = showA ? 'right' : 'left'
       if (roomId === emptyRoom) {
-        setTimeout(() => onResolve(optVal === (showA ? operandB : operandA), { givenAnswer: optVal }), 300)
+        resolve(optVal === (showA ? operandB : operandA), { givenAnswer: optVal })
       }
     } else {
       // num-two
@@ -245,7 +253,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         // total=2 fallback: single row with room IDs 'left'/'right'
         const emptyRoom = showA ? 'right' : 'left'
         if (roomId === emptyRoom) {
-          setTimeout(() => onResolve(optVal === (showA ? operandB : operandA), { givenAnswer: optVal }), 300)
+          resolve(optVal === (showA ? operandB : operandA), { givenAnswer: optVal })
         }
         return
       }
@@ -254,13 +262,13 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
       const nextR1 = roomId === 'row1-right' ? optVal : options[placed['row1-right'] ?? -1]
       if (next['row0-right'] !== undefined && next['row1-right'] !== undefined) {
         const b0 = total - givenRows[0], b1 = total - givenRows[1]
-        setTimeout(() => onResolve(nextR0 === b0 && nextR1 === b1), 300)
+        resolve(nextR0 === b0 && nextR1 === b1)
       }
     }
   }
 
   function handlePointerDown(e: React.PointerEvent, idx: number, value: number) {
-    if (disabled || placedIndices.has(idx)) return
+    if (disabled || answered || placedIndices.has(idx)) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     setDrag({ idx, value, x: e.clientX, y: e.clientY })
@@ -297,6 +305,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
     return (
       <RoomCell
         key={roomId}
+        held={solved && hasPlaced ? `${confirm}55` : null}
         value={hasPlaced ? options[placedIdx] : (givenVal ?? 0)}
         colour={colour}
         isEmpty={isEmpty}
@@ -364,7 +373,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         </div>
 
         {/* Draggable tray */}
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', minHeight: DRAG }}>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', minHeight: DRAG }}>
           {options.map((val, idx) => {
             if (placedIndices.has(idx)) return <div key={idx} style={{ width: DRAG, height: DRAG }} />
             const colour = stage === 'die-both'
@@ -435,10 +444,24 @@ const SplitsHerkenHuisje: ExerciseDefinition<SplitsHerkenHuisjeMeta> = {
     progression: 'die-both (drag both die-parts into colour-coded rooms — orientation; colour-coding constrains the answer so the focus is learning the house shape) → die-one (one part as a die, drag the other) → die-numaid (one part as a numeral with a small die in the roof as aid, drag a numeral) → num-two (two splits of the same total in one card, drag numerals into both — first taste of systematicity, foreshadowing "alle splitsingen"). Dots fade to numerals; the single-split task expands into a two-split one at the top.',
   },
   isCompatible: (a, b) => a > 0 && b > 0,
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same part is given (and, between the two single-house drag
+  // tiers, the same tiles). num-two's two rows have no one-row equivalent, so
+  // its retry is the one-row house of the same total.
+  retryStable: ['showA'],
+  correctStatement: (q: ExerciseQuestion<SplitsHerkenHuisjeMeta>) => {
+    const total = q.operandA + q.operandB
+    const rows = q.meta.givenRows
+    if (q.meta.stage === 'num-two' && rows) {
+      return `${splitText(total, rows[0], total - rows[0])}, ${splitText(total, rows[1], total - rows[1])}`
+    }
+    // the title's order: the given part first
+    return q.meta.showA ? splitText(total, q.operandA, q.operandB) : splitText(total, q.operandB, q.operandA)
+  },
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const stage = pickTier(TIERS, score).id as Stage
     const total = operandA + operandB
-    const showA = stage === 'die-both' ? true : Math.random() < 0.5
+    const prev = ctx?.retryOf
+    const showA = prev ? prev.showA : stage === 'die-both' ? true : Math.random() < 0.5
 
     if (stage === 'die-both') {
       return { stage, showA, givenRows: null, options: [operandA, operandB], tierId: stage }
@@ -446,7 +469,8 @@ const SplitsHerkenHuisje: ExerciseDefinition<SplitsHerkenHuisjeMeta> = {
 
     if (stage === 'die-one' || stage === 'die-numaid') {
       const unknown = showA ? operandB : operandA
-      return { stage, showA, givenRows: null, options: makeOptions3(unknown, total), tierId: stage }
+      const sameTiles = prev && (prev.stage === 'die-one' || prev.stage === 'die-numaid')
+      return { stage, showA, givenRows: null, options: sameTiles ? prev.options : makeOptions3(unknown, total), tierId: stage }
     }
 
     // num-two: pick 2 distinct given values (left-side) from {1..total-1}

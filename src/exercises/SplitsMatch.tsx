@@ -5,7 +5,9 @@ import { pickTier } from './tiers'
 import { SplitView, SPLIT_REPS } from './SameSplitOrDifferent'
 import type { SplitRepKind } from './SameSplitOrDifferent'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, heldStyle } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { splitText } from './opDisplay'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choose', minScore: 0,  label: 'kiezen',   description: 'Target split in one representation (e.g. colour-coded die-pattern 2+3). Four option tiles in different representations (finger pattern split 2-and-3, ten-frame top-2 bottom-3, splitshuisje "2 | 3", one distractor). Kid picks the match.' },
@@ -51,7 +53,7 @@ function pickSplits(target: [number, number], k: number): [number, number][] {
 const WRONG_FLASH_MS = 900
 
 function SplitsMatchComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsMatchMeta>) {
-  const { operandA, operandB, meta } = question
+  const { meta } = question
   const { tierId, targetRep, target, options, tiles } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const { ink, paper, accent, confirm, refuse } = tokens
@@ -61,14 +63,19 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
   const [lock, setLock] = useState(false)
   const [wrongFlash, setWrongFlash] = useState(false)
   const mismatchRef = useRef(0)
+  // Closure: the chosen card (choose) or the completed grid (match / pairs)
+  // is held before the overlay.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [picked, setPicked] = useState<number | null>(null)
+  const locked = disabled || answered
 
   useEffect(() => {
-    setSelected([]); setMatched(new Set()); setLock(false); setWrongFlash(false)
+    setSelected([]); setMatched(new Set()); setLock(false); setWrongFlash(false); setPicked(null)
     mismatchRef.current = 0
-  }, [operandA, operandB, tierId])
+  }, [question])
 
   const tapTile = (i: number) => {
-    if (disabled || lock || matched.has(i) || selected.includes(i)) return
+    if (locked || lock || matched.has(i) || selected.includes(i)) return
     const ns = [...selected, i]
     setSelected(ns)
     if (ns.length < 2) return
@@ -80,7 +87,7 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
       setTimeout(() => {
         const nm = new Set(matched); nm.add(x); nm.add(y)
         setMatched(nm); setSelected([]); setLock(false)
-        if (nm.size === tiles.length) onResolve(true, { tapCount: mismatchRef.current })
+        if (nm.size === tiles.length) resolve(true, { tapCount: mismatchRef.current })
       }, 500)
     } else {
       mismatchRef.current += 1
@@ -89,7 +96,7 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
         setWrongFlash(true)
         setTimeout(() => {
           setWrongFlash(false)
-          onResolve(false, { tapCount: mismatchRef.current })
+          resolve(false, { tapCount: mismatchRef.current })
         }, WRONG_FLASH_MS)
       } else {
         // memory tier: forgiving, flip back
@@ -104,43 +111,31 @@ function SplitsMatchComponent({ question, onResolve, disabled, scene }: Exercise
 
       {tierId === 'choose' ? (
         <>
-          <div style={{
-            background: paper, border: `2px solid ${ink}`, borderRadius: 18,
-            padding: 18, minWidth: 140, minHeight: 120,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `2px 4px 0 rgba(61,47,30,.12)`,
-          }}>
+          <ExerciseStage tokens={tokens} style={{ minWidth: 140, minHeight: 120, justifyContent: 'center', boxSizing: 'border-box' }}>
             <SplitView kind={targetRep} a={target[0]} b={target[1]} size={110} tokens={tokens} />
-          </div>
+          </ExerciseStage>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 340, width: '100%' }}>
             {options.map((opt, i) => (
               <button key={i}
                 onClick={() => {
-                  if (disabled) return
-                  const match = splitEq([opt.a, opt.b], target)
-                  if (match) {
-                    onResolve(true, { givenAnswer: opt.a })
-                  } else {
-                    mismatchRef.current += 1
-                    setWrongFlash(true)
-                    setTimeout(() => {
-                      setWrongFlash(false)
-                      onResolve(false, { givenAnswer: opt.a, tapCount: mismatchRef.current })
-                    }, WRONG_FLASH_MS)
-                  }
+                  if (locked) return
+                  // like every single-choice exercise: right → held, wrong → at once
+                  setPicked(i)
+                  resolve(splitEq([opt.a, opt.b], target), { givenAnswer: opt.a })
                 }}
-                onPointerDown={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.94)' }}
+                onPointerDown={e => { if (!locked) e.currentTarget.style.transform = 'scale(0.94)' }}
                 onPointerUp={e =>   { e.currentTarget.style.transform = 'scale(1)' }}
                 onPointerLeave={e =>{ e.currentTarget.style.transform = 'scale(1)' }}
                 style={{
                   height: 116,
-                  background: wrongFlash ? `${refuse}22` : paper,
-                  border: `2px solid ${wrongFlash ? refuse : ink}`,
+                  background: paper,
+                  border: `2px solid ${ink}`,
                   borderRadius: 16,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: disabled ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-                  opacity: disabled ? 0.45 : 1, transition: 'transform .1s, background .15s, border-color .15s', userSelect: 'none',
+                  cursor: locked ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
+                  opacity: locked ? 0.45 : 1, transition: 'transform .1s, background .15s, border-color .15s, box-shadow .15s', userSelect: 'none',
+                  ...(solved && picked === i ? heldStyle(tokens) : {}),
                 }}>
                 <SplitView kind={opt.rep} a={opt.a} b={opt.b} size={88} tokens={tokens} />
               </button>
@@ -196,9 +191,18 @@ const SplitsMatch: ExerciseDefinition<SplitsMatchMeta> = {
     ],
     progression: 'choose (single-shot, all options visible) → match (pair-forming, tiles face-up — pure cross-representation work) → pairs (same task from memory). Representation transfer first, recall load last.',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the same cards — the pairing grid face-up instead of hidden, or
+  // the single choice instead of the pairing.
+  retryStable: ['targetRep', 'target', 'options', 'tiles'],
+  // One match → the split itself; a grid of pairs has no single answer.
+  correctStatement: q => (q.meta.tierId === 'choose'
+    ? splitText(q.meta.target[0] + q.meta.target[1], q.meta.target[0], q.meta.target[1])
+    : null),
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tierId = pickTier(TIERS, score).id
     const target: [number, number] = [operandA, operandB]
+    const prev = ctx?.retryOf
+    if (prev) return { tierId, targetRep: prev.targetRep, target: prev.target, options: prev.options, tiles: prev.tiles }
 
     // choose: 4 distinct splits incl. target; 4 distinct reps; correct option in
     // a rep different from targetRep (that's the transfer the exercise tests).

@@ -3,7 +3,9 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { KlaarButton } from '../ui/components/KlaarButton'
+import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'fill', minScore: 0, label: 'invullen', description: 'Target numeral shown. Kid taps cells of an empty ten-frame to fill exactly N. Cells toggle so an overshoot can be corrected. Single tier; the 5/10 structure of the frame is the built-in scaffold.' },
@@ -57,14 +59,18 @@ function FillableTenFrame({ filled, onToggle, disabled, ink, paper, accent }: {
 
 function ShowMeOnTenFrameComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<ShowMeOnTenFrameMeta>) {
   const { operandA } = question
-  const { ink, paper, accent, accentText, confirm } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, accent, accentText, confirm } = tokens
 
   const [filled, setFilled] = useState<Set<number>>(new Set())
   const [taps, setTaps] = useState(0)
+  // Closure: on a correct frame the dots turn to the confirm colour and stay.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
-  useEffect(() => { setFilled(new Set()); setTaps(0) }, [operandA])
+  useEffect(() => { setFilled(new Set()); setTaps(0) }, [question])
 
   const toggle = (i: number) => {
+    if (answered) return
     setTaps(t => t + 1)
     setFilled(prev => {
       const next = new Set(prev)
@@ -74,28 +80,22 @@ function ShowMeOnTenFrameComponent({ question, onResolve, disabled, scene }: Exe
   }
 
   const submit = () => {
-    if (disabled) return
-    onResolve(filled.size === operandA, { givenAnswer: filled.size, tapCount: taps })
+    if (disabled || answered) return
+    resolve(filled.size === operandA, { givenAnswer: filled.size, tapCount: taps })
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <ExerciseTitle tokens={scene?.tokens}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <ExerciseTitle tokens={tokens}>
         Maak <span style={{ color: accentText }}>{operandA}</span>
       </ExerciseTitle>
 
-      <FillableTenFrame filled={filled} onToggle={toggle} disabled={disabled} ink={ink} paper={paper} accent={accent} />
+      <ExerciseStage tokens={tokens}>
+        <FillableTenFrame filled={filled} onToggle={toggle} disabled={disabled || answered}
+          ink={ink} paper={paper} accent={solved ? confirm : accent} />
+      </ExerciseStage>
 
-      <button onClick={submit} disabled={disabled}
-        onPointerDown={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.94)' }}
-        onPointerUp={e =>   { e.currentTarget.style.transform = 'scale(1)' }}
-        onPointerLeave={e =>{ e.currentTarget.style.transform = 'scale(1)' }}
-        style={{
-          padding: '12px 32px', fontFamily: 'Fredoka One, cursive', fontSize: 24,
-          background: confirm, color: 'white', border: `2px solid ${ink}`, borderRadius: 16,
-          cursor: disabled ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-          opacity: disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
-        }}>Klaar</button>
+      <KlaarButton onClick={submit} enabled={!disabled && !answered && filled.size > 0} tokens={tokens} />
     </div>
   )
 }
@@ -114,6 +114,9 @@ const ShowMeOnTenFrame: ExerciseDefinition<ShowMeOnTenFrameMeta> = {
     ],
     progression: 'Single tier; difficulty scales with N. The 5/10 structure of the ten-frame is the built-in scaffold.',
   },
+  retryStable: [],
+  // The answer is a frame the child builds — neutral message.
+  correctStatement: () => null,
   generateMeta(_a, _b, score) {
     return { tierId: pickTier(TIERS, score).id }
   },

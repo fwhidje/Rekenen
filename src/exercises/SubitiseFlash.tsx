@@ -5,7 +5,9 @@ import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumPad } from '../ui/components/NumPad'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { FEEDBACK } from '../presentation/feedback'
 import { DOT_POS } from '../presentation/diePatterns'
 import { makeNumeralOptions, numeralRangeMax } from './choiceOptions'
 
@@ -64,6 +66,11 @@ function DotPattern({ n, ink, paper, dot, refuse }: { n: number; ink: string; pa
 
 type Phase = 'ready' | 'flash' | 'answer'
 
+// The stage's picture area: as tall as the tallest thing it shows (a pattern
+// with its die face), so the ready button, the flash and the "?" all sit in the
+// same box (convention L).
+const AREA_H = 136
+
 function SubitiseFlashComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SubitiseFlashMeta>) {
   const { operandA, meta } = question
   const { options, tierId } = meta
@@ -73,12 +80,15 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
   const [phase, setPhase] = useState<Phase>('ready')
   const [retries, setRetries] = useState(0)
   const [input, setInput] = useState('')
+  const [picked, setPicked] = useState<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Closure: the "?" becomes the number (and a chosen button is held).
+  const { solved, answered, resolve: close } = useClosure(question, onResolve)
 
   useEffect(() => {
-    setPhase('ready'); setRetries(0); setInput('')
+    setPhase('ready'); setRetries(0); setInput(''); setPicked(null)
     return () => { if (timer.current) clearTimeout(timer.current) }
-  }, [operandA, tierId])
+  }, [question])
 
   const startFlash = () => {
     setPhase('flash')
@@ -87,68 +97,69 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
   }
 
   const resolve = (given: number) => {
-    if (disabled) return
-    onResolve(given === operandA, { givenAnswer: given, replayCount: retries })
+    if (disabled || answered) return
+    close(given === operandA, { givenAnswer: given, replayCount: retries })
   }
 
   const handleKey = (key: string) => {
-    if (disabled) return
+    if (disabled || answered) return
     if (key === '⌫') { setInput(v => v.slice(0, -1)); return }
     if (key === '✓') { if (input) resolve(parseInt(input, 10)); return }
     if (input.length < 2) setInput(v => v + key)
   }
 
+  const typed = tierId === 'typed'
+  // The "?" box doubles as the typed answer's slot (typed tier).
+  const boxText = solved ? String(operandA) : typed && input ? input : '?'
+  const boxFill = solved ? confirm : typed && input ? accent : `${accent}18`
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: typed ? 14 : 20, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>{phase === 'answer' ? 'Hoeveel zag je?' : 'Vlug kijken!'}</ExerciseTitle>
 
-      {/* One stage across all phases — fixed height so layout doesn't jump */}
-      <ExerciseStage tokens={tokens} style={{ minHeight: 150, justifyContent: 'center' }}>
-        {phase === 'ready' && (
-          <button onClick={startFlash} disabled={disabled}
-            style={{
-              padding: '16px 40px', fontFamily: 'Fredoka One, cursive', fontSize: 26,
-              background: confirm, color: 'white', border: `2px solid ${ink}`, borderRadius: 18,
-              cursor: disabled ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-              opacity: disabled ? 0.45 : 1, userSelect: 'none',
-            }}>Klaar?</button>
-        )}
-        {phase === 'flash' && (
-          <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
-        )}
-        {phase === 'answer' && (
-          <div style={{
-            width: 130, height: 130, borderRadius: 16, border: `2px dashed ${ink}55`,
-            background: `${accent}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Fredoka One, cursive', fontSize: 48, color: `${ink}40`,
-          }}>?</div>
-        )}
+      {/* One stage across all phases, its picture area of fixed height */}
+      <ExerciseStage tokens={tokens} style={{ padding: typed ? '12px 24px' : undefined }}>
+        <div style={{ height: AREA_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {phase === 'ready' && (
+            <button onClick={startFlash} disabled={disabled}
+              style={{
+                padding: '16px 40px', fontFamily: 'Fredoka One, cursive', fontSize: 26,
+                background: confirm, color: 'white', border: `2px solid ${ink}`, borderRadius: 18,
+                cursor: disabled ? 'default' : 'pointer', boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
+                opacity: disabled ? 0.45 : 1, userSelect: 'none',
+              }}>Klaar?</button>
+          )}
+          {phase === 'flash' && (
+            <DotPattern n={operandA} ink={ink} paper={paper} dot={dot} refuse={refuse} />
+          )}
+          {phase === 'answer' && (
+            <div style={{
+              width: 130, height: 130, boxSizing: 'border-box', borderRadius: 16,
+              border: `2px ${solved || (typed && input) ? 'solid' : 'dashed'} ${solved ? confirm : typed && input ? accent : `${ink}55`}`,
+              background: boxFill, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Fredoka One, cursive', fontSize: 48,
+              color: solved || (typed && input) ? 'white' : `${ink}40`,
+              transition: 'background .15s',
+            }}>{boxText}</div>
+          )}
+        </div>
       </ExerciseStage>
 
-      {phase === 'answer' && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>
-          {tierId === 'choice' ? (
-            <ChoiceButtons options={options} onPick={resolve} disabled={disabled} tokens={scene?.tokens} />
-          ) : (
-            <>
-              <div style={{
-                minWidth: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: input ? confirm : accent, color: 'white',
-                borderRadius: 12, border: `2px solid ${ink}`,
-                fontFamily: 'Fredoka One, cursive', fontSize: 34,
-                boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)', transition: 'background .18s',
-              }}>{input || '?'}</div>
-              <NumPad onKey={handleKey} disabled={disabled} tokens={scene?.tokens} />
-            </>
-          )}
-          <button onClick={() => { setRetries(r => r + 1); startFlash() }} disabled={disabled}
-            style={{
-              padding: '8px 22px', fontFamily: 'Patrick Hand, cursive', fontSize: 16,
-              background: paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-              cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.45 : 1, userSelect: 'none',
-            }}>↻ Nog eens</button>
-        </div>
-      )}
+      {/* The answer input's space is held from the start (convention L). */}
+      <Reserve show={phase === 'answer'} style={{ gap: typed ? 10 : 14 }}>
+        {typed
+          ? <NumPad compact onKey={handleKey} disabled={disabled || answered || phase !== 'answer'} tokens={tokens} />
+          : <ChoiceButtons options={options}
+              onPick={v => { setPicked(v); resolve(v) }}
+              disabled={disabled || answered || phase !== 'answer'}
+              picked={picked} solved={solved} tokens={tokens} />}
+        <button onClick={() => { setRetries(r => r + 1); startFlash() }} disabled={disabled || answered}
+          style={{
+            padding: '8px 22px', fontFamily: 'Patrick Hand, cursive', fontSize: 16,
+            background: paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
+            cursor: disabled ? 'default' : 'pointer', opacity: disabled || answered ? 0.45 : 1, userSelect: 'none',
+          }}>↻ Nog eens</button>
+      </Reserve>
     </div>
   )
 }
@@ -167,9 +178,12 @@ const SubitiseFlash: ExerciseDefinition<SubitiseFlashMeta> = {
     ],
     progression: 'choice (constrained options, retry available) → typed (numpad, retry still available). Scaffolding fade is via answer mode, not via the flash itself — flash duration stays ~1 second throughout. That\'s the whole point of the exercise.',
   },
-  // Retries are reported via tapCount (AnswerDetail has no dedicated retry field).
-  generateMeta(operandA, _b, score) {
-    return { options: makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: pickTier(TIERS, score).id }
+  // Replays ("↻ Nog eens") are reported as replayCount.
+  // Retry: the same pattern with the same options.
+  retryStable: ['options'],
+  correctStatement: q => FEEDBACK.wrongMessage(q.answer),
+  generateMeta(operandA, _b, score, _problem, ctx) {
+    return { options: ctx?.retryOf?.options ?? makeNumeralOptions(operandA, numeralRangeMax(operandA)), tierId: pickTier(TIERS, score).id }
   },
   Component: SubitiseFlashComponent,
 }

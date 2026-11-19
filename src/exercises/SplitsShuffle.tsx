@@ -4,7 +4,10 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { TFButtons } from '../ui/components/TFButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, heldStyle } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { splitText } from './opDisplay'
+import type { ExerciseQuestion } from './types'
 
 // A WHOLE visibly splits: the original row of dots stays in place (greyed once
 // the split starts) while a copy animates apart into two coloured groups below.
@@ -100,7 +103,7 @@ interface SplitsShuffleMeta {
 }
 
 function SplitsShuffleComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsShuffleMeta>) {
-  const { operandA, operandB, meta } = question
+  const { meta } = question
   const { tierId, total, finalParts, delta, options } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const { ink, paper, dot, refuse, pop } = tokens
@@ -108,23 +111,31 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
   const [phase, setPhase] = useState<'initial' | 'split'>('initial')
   const [settled, setSettled] = useState(false)
   const [dots, setDots] = useState<Dot[]>([])
+  // Closure: the chosen judgement / split stays marked before the overlay.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const [pickedTF, setPickedTF] = useState<number | null>(null)
+  const [pickedOpt, setPickedOpt] = useState<number | null>(null)
+  const locked = disabled || answered || !settled
 
   useEffect(() => {
     setPhase('initial')
     setSettled(false)
+    setPickedTF(null); setPickedOpt(null)
     setDots(buildDots(total, finalParts))
     const t1 = setTimeout(() => setPhase('split'), PHASE_DELAY)
     const t2 = setTimeout(() => setSettled(true), SETTLE_DELAY)
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [operandA, operandB, tierId, total, finalParts])
+  }, [question, total, finalParts])
 
   const resolveBinary = (v: number) => {
-    if (disabled || !settled) return
-    onResolve(v === (delta === 0 ? 1 : 0))
+    if (locked) return
+    setPickedTF(v)
+    resolve(v === (delta === 0 ? 1 : 0))
   }
-  const resolveIdentify = (opt: [number, number]) => {
-    if (disabled || !settled) return
-    onResolve(splitEq(opt, finalParts), { givenAnswer: opt[0] })
+  const resolveIdentify = (opt: [number, number], i: number) => {
+    if (locked) return
+    setPickedOpt(i)
+    resolve(splitEq(opt, finalParts), { givenAnswer: opt[0] })
   }
 
   const header = !settled
@@ -140,9 +151,9 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
       <ExerciseTitle tokens={scene?.tokens} style={{ minHeight: 30 }}>{header}</ExerciseTitle>
 
       {/* Stage: greyed original on top, the split animates below it */}
+      <ExerciseStage tokens={tokens} style={{ padding: '10px 12px' }}>
       <div style={{
         position: 'relative', width: CONTAINER_W, height: CONTAINER_H,
-        background: paper, border: `2px solid ${ink}`, borderRadius: 14,
         overflow: 'hidden',
       }}>
         {/* Original whole — stays put, fades to grey as the split starts */}
@@ -179,6 +190,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
             }`).join('\n')}</style>
         )}
       </div>
+      </ExerciseStage>
 
       {/* Input — appears only after the animation has settled */}
       <div style={{
@@ -188,17 +200,18 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
         {tierId === 'welke-splitsing' && options ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 320, margin: '0 auto', width: '100%' }}>
             {options.map((opt, i) => (
-              <button key={i} onClick={() => resolveIdentify(opt)}
-                onPointerDown={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.94)' }}
+              <button key={i} onClick={() => resolveIdentify(opt, i)}
+                onPointerDown={e => { if (!locked) e.currentTarget.style.transform = 'scale(0.94)' }}
                 onPointerUp={e =>   { e.currentTarget.style.transform = 'scale(1)' }}
                 onPointerLeave={e =>{ e.currentTarget.style.transform = 'scale(1)' }}
                 style={{
                   padding: '14px 10px', fontFamily: 'Fredoka One, cursive', fontSize: 26,
                   background: paper, border: `2px solid ${ink}`, borderRadius: 16,
-                  cursor: disabled ? 'default' : 'pointer',
+                  cursor: locked ? 'default' : 'pointer',
                   boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
-                  opacity: disabled ? 0.45 : 1, transition: 'transform .1s', userSelect: 'none',
+                  opacity: disabled || answered ? 0.45 : 1, transition: 'transform .1s, box-shadow .15s', userSelect: 'none',
                   color: ink,
+                  ...(solved && pickedOpt === i ? heldStyle(tokens) : {}),
                 }}>
                 <span style={{ color: refuse }}>{opt[0]}</span>
                 <span style={{ opacity: 0.6 }}> + </span>
@@ -207,7 +220,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
             ))}
           </div>
         ) : (
-          <TFButtons onPick={resolveBinary} disabled={disabled} tokens={scene?.tokens} />
+          <TFButtons onPick={resolveBinary} disabled={disabled || answered} picked={pickedTF} tokens={tokens} />
         )}
       </div>
     </div>
@@ -228,9 +241,23 @@ const SplitsShuffle: ExerciseDefinition<SplitsShuffleMeta> = {
     ],
     progression: 'kijk (watch the split, always conserving — orientation) → klopt-het (some splits cheat by one dot; verify against the greyed original) → welke-splitsing (read the resulting split; wrong-total distractors keep conservation in play).',
   },
-  generateMeta(operandA, operandB, score) {
+  // Retry: the very same split plays again (also a cheating one).
+  retryStable: ['total', 'finalParts', 'delta'],
+  correctStatement: (q: ExerciseQuestion<SplitsShuffleMeta>) => {
+    const { tierId, total, finalParts, delta } = q.meta
+    if (tierId === 'welke-splitsing') return splitText(total, finalParts[0], finalParts[1])
+    return delta === 0 ? `Ja, nog steeds ${total}` : `Nee, nu zijn het er ${total + delta}`
+  },
+  generateMeta(operandA, operandB, score, _problem, ctx) {
     const tierId = pickTier(TIERS, score).id
     const total = operandA + operandB
+    const prev = ctx?.retryOf
+    if (prev) {
+      return {
+        tierId, total: prev.total, finalParts: prev.finalParts, delta: prev.delta,
+        options: tierId === 'welke-splitsing' ? (prev.options ?? buildSplitOptions(prev.finalParts, prev.total)) : null,
+      }
+    }
     let delta = 0
     let finalParts: [number, number] = [operandA, operandB]
 

@@ -4,6 +4,8 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { KlaarButton } from '../ui/components/KlaarButton'
+import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'with-start', minScore: 0,  label: 'met startgetal', description: 'Strip with the starting numeral already placed; kid drags the other three numerals into ascending positions next to it.' },
@@ -28,15 +30,19 @@ function shuffle<T>(a: T[]): T[] { return [...a].sort(() => Math.random() - 0.5)
 // ─── Component ──────────────────────────────────────────────────────────────
 
 function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<NumberSequenceOrderMeta>) {
-  const { operandA, meta } = question
+  const { meta } = question
   const { tierId, sequence, givenMask, options } = meta
-  const { ink, paper, cream, accent, accentText, confirm: confirm0 } = scene?.tokens ?? NATURE_TOKENS
+  const tokens = scene?.tokens ?? NATURE_TOKENS
+  const { ink, paper, cream, accent, accentText, confirm: confirmColour } = tokens
 
   const [drag, setDrag] = useState<{ idx: number; value: number; x: number; y: number } | null>(null)
   const [placed, setPlaced] = useState<Record<number, number>>({})  // slotIndex → optionIdx
   const slotRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  // Closure: the finished row is held in the confirm colour.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
+  const locked = disabled || answered
 
-  useEffect(() => { setDrag(null); setPlaced({}) }, [operandA, tierId])
+  useEffect(() => { setDrag(null); setPlaced({}) }, [question])
 
   const placedIndices = new Set(Object.values(placed))
   const emptyPositions = sequence.map((_, i) => i).filter(i => !givenMask[i])
@@ -50,7 +56,7 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
 
   // Mistake recovery: tap a placed tile to send it back to the tray.
   function unplace(slot: number) {
-    if (disabled || placed[slot] === undefined) return
+    if (locked || placed[slot] === undefined) return
     setPlaced(prev => {
       const next = { ...prev }
       delete next[slot]
@@ -59,13 +65,13 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
   }
 
   function confirm() {
-    if (disabled || !allFilled) return
+    if (locked || !allFilled) return
     const correct = emptyPositions.every(i => options[placed[i]] === sequence[i])
-    onResolve(correct)
+    resolve(correct)
   }
 
   function handlePointerDown(e: React.PointerEvent, idx: number, value: number) {
-    if (disabled || placedIndices.has(idx)) return
+    if (locked || placedIndices.has(idx)) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     setDrag({ idx, value, x: e.clientX, y: e.clientY })
@@ -89,12 +95,13 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
-      <ExerciseTitle tokens={scene?.tokens}>{tierId === 'gap-fill' ? 'Welk getal ontbreekt?' : 'Zet op volgorde'}</ExerciseTitle>
+      <ExerciseTitle tokens={tokens}>{tierId === 'gap-fill' ? 'Welk getal ontbreekt?' : 'Zet op volgorde'}</ExerciseTitle>
 
-      {/* Puzzle stage — strip + tray on one surface */}
-      <ExerciseStage tokens={scene?.tokens} style={{ gap: 18, padding: '18px 20px' }}>
+      {/* Puzzle stage — strip + tray on one surface. Four slots and four tiles
+          always fit one row each, so nothing wraps. */}
+      <ExerciseStage tokens={tokens} style={{ gap: 18, padding: '18px 20px' }}>
       {/* Sequence strip */}
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
         {sequence.map((val, i) => {
           const given = givenMask[i]
           const placedIdx = placed[i]
@@ -104,13 +111,14 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
               ref={el => { slotRefs.current[i] = el }}
               onClick={() => { if (!given && hasPlaced) unplace(i) }}
               style={{
-                width: SLOT, height: SLOT, borderRadius: 12,
-                border: given ? `2px solid ${ink}` : `2px dashed ${ink}88`,
-                background: given ? cream : (hasPlaced ? `${accent}33` : 'transparent'),
+                width: SLOT, height: SLOT, borderRadius: 12, boxSizing: 'border-box',
+                border: solved && !given ? `2px solid ${confirmColour}` : given ? `2px solid ${ink}` : `2px dashed ${ink}88`,
+                background: solved && !given ? confirmColour : given ? cream : (hasPlaced ? `${accent}33` : 'transparent'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 30,
-                color: given ? ink : accentText,
-                cursor: !given && hasPlaced && !disabled ? 'pointer' : 'default',
+                color: solved && !given ? 'white' : given ? ink : accentText,
+                cursor: !given && hasPlaced && !locked ? 'pointer' : 'default',
+                transition: 'background .15s',
               }}>
               {given ? val : hasPlaced ? options[placedIdx] : ''}
             </div>
@@ -119,7 +127,7 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
       </div>
 
       {/* Draggable tray */}
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', minHeight: DRAG }}>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', minHeight: DRAG }}>
         {options.map((val, idx) => {
           if (placedIndices.has(idx)) return <div key={idx} style={{ width: DRAG, height: DRAG }} />
           return (
@@ -128,10 +136,10 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               style={{
-                width: DRAG, height: DRAG, background: paper, border: `2px solid ${ink}`, borderRadius: 12,
+                width: DRAG, height: DRAG, boxSizing: 'border-box', background: paper, border: `2px solid ${ink}`, borderRadius: 12,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Fredoka One, cursive', fontSize: 32, color: ink,
-                cursor: disabled ? 'default' : 'grab', userSelect: 'none', touchAction: 'none',
+                cursor: locked ? 'default' : 'grab', userSelect: 'none', touchAction: 'none',
                 boxShadow: '0 2px 4px rgba(61,47,30,.18)',
                 opacity: drag?.idx === idx ? 0.2 : 1, transition: 'opacity 0.1s',
               }}>{val}</div>
@@ -140,17 +148,9 @@ function NumberSequenceOrderComponent({ question, onResolve, disabled, scene }: 
       </div>
       </ExerciseStage>
 
-      {/* Confirm — appears once every slot is filled; placed tiles can still
+      {/* Confirm — active once every slot is filled; placed tiles can still
           be tapped back to the tray until then. */}
-      <button onClick={confirm} disabled={disabled || !allFilled}
-        style={{
-          padding: '10px 32px', fontFamily: 'Fredoka One, cursive', fontSize: 22,
-          background: allFilled ? confirm0 : `${ink}22`, color: 'white',
-          border: `2px solid ${ink}`, borderRadius: 16,
-          cursor: disabled || !allFilled ? 'default' : 'pointer',
-          boxShadow: allFilled ? `0 2px 0 rgba(61,47,30,.18)` : 'none',
-          opacity: disabled ? 0.45 : 1, userSelect: 'none', transition: 'background .2s',
-        }}>✓ Klaar</button>
+      <KlaarButton onClick={confirm} enabled={!locked && allFilled} tokens={tokens} />
 
       {/* Floating drag ghost */}
       {drag && (
@@ -181,10 +181,30 @@ const NumberSequenceOrder: ExerciseDefinition<NumberSequenceOrderMeta> = {
     ],
     progression: 'with-start (start anchored, sort 3) → gap-fill (neighbours as anchors, fill 1–2 holes) → shuffle (order the full run from scratch) → sparse (non-consecutive numerals, pure magnitude ordering). The successor chain carries less and less of the work.',
   },
-  generateMeta(operandA, _b, score) {
+  // Retry: the same numbers. What is pre-placed is the union of what the
+  // failed attempt showed and what the lower tier shows — gap-fill places more
+  // than with-start, and a retry never gives less help (convention R).
+  retryStable: ['sequence'],
+  correctStatement: q => q.meta.sequence.join(', '),
+  generateMeta(operandA, _b, score, _problem, ctx) {
     const tierId = pickTier(TIERS, score).id
     const max = operandA <= 5 ? 5 : 10
     const len = Math.min(4, max)
+    const prev = ctx?.retryOf
+    if (prev) {
+      const sequence = prev.sequence
+      const consecutive = sequence.every((v, i) => i === 0 || v - sequence[i - 1] === 1)
+      // what the lower tier would pre-place on this row
+      const tierMask = sequence.map((_, i) =>
+        tierId === 'with-start' ? i === 0
+        : tierId === 'gap-fill' && consecutive ? i % 2 === 1   // every other number, as anchors
+        : false)
+      let givenMask = sequence.map((_, i) => prev.givenMask[i] || tierMask[i])
+      // keep at least one place open
+      if (givenMask.every(Boolean)) givenMask = givenMask.map((g, i) => g && i !== sequence.length - 1)
+      const options = shuffle(sequence.filter((_, i) => !givenMask[i]))
+      return { tierId, sequence, givenMask, options }
+    }
 
     if (tierId === 'sparse') {
       // Four distinct, deliberately non-consecutive numerals; magnitude

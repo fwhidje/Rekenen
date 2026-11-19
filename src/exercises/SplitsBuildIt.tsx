@@ -4,7 +4,9 @@ import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from '.
 import { pickTier } from './tiers'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { useClosure } from '../presentation/useClosure'
+import { splitText } from './opDisplay'
 import { makeNumeralOptions } from './choiceOptions'
 
 const TIERS: ExerciseTier[] = [
@@ -15,16 +17,20 @@ const TIERS: ExerciseTier[] = [
 const DOT_SIZE = 38
 const DOT_GAP = 10        // intra-row gap between adjacent dots
 const TAP_W = 28          // width of the tappable gap zone (overlaps adjacent dots)
-const RESOLVE_DELAY = 600 // ms between gericht cut and onResolve
 
 interface SplitsBuildItMeta {
   tierId: string
   total: number
   parts: [number, number]   // gericht target; unused at open
+  // open tier, written by the component when the child cuts (like splits-alle's
+  // `entries`): where the cut went and which side was revealed. It rides on the
+  // answer record and lets the wrong-answer text name the child's own split.
+  cut?: number
+  revealLeft?: boolean
 }
 
 function SplitsBuildItComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsBuildItMeta>) {
-  const { operandA, operandB, meta } = question
+  const { meta } = question
   const { tierId, total, parts } = meta
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const { ink, accentText, refuse, dot, pop } = tokens
@@ -33,29 +39,37 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
   const [cut, setCut] = useState<number | null>(null)
   // open-tier confirm step: which side is revealed + the numeral options
   const [confirmStep, setConfirmStep] = useState<{ revealLeft: boolean; options: number[] } | null>(null)
+  const [picked, setPicked] = useState<number | null>(null)
+  // Closure: the cut split (gericht) or the named part (open) is held.
+  const { solved, answered, resolve } = useClosure(question, onResolve)
 
-  useEffect(() => { setCut(null); setConfirmStep(null) }, [operandA, operandB, tierId])
+  useEffect(() => { setCut(null); setConfirmStep(null); setPicked(null) }, [question])
 
   const tapGap = (i: number) => {
-    if (disabled || cut !== null) return
+    if (disabled || answered || cut !== null) return
     setCut(i)
     if (tierId === 'gericht') {
-      // Either order of the asked parts is the same split.
-      const correct = i === parts[0] || i === parts[1]
-      setTimeout(() => onResolve(correct, { givenAnswer: i }), RESOLVE_DELAY)
+      // Either order of the asked parts is the same split. The cut is the
+      // answer; the closure holds it.
+      resolve(i === parts[0] || i === parts[1], { givenAnswer: i })
       return
     }
     // open: reveal one side, ask the other — parts in tot-5 run 1..4.
     const revealLeft = Math.random() < 0.5
     const hidden = revealLeft ? total - i : i
+    meta.cut = i
+    meta.revealLeft = revealLeft
     setConfirmStep({ revealLeft, options: makeNumeralOptions(hidden, 4) })
   }
 
   const pickHidden = (v: number) => {
-    if (disabled || !confirmStep || cut === null) return
+    if (disabled || answered || !confirmStep || cut === null) return
     const hidden = confirmStep.revealLeft ? total - cut : cut
-    onResolve(v === hidden, { givenAnswer: v })
+    setPicked(v)
+    resolve(v === hidden, { givenAnswer: v })
   }
+  // the hidden part, shown once named correctly
+  const shownHidden = solved && cut !== null && confirmStep ? (confirmStep.revealLeft ? total - cut : cut) : null
 
   const dotsInLeft = cut ?? 0
 
@@ -133,15 +147,19 @@ function SplitsBuildItComponent({ question, onResolve, disabled, scene }: Exerci
           : tierId === 'gericht'
             ? <><span style={{ color: refuse }}>{cut}</span> en <span style={{ color: pop }}>{total - cut}</span></>
             : confirmStep?.revealLeft
-              ? <><span style={{ color: refuse }}>{cut}</span> en <span style={{ color: pop }}>?</span></>
-              : <><span style={{ color: refuse }}>?</span> en <span style={{ color: pop }}>{total - cut}</span></>
+              ? <><span style={{ color: refuse }}>{cut}</span> en <span style={{ color: pop }}>{shownHidden ?? '?'}</span></>
+              : <><span style={{ color: refuse }}>{shownHidden ?? '?'}</span> en <span style={{ color: pop }}>{total - cut}</span></>
         }
       </div>
       </ExerciseStage>
 
-      {/* Open-tier confirm: name the hidden part */}
-      {confirmStep && (
-        <ChoiceButtons options={confirmStep.options} onPick={pickHidden} disabled={disabled} tokens={scene?.tokens} />
+      {/* Open-tier confirm: name the hidden part. Its space is held from the
+          start (convention L); gericht has no buttons at all. */}
+      {tierId !== 'gericht' && (
+        <Reserve show={!!confirmStep}>
+          <ChoiceButtons options={confirmStep?.options ?? [1, 2, 3, 4]} onPick={pickHidden}
+            disabled={disabled || answered || !confirmStep} picked={picked} solved={solved} tokens={tokens} />
+        </Reserve>
       )}
     </div>
   )
@@ -160,6 +178,13 @@ const SplitsBuildIt: ExerciseDefinition<SplitsBuildItMeta> = {
       'At gericht, cuts a split with the right total but the wrong sizes (e.g. 1|4 when 2 en 3 was asked).',
     ],
     progression: 'open (cut anywhere, then read back the split you made — production and naming in one loop) → gericht (cut a specific split on request, either order accepted). Free production narrows into guided production.',
+  },
+  // Retry: the same total and (gericht) the same split to make.
+  retryStable: ['total', 'parts'],
+  correctStatement: q => {
+    const { tierId, total, parts, cut } = q.meta
+    if (tierId === 'gericht') return splitText(total, parts[0], parts[1])
+    return cut !== undefined ? splitText(total, cut, total - cut) : null
   },
   generateMeta(operandA, operandB, score) {
     const tierId = pickTier(TIERS, score).id
