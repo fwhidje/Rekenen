@@ -121,7 +121,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'splits-som-match and rekenverhaal skip them (no picture or story for "nothing arrives"). ' +
     'Weights are initial guesses pending playtesting.',
   '+1-2-tot-10':
-    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Built Nov 2026, gated, never played by a child; every weight is a first guess. ' +
     'A number-row skill: +1 is the next number, +2 one jump of two, now across the 5 and up to ' +
     '10. The meaning of + is known from tot 5, so the erbij action exercises are absent. Entry: ' +
     'numberline-jump (30 → 5) — the row itself, watched, then tapped, then with sparse labels — ' +
@@ -134,7 +134,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     '(+2 as a unit) and the landing is answered on the number strip — the cells are too small ' +
     'to tap. Turned-around sums are not served to the number line or the doosje.',
   '+3-4-tot-10':
-    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Built Nov 2026, gated, never played by a child; every weight is a first guess. ' +
     'Three or four is too far to count on safely, so this is the skill where the sum has to ' +
     'come from structure. huisje-som leads (35 → 10): the house of the family stands beside ' +
     'the sum, so "7 is 4 en 3" is read, not required — the split bands run alongside and are ' +
@@ -149,7 +149,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     '(som-in-stappen) is not used here: not in the Flemish sources read.',
   'optellen-tot-10': TODO,
   'dubbels-tot-10':
-    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Built Nov 2026, gated, never played by a child; every weight is a first guess. ' +
     'Five facts, a picture and a word. Unlocks from +1-2-tot-10, next to +3-4-tot-10, because ' +
     'the dubbels are the anchors the neighbouring sums are derived from. dubbel-spiegel owns ' +
     'the entry (45 → 8): a row and the same row again under a mirror line, with the sum ' +
@@ -208,7 +208,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'from 60 with the deel-geheel and aanvullen stories; snel-weten from 65, asking ' +
     'any view. Weights are initial guesses pending playtesting.',
   '-1-2-tot-10':
-    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Built Nov 2026, gated, never played by a child; every weight is a first guess. ' +
     'Mirror of +1-2-tot-10, leaning harder on the number line: the backward row above 5 is the ' +
     'weak spot, and numberline-jump-back (30 → 6) is where it gets practised. doosje (25 → 5) ' +
     'hides the whole, so stepping back from the number on the lid is the only route; flits-som ' +
@@ -218,7 +218,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'rekenverhaal and snel-weten. About 30% of the draws refresh the differences within 5. ' +
     'The tot-10 line works as for +: one bow, the landing answered on the number strip.',
   '-3-4-tot-10':
-    'PLAN (Nov 2026) — wired with first-guess weights, never played; the skill is not open. ' +
+    'Built Nov 2026, gated, never played by a child; every weight is a first guess. ' +
     'Counting back three or four is the weakest counting there is, so the difference comes ' +
     'from the family. huisje-som leads (35 → 10): "9 is 4 en 5, dus 9 − 4 = 5", the house given. ' +
     'omkeer-som comes early (from 15, 20 at 40): 5 + 4 = 9, dus 9 − 4 — the sum the child knows ' +
