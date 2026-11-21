@@ -32,9 +32,9 @@ import { opGlyph, opColor, equationText } from './opDisplay'
 // closure is the check.
 
 const TIERS: ExerciseTier[] = [
-  { id: 'kijk',     minScore: 0,  label: 'eerst kijken', description: 'The box starts open: the child sees the group inside, then the lid closes and the others arrive (or leave). The number on the lid has just been seen as a quantity. Answer by choice.' },
-  { id: 'dicht',    minScore: 35, label: 'dicht',        description: 'The box is closed from the start — the lid\'s numeral alone stands for the group. Answer by choice.' },
-  { id: 'intikken', minScore: 65, label: 'intikken',     description: 'Closed box, typed answer — production instead of recognition.' },
+  { id: 'kijk',     minScore: 0,  label: 'eerst kijken', description: 'The box starts open: the others walk in (or out) one by one, the whole result is visible for a moment, then the lid closes with a "?" on it. A demonstration of the story; answer by choice.' },
+  { id: 'dicht',    minScore: 35, label: 'dicht',        description: 'The box is closed from the start, the lid says how many are in it. The others walk into (or out of) the closed box one by one, then the lid\'s number becomes "?". Answer by choice.' },
+  { id: 'intikken', minScore: 65, label: 'intikken',     description: 'As dicht, typed answer — production instead of recognition.' },
 ]
 
 interface DoosjeMeta {
@@ -45,6 +45,22 @@ interface DoosjeMeta {
 
 const ITEM = 30
 const GAP = 6
+const OUTSIDE_H = ITEM + 4   // the row under the box
+const STAGE_GAP = 8          // between the box and that row
+
+// ─── Timeline (ms) — the knobs for tuning ──────────────────────────────────────
+// Each step waits its delay, then:
+//   1 box (with its group / its number) + the first number of the sum
+//   2 "+ b" / "− b"; the arrivals stand under the box (−: nothing outside yet)
+//   3 … 2+b  one creature at a time goes in (+) or comes out (−)
+//   3+b      the lid closes (kijk) and its number becomes "?"
+//   4+b      "= ?" — input unlocks
+const START_MS = 300
+const LOOK_MS = { kijk: 900, dicht: 500 }      // the box alone, before anyone moves
+const MOVE_MS = 650                            // one creature to the next
+const FLY_MS = 550                             // one creature's trip (≤ MOVE_MS)
+const HOLD_MS = { kijk: 900, dicht: 350 }      // after the last trip: kijk shows the result
+const ASK_MS = 400
 
 function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<DoosjeMeta>) {
   const { operandA, operandB, answer, op, meta } = question
@@ -54,29 +70,42 @@ function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseCompo
   const Counter = scene?.Counter
   const minus = op === '-'
   const typed = meta.tierId === 'intikken'
-  // anything but the two closed tiers peeks first (also unknown ids from old records)
+  // anything but the two closed tiers shows the box open (also unknown ids from old records)
   const peek = meta.tierId !== 'dicht' && !typed
+  const pace = peek ? 'kijk' : 'dicht'
 
   const [input, setInput] = useState('')
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
-  // kijk:  [box open, a] → [lid closes] → [the others + "op b"] → ["= ?"]
-  // dicht: [box closed, a]              → [the others + "op b"] → ["= ?"]
-  const { step, complete } = useReveal(peek ? [300, 1500, 600, 500] : [300, 600, 500], question)
+  const delays = [START_MS, LOOK_MS[pace], ...Array.from({ length: operandB }, () => MOVE_MS), FLY_MS + HOLD_MS[pace], ASK_MS]
+  const { step, complete } = useReveal(delays, question)
   const showBox = step >= 1
-  const lidClosed = peek ? step >= 2 : true
-  const showOthers = step >= (peek ? 3 : 2)
-  const showEqTail = complete
+  const showOthers = step >= 2
+  const moved = Math.max(0, Math.min(step - 2, operandB))   // creatures that have set off
+  const shut = step >= 3 + operandB                         // the lid is on, with "?"
 
-  // What the box holds, when it can be seen: the start group while peeking,
-  // the result once solved (the arrivals went in / the leavers are out).
-  const open = solved || !lidClosed
-  const inside = solved ? answer : operandA
-  // Positions reserved for the largest group the box ever shows.
+  // The box is open while the kijk tier shows it, and again once solved.
+  const open = solved || (peek && !shut)
+  // Places inside the box: the largest group it ever holds.
   const capacity = minus ? operandA : operandA + operandB
-  const boxInner = fiveRowSize(capacity, ITEM, GAP)
-  // '+': the arrivals stand outside until they go in (solved). '−': the leavers stay out.
-  const othersVisible = showOthers && !(solved && !minus)
+  const inner = fiveRowSize(capacity, ITEM, GAP)
+  const boxW = inner.width + 32
+  const boxH = inner.height + 34
+  // How many creatures the box holds at this moment.
+  const insideNow = solved ? answer : minus ? operandA - moved : operandA + moved
+
+  // Where place k inside the box is, seen from the centre of creature i of the
+  // row under it — the vector a creature travels (in) or comes from (out).
+  const rowW = operandB * ITEM + Math.max(0, operandB - 1) * GAP
+  const trip = (i: number, k: number) => {
+    const slotX = (k % 5) * (ITEM + GAP) + ITEM / 2 - inner.width / 2
+    const slotY = Math.floor(k / 5) * (ITEM + GAP) + ITEM / 2 - inner.height / 2
+    const ownX = i * (ITEM + GAP) + ITEM / 2 - rowW / 2
+    const up = boxH / 2 + STAGE_GAP + OUTSIDE_H / 2
+    return { dx: slotX - ownX, dy: slotY - up }
+  }
+  // +: arrival i takes place a + i.  −: leaver i leaves from the back, place a − 1 − i.
+  const placeOf = (i: number) => (minus ? operandA - 1 - i : operandA + i)
 
   const handleKey = (key: string) => {
     if (disabled || answered || !complete) return
@@ -90,16 +119,33 @@ function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseCompo
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
+      <style>{`
+        @keyframes doosje-in {
+          0%   { transform: none; opacity: 1; }
+          70%  { opacity: 1; }
+          100% { transform: translate(var(--dx), var(--dy)) scale(.75); opacity: 0; }
+        }
+        @keyframes doosje-pop {
+          0%   { transform: scale(.4); opacity: 0; }
+          70%  { transform: scale(1.2); opacity: 1; }
+          100% { transform: none; }
+        }
+        @keyframes doosje-out {
+          0%   { transform: translate(var(--dx), var(--dy)) scale(.75); opacity: 0; }
+          30%  { opacity: 1; }
+          100% { transform: none; opacity: 1; }
+        }
+      `}</style>
       <ExerciseTitle tokens={tokens}>{minus ? 'Hoeveel zitten er nog in?' : 'Hoeveel zijn er nu?'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 24px', gap: 8 }}>
+      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 24px', gap: STAGE_GAP }}>
         {/* Equation — built up by the reveal, always visible once assembled */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 32, height: 44 }}>
           <span style={{ color: tokens.accentText, opacity: showBox ? 1 : 0, transition: 'opacity .3s' }}>{operandA}</span>
           <span style={{ color: glyphColor, opacity: showOthers ? 1 : 0, transition: 'opacity .3s' }}>{opGlyph(op)}</span>
           <span style={{ color: tokens.pop, opacity: showOthers ? 1 : 0, transition: 'opacity .3s' }}>{operandB}</span>
-          <span style={{ color: ink, opacity: showEqTail ? 0.4 : 0, fontSize: 27, transition: 'opacity .3s' }}>=</span>
-          <span style={{ opacity: showEqTail ? 1 : 0, transition: 'opacity .3s', display: 'inline-flex' }}>
+          <span style={{ color: ink, opacity: complete ? 0.4 : 0, fontSize: 27, transition: 'opacity .3s' }}>=</span>
+          <span style={{ opacity: complete ? 1 : 0, transition: 'opacity .3s', display: 'inline-flex' }}>
             {typed
               ? <AnswerSlot value={solved ? answer : input} solved={solved} size={44} tokens={tokens} />
               : <span style={{ color: tokens.accentText }}>{solved ? answer : '?'}</span>}
@@ -110,19 +156,31 @@ function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseCompo
             the lid is a cover that fades — nothing changes size. */}
         <div style={{
           position: 'relative', boxSizing: 'border-box', marginTop: 22,
-          width: boxInner.width + 32, height: boxInner.height + 34,
+          width: boxW, height: boxH,
           border: `2.5px solid ${ink}`, borderRadius: '4px 4px 12px 12px', background: tokens.cream,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           opacity: showBox ? 1 : 0, transition: 'opacity .3s',
         }}>
-          <FiveRow n={inside} total={capacity} item={ITEM} gap={GAP} renderItem={() => creature(ITEM)} />
-          {/* the lid: says how many went in — a known quantity, not a countable one */}
+          {/* every place drawn; a creature fades in as an arrival lands on it,
+              or out as a leaver sets off from it */}
+          <FiveRow n={capacity} item={ITEM} gap={GAP} renderItem={k => (
+            <div style={{
+              opacity: k < insideNow ? 1 : 0,
+              transition: minus ? 'opacity .25s' : `opacity .25s ${Math.round(FLY_MS * 0.6)}ms`,
+            }}>{creature(ITEM)}</div>
+          )} />
+          {/* the lid: says how many are in the box — until the others have
+              gone in (or out); then that number is no longer true: "?" */}
           <div style={{
             position: 'absolute', inset: 0, borderRadius: '2px 2px 9px 9px', background: tokens.paperMid,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Fredoka One, cursive', fontSize: 36, color: ink,
-            opacity: open ? 0 : 1, transition: 'opacity .45s ease',
-          }}>{operandA}</div>
+            fontFamily: 'Fredoka One, cursive', fontSize: 36, color: shut ? tokens.accentText : ink,
+            opacity: open ? 0 : 1, transition: 'opacity .45s ease, color .2s',
+          }}>
+            <span key={shut ? 'q' : 'n'} style={{ animation: shut && !peek ? 'doosje-pop .35s ease-out' : undefined }}>
+              {shut ? '?' : operandA}
+            </span>
+          </div>
           {/* the lid's rim: sits on the box, tips up when the box is open
               (a transform — it takes no space and moves nothing else) */}
           <div style={{
@@ -134,18 +192,35 @@ function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseCompo
           }} />
         </div>
 
-        {/* The others: arriving (+, arrow into the box) or having left (−, arrow out) */}
-        <div style={{
-          height: ITEM + 4, display: 'flex', alignItems: 'center', gap: 10,
-          opacity: othersVisible ? 1 : 0, transition: 'opacity .35s',
-        }}>
-          <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 30, lineHeight: 1, color: glyphColor }}>{minus ? '↓' : '↑'}</span>
-          <FiveRow n={operandB} item={ITEM} gap={GAP} renderItem={() => creature(ITEM)} />
+        {/* The others. +: they stand here and go into the box one by one.
+            −: they come out of the box one by one and stay here. */}
+        <div style={{ height: OUTSIDE_H, display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 1 }}>
+          <span style={{
+            fontFamily: 'Fredoka One, cursive', fontSize: 30, lineHeight: 1, color: glyphColor,
+            // +: gone with the last arrival (nothing left to point at); −: stays with the leavers
+            opacity: showOthers && (minus || !shut) ? 1 : 0, transition: 'opacity .35s',
+          }}>{minus ? '↓' : '↑'}</span>
+          <FiveRow n={operandB} item={ITEM} gap={GAP} renderItem={i => {
+            const { dx, dy } = trip(i, placeOf(i))
+            const going = i < moved
+            const style: React.CSSProperties & Record<'--dx' | '--dy', string> = {
+              '--dx': `${dx}px`, '--dy': `${dy}px`,
+              opacity: minus ? 0 : showOthers ? 1 : 0,
+              transition: 'opacity .35s',
+              animation: going ? `${minus ? 'doosje-out' : 'doosje-in'} ${FLY_MS}ms ease-in-out forwards` : undefined,
+            }
+            // + once solved: they are in the box (the open box shows them)
+            if (!minus && solved) { style.animation = undefined; style.opacity = 0 }
+            return <div style={style}>{creature(ITEM)}</div>
+          }} />
+          {/* the arrow keeps its width on the other side, so the row stays centred */}
+          <span style={{ width: 18 }} />
         </div>
       </ExerciseStage>
 
       {typed
-        ? <NumPad onKey={handleKey} disabled={disabled || answered || !complete} tokens={scene?.tokens} />
+        // compact: a two-row box (tot 10) and the keypad must fit a 375 × 667 screen
+        ? <NumPad compact onKey={handleKey} disabled={disabled || answered || !complete} tokens={scene?.tokens} />
         : <ChoiceButtons options={meta.options} onPick={v => resolve(v === answer, { givenAnswer: v })} disabled={disabled || answered || !complete} tokens={scene?.tokens} />}
     </div>
   )
@@ -163,7 +238,7 @@ const Doosje: ExerciseDefinition<DoosjeMeta> = {
       'Off-by-one at the first step from the lid\'s number.',
       'For −: answering how many left instead of how many are still inside.',
     ],
-    progression: 'kijk: the box is seen open first, so the lid\'s numeral is anchored to a group that was just visible. dicht (35): closed from the start — the numeral alone carries the quantity. intikken (65): the same, typed. On a correct answer the lid lifts and the box shows the result.',
+    progression: 'kijk: the whole story is shown — the box open, the others walking in (or out), the result visible for a moment — then the lid closes with "?": a demonstration that anchors what the box means. dicht (35): closed from the start; the others walk into (or out of) the closed box and the lid\'s number becomes "?" — the result can only be reached by counting on (or back) from the number in the sum. intikken (65): the same, typed. On a correct answer the lid lifts and the box shows the result.',
   },
   retryStable: ['sceneIndex'],
   correctStatement: q => equationText(q.op, q.operandA, q.operandB),
