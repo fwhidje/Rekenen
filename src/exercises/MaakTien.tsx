@@ -8,7 +8,7 @@ import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { FiveRow } from '../presentation/components/FiveRow'
 import { HandSVG } from '../presentation/components/HandSVG'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -72,7 +72,7 @@ function MaakTienComponent({ question, onResolve, disabled, scene }: ExerciseCom
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Maak 10!</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: flits && flash.seen && !flash.showing && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         <div style={{ position: 'relative', padding: 8, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
           {meta.variant === 'vingers' ? (
             <HandSVG n={g} size={176} />
@@ -110,17 +110,6 @@ function MaakTienComponent({ question, onResolve, disabled, scene }: ExerciseCom
           <span style={{ fontSize: 26, opacity: 0.6 }}>is</span>
           <span style={{ color: tokens.accentText }}>10</span>
         </div>
-
-        {flits && (
-          <Reserve show={flash.seen && !flash.showing && !answered}>
-            <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-              style={{
-                padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-                background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-                cursor: 'pointer', userSelect: 'none',
-              }}>↻ Nog eens kijken</button>
-          </Reserve>
-        )}
       </ExerciseStage>
 
       {useChoice

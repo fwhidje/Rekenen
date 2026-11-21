@@ -118,7 +118,7 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
       <ExerciseTitle tokens={tokens}>{phase === 'answer' ? 'Hoeveel zag je?' : 'Vlug kijken!'}</ExerciseTitle>
 
       {/* One stage across all phases, its picture area of fixed height */}
-      <ExerciseStage tokens={tokens} style={{ padding: typed ? '12px 24px' : undefined }}>
+      <ExerciseStage tokens={tokens} replay={{ show: phase === 'answer' && !answered && !disabled, onClick: () => { setRetries(r => r + 1); startFlash() } }} style={{ padding: typed ? '12px 24px' : undefined }}>
         <div style={{ height: AREA_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {phase === 'ready' && (
             <button onClick={startFlash} disabled={disabled}
@@ -153,12 +153,6 @@ function SubitiseFlashComponent({ question, onResolve, disabled, scene }: Exerci
               onPick={v => { setPicked(v); resolve(v) }}
               disabled={disabled || answered || phase !== 'answer'}
               picked={picked} solved={solved} tokens={tokens} />}
-        <button onClick={() => { setRetries(r => r + 1); startFlash() }} disabled={disabled || answered}
-          style={{
-            padding: '8px 22px', fontFamily: 'Patrick Hand, cursive', fontSize: 16,
-            background: paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-            cursor: disabled ? 'default' : 'pointer', opacity: disabled || answered ? 0.45 : 1, userSelect: 'none',
-          }}>↻ Nog eens</button>
       </Reserve>
     </div>
   )

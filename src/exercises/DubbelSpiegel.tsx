@@ -58,7 +58,7 @@ function DubbelSpiegelComponent({ question, onResolve, disabled, scene }: Exerci
   const { solved, answered, resolve } = useClosure(question, onResolve)
   // As fill-vis: [first row + n] → [mirror (row at zien) + "+ n"] → ["= ?"].
   // Without a picture the sum is there at once.
-  const { step, complete } = useReveal(woord ? [] : zien ? [350, 800, 650] : [350, 650, 600], question)
+  const { step, complete, replay } = useReveal(woord ? [] : zien ? [350, 800, 650] : [350, 650, 600], question)
   const mirrorShown = solved || (zien && step >= 2)
   const eqShown = woord ? 3 : Math.min(step, 3)
 
@@ -78,7 +78,7 @@ function DubbelSpiegelComponent({ question, onResolve, disabled, scene }: Exerci
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>{vraag ? `Wat is het dubbel van ${n}?` : `Het dubbel van ${n}`}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: !woord && complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         {!woord && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
             {row(step >= 1)}

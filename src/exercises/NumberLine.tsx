@@ -75,7 +75,7 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
   const [picked, setPicked] = useState<number | null>(null)
 
   // Staged opening reveal for sprong-zien only; other tiers show instantly.
-  const { step, complete: revealDone } = useReveal(isZien ? REVEAL_DELAYS : [], question)
+  const { step, complete: revealDone, replay: replayReveal } = useReveal(isZien ? REVEAL_DELAYS : [], question)
   const showA = !isZien || step >= 1
   const showLine = showA
   const showOpB = !isZien || step >= 2
@@ -96,6 +96,9 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
     const t = setTimeout(() => setHop(h => (wide ? jumpN : h + 1)), hop === 0 ? HOP_START_DELAY : HOP_STEP_MS)
     return () => clearTimeout(t)
   }, [isZien, revealDone, hop, jumpN, question, wide])
+
+  // ↻: the reveal and the jump again
+  const replay = () => { setHop(0); replayReveal() }
 
   const tappable = !isZien && !wide
   const [tapped, setTapped] = useState(false)   // the "tap me" pulse stops after the first tap
@@ -124,7 +127,7 @@ function NumberLineComponent({ question, onResolve, disabled, scene }: ExerciseC
 
       <ExerciseTitle tokens={tokens}>{op === '-' ? 'Spring terug' : 'Spring naar het antwoord'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ width: '100%', maxWidth: 380, boxSizing: 'border-box' }}>
+      <ExerciseStage tokens={tokens} replay={{ show: isZien && revealDone && animDone && !resolved && !disabled, onClick: replay }} style={{ width: '100%', maxWidth: 380, boxSizing: 'border-box' }}>
         {/* Equation — built by the reveal, then always visible */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38, minHeight: 46 }}>
           <span style={{ color: tokens.accentText, opacity: showA ? 1 : 0, transition: 'opacity .3s' }}>{operandA}</span>

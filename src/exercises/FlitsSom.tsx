@@ -8,7 +8,7 @@ import { makeSumOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { FiveRow, fiveRowSize } from '../presentation/components/FiveRow'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -119,7 +119,7 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
       {/* fixed width: the band does not resize when its text changes */}
       <ExerciseTitle tokens={tokens} style={{ minWidth: 180 }}>{canAnswer ? 'Hoeveel is het?' : 'Kijk goed!'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 12 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: flash.seen && !flash.showing && !hold && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 12 }}>
         {/* The sum — always visible */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38, height: 48 }}>
           <span style={{ color: tokens.accentText }}>{operandA}</span>
@@ -148,16 +148,6 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
             opacity: open ? 0 : 1, transition: 'opacity .25s', pointerEvents: 'none',
           }}>?</div>
         </div>
-
-        {/* Look again — there from the start as reserved space, so nothing moves */}
-        <Reserve show={flash.seen && !flash.showing && !hold && !answered}>
-          <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-            style={{
-              padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-              background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-              cursor: 'pointer', userSelect: 'none',
-            }}>↻ Nog eens kijken</button>
-        </Reserve>
       </ExerciseStage>
 
       {useStrip

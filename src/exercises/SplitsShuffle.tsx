@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { noteReplay } from '../presentation/replays'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
@@ -116,16 +117,19 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
   const [pickedTF, setPickedTF] = useState<number | null>(null)
   const [pickedOpt, setPickedOpt] = useState<number | null>(null)
   const locked = disabled || answered || !settled
+  // ↻ (convention V): the split again
+  const [run, setRun] = useState(0)
+  const replay = () => { noteReplay(question); setRun(r => r + 1) }
 
   useEffect(() => {
     setPhase('initial')
     setSettled(false)
-    setPickedTF(null); setPickedOpt(null)
+    setPickedTF(null); setPickedOpt(null)   // a replay comes before any answer
     setDots(buildDots(total, finalParts))
     const t1 = setTimeout(() => setPhase('split'), PHASE_DELAY)
     const t2 = setTimeout(() => setSettled(true), SETTLE_DELAY)
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [question, total, finalParts])
+  }, [question, total, finalParts, run])
 
   const resolveBinary = (v: number) => {
     if (locked) return
@@ -151,7 +155,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
       <ExerciseTitle tokens={scene?.tokens} style={{ minHeight: 30 }}>{header}</ExerciseTitle>
 
       {/* Stage: greyed original on top, the split animates below it */}
-      <ExerciseStage tokens={tokens} style={{ padding: '10px 12px' }}>
+      <ExerciseStage tokens={tokens} replay={{ show: settled && !answered && !disabled, onClick: replay }} style={{ padding: '10px 12px' }}>
       <div style={{
         position: 'relative', width: CONTAINER_W, height: CONTAINER_H,
         overflow: 'hidden',

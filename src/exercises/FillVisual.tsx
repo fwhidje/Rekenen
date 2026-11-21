@@ -85,7 +85,7 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
   const legacyScene = meta.visualKind === 'scene' ? pickScene(meta.sceneIndex) : null
 
   const hasVisual = meta.revealKind === 'visual' && meta.visualKind !== 'none'
-  const { step, complete } = useReveal(hasVisual ? VISUAL_DELAYS : [], question)
+  const { step, complete, replay } = useReveal(hasVisual ? VISUAL_DELAYS : [], question)
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // One flag per beat, shared by the picture and the sum.
@@ -122,7 +122,7 @@ function FillVisualComponent({ question, onResolve, disabled, scene }: ExerciseC
      <ExerciseTitle tokens={tokens}>{title}</ExerciseTitle>
 
      {/* Visual + equation share one stage; the numpad sits outside it. */}
-     <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box' }}>
+     <ExerciseStage tokens={tokens} replay={{ show: hasVisual && complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box' }}>
 
       {/* Picture row — the semantic action, beat for beat with the sum below */}
       {hasVisual && (

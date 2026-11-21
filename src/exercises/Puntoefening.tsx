@@ -9,7 +9,7 @@ import { NumberStrip } from '../ui/components/NumberStrip'
 import { FiveRow } from '../presentation/components/FiveRow'
 import { Equation, eqText } from '../presentation/components/Equation'
 import type { EqHole, EqSign } from '../presentation/components/Equation'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -85,7 +85,7 @@ function PuntoefeningComponent({ question, onResolve, disabled, scene }: Exercis
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Welk getal ontbreekt?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: flits && flash.seen && !flash.showing && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         {hasPicture && (
           <div style={{ position: 'relative', padding: '8px 12px', opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
             {/* the whole as places: the given part is there, the rest is still to come */}
@@ -108,17 +108,6 @@ function PuntoefeningComponent({ question, onResolve, disabled, scene }: Exercis
         )}
 
         <Equation {...eq} hole={hole} solved={solved} shown={step >= 2 ? 3 : 0} size={40} tokens={tokens} />
-
-        {flits && (
-          <Reserve show={flash.seen && !flash.showing && !answered}>
-            <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-              style={{
-                padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-                background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-                cursor: 'pointer', userSelect: 'none',
-              }}>↻ Nog eens kijken</button>
-          </Reserve>
-        )}
       </ExerciseStage>
 
       {useChoice

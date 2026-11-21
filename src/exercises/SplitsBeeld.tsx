@@ -8,7 +8,7 @@ import { makeSumOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { FiveRow, fiveRowSize } from '../presentation/components/FiveRow'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -81,7 +81,7 @@ function SplitsBeeldComponent({ question, onResolve, disabled, scene }: Exercise
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>En het andere deel?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: flits && flash.seen && !flash.showing && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         <div style={{ position: 'relative', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 14, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
           {/* the whole, laid out for all its places from the start */}
           <FiveRow n={t} item={ITEM} gap={GAP} style={{ width: box.width, height: box.height }} renderItem={(i) => (
@@ -118,17 +118,6 @@ function SplitsBeeldComponent({ question, onResolve, disabled, scene }: Exercise
           <span style={{ fontSize: 26, opacity: 0.6 }}>en</span>
           <span style={{ color: solved ? tokens.confirm : tokens.accentText }}>{solved ? m : '?'}</span>
         </div>
-
-        {flits && (
-          <Reserve show={flash.seen && !flash.showing && !answered}>
-            <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-              style={{
-                padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-                background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-                cursor: 'pointer', userSelect: 'none',
-              }}>↻ Nog eens kijken</button>
-          </Reserve>
-        )}
       </ExerciseStage>
 
       {useChoice

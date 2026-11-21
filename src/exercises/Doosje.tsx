@@ -78,7 +78,7 @@ function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseCompo
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   const delays = [START_MS, LOOK_MS[pace], ...Array.from({ length: operandB }, () => MOVE_MS), FLY_MS + HOLD_MS[pace], ASK_MS]
-  const { step, complete } = useReveal(delays, question)
+  const { step, complete, replay } = useReveal(delays, question)
   const showBox = step >= 1
   const showOthers = step >= 2
   const moved = Math.max(0, Math.min(step - 2, operandB))   // creatures that have set off
@@ -138,7 +138,7 @@ function DoosjeComponent({ question, onResolve, disabled, scene }: ExerciseCompo
       `}</style>
       <ExerciseTitle tokens={tokens}>{minus ? 'Hoeveel zitten er nog in?' : 'Hoeveel zijn er nu?'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 24px', gap: STAGE_GAP }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 24px', gap: STAGE_GAP }}>
         {/* Equation — built up by the reveal, always visible once assembled */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 32, height: 44 }}>
           <span style={{ color: tokens.accentText, opacity: showBox ? 1 : 0, transition: 'opacity .3s' }}>{operandA}</span>

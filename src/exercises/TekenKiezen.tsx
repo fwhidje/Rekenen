@@ -58,7 +58,7 @@ function TekenKiezenComponent({ question, onResolve, disabled, scene }: Exercise
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // film: [first group] → [what happens] → [the sum]; otherwise the sum at once
-  const { step, complete } = useReveal(film ? [350, 1100, 900] : [350], question)
+  const { step, complete, replay } = useReveal(film ? [350, 1100, 900] : [350], question)
   const happened = !film || step >= 2
 
   const pick = (s: EqSign) => {
@@ -118,7 +118,7 @@ function TekenKiezenComponent({ question, onResolve, disabled, scene }: Exercise
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Plus of min?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: film && complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         {film && <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>{picture()}</div>}
         {zin && (
           <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 21, color: ink, lineHeight: 1.2, textAlign: 'center' }}>

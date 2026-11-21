@@ -69,7 +69,7 @@ function NumberlineGapComponent({ question, onResolve, disabled, scene }: Exerci
   useEffect(() => { setPicked(null) }, [question])
   const { solved, answered, resolve } = useClosure(question, onResolve)
   // [sum] → [line with its two marks] → [bow]
-  const { step, complete } = useReveal([350, 500, 600], question)
+  const { step, complete, replay } = useReveal([350, 500, 600], question)
   const bowShown = (drawBow && step >= 3) || solved
 
   const pick = (v: number) => {
@@ -87,7 +87,7 @@ function NumberlineGapComponent({ question, onResolve, disabled, scene }: Exerci
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>{meta.variant === 'verschil' ? 'Hoe ver uit elkaar?' : 'Hoe groot is de sprong?'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ width: '100%', maxWidth: 380, boxSizing: 'border-box', padding: '14px 16px', gap: 8 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ width: '100%', maxWidth: 380, boxSizing: 'border-box', padding: '14px 16px', gap: 8 }}>
         <Equation {...eq} hole={hole} solved={solved} shown={step >= 1 ? 3 : 0} size={38} tokens={tokens} />
 
         <div style={{ width: '100%', maxWidth: cells * MAX_CELL + (cells - 1) * CELL_GAP, opacity: step >= 2 ? 1 : 0, transition: 'opacity .4s' }}>

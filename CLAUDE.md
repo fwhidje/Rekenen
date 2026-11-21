@@ -342,10 +342,11 @@ A skill's `op` is one of `'+' | '-' | 'split' | 'count' | 'half'`. Each skill ha
 | `src/presentation/scenes.ts` | SCENES array + pickScene / pickColors helpers |
 | `src/presentation/feedback.ts` | `FEEDBACK` config — process-praise copy + tone/timing incl. `closureMs` (locked feedback constraints); `wrongFeedbackText` — the one place the wrong overlay's text is decided |
 | `src/presentation/useClosure.ts` | `useClosure(question, onResolve)` — how every exercise hands in its answer: correct → completed state held `closureMs`, wrong → at once |
-| `src/presentation/useReveal.ts` | Hook for timed sequential reveal |
+| `src/presentation/useReveal.ts` | Hook for timed sequential reveal; `replay` plays it again (convention V) |
+| `src/presentation/replays.ts` | Per-question replay ledger (`noteReplay` / `replaysOf`); `useClosure` adds the count to the answer as `replayCount` |
 | `src/presentation/useFlash.ts` | Hook for an aid shown for a set time and then covered in place (`showing`, `seen`, `replay`, `replays`; `hold` keeps it visible on a retry) |
 | `src/presentation/components/FiveRow.tsx` | The 5-row: the layout for any quantity that changes (convention Q); DotGroup and SceneGroup are built on it |
-| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later, `heldStyle`, the held look of a chosen card during the closure, and `ExerciseTitle`'s `warning`, a notice drawn on the band without resizing it), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
+| `src/presentation/components/` | DotGroup, SceneGroup (both with `crossed` wegnemen prop; SceneGroup renders the theme `Counter` when given, emoji otherwise), CountChip, **ExerciseFrame** (`ExerciseTitle` cream band + `ExerciseStage` paper card — the shared exercise shell, theme-invariant `paper`/`cream`; see Unified exercise shell below — plus `Reserve`, space held for content that appears later, `heldStyle`, the held look of a chosen card during the closure, `ExerciseTitle`'s `warning`, a notice drawn on the band without resizing it, and `ExerciseStage`'s `replay` → `ReplayButton`, the ↻ badge of convention V), **AnswerSlot** (the boxed "?" of an equation: empty / typed / solved) |
 | `src/state/types.ts` | Profile, AppState, SkillState (with `archived`) |
 | `src/state/storage.ts` | localStorage load/save, `recordAnswer()` with cascade |
 | `src/state/deviceSettings.ts` | Per-device preferences (not per profile, never synced) — today only the ⚑ review-flag button toggle |
@@ -382,7 +383,7 @@ Every exercise wears the same chrome, from `presentation/components/ExerciseFram
 
 ## Exercise behaviour conventions (locked)
 
-Five rules every exercise follows, so the child meets the same behaviour everywhere. W, R, C and (roughly) Q are enforced by `src/exercises/conventions.test.ts`; L needs a browser.
+Six rules every exercise follows, so the child meets the same behaviour everywhere. W, R, C, V and (roughly) Q are enforced by `src/exercises/conventions.test.ts`; L needs a browser.
 
 **W — wrong answer: the overlay shows the correct fact, as the child should read it.**
 - Decided in one place: `wrongFeedbackText(question, def)` (`presentation/feedback.ts`), used by KidMode and DebugMode.
@@ -425,9 +426,18 @@ Five rules every exercise follows, so the child meets the same behaviour everywh
 - Test proxy: a converted exercise file contains no `flexWrap` — quantities come from the shared components.
 - A deliberate, known consequence of the concrete tiers: where the picture is on screen the answer can be counted. That is the intended support for the entry of `+` and especially `−`; the symbolic exercises take over through the middle of the curve.
 
+**V — replay: an animation can be seen again (Nov 2026, from the playtest).**
+- An exercise that animates before the answer — a timed reveal (`useReveal`), a flash (`useFlash`), a film or a split of its own — passes `replay={{ show, onClick }}` to its `<ExerciseStage>`. The stage draws the shared ↻ badge (`ReplayButton`) on its top-right corner, outside the content: it takes no space and nothing moves when it appears.
+- `show` only once the animation has finished and before the question is answered (`!answered && !disabled`). During a replay the inputs are locked again, as on the first showing.
+- `onClick` is the reveal's own `replay` (`useReveal` returns one), a flash's `replay`, or a small function that also resets the exercise's own animation state (the number line's hop, verschil-paren's pairing) and calls it.
+- Every replay is noted against the question (`presentation/replays.ts`; `useReveal` and `useFlash` do it themselves, a custom timeline calls `noteReplay`). `useClosure` adds the count to the answer as `replayCount` — an exercise never threads it through.
+- Not offered where the child performs the action (`erbij-tap`, `wegneem-tap`, `count-and-tap`), where `rekenverhaal`'s ▶ already acts the story out, or where a timer is feedback after the answer. The tripwire lists the exemptions (`NO_REPLAY`).
+
+**Reveal: a number appears together with its picture (Nov 2026).** Where a sum is built on a timer next to a picture, each beat shows a group *and* its number at once: the first group with the first number (and, on a number line, the line with its start mark), then the sign with the second group and the second number (the jump, the mirror row), then "= ?". Never all pictures first and the numbers after. `fill-vis` is the reference.
+
 **Warnings that are not errors.** A repeated split (`splits-vrij` nog-een, twee-huisjes) and a duplicate left number (`splits-alle`) are refused with a notice on the title band (`<ExerciseTitle warning=…>`) and another try. They are never counted wrong and never resolve the question.
 
-**Audit status.** Every registered exercise follows W / R / C / L / Q: the `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` exercises since the first round, the getalbegrip and splitsen-herken exercises since a second round (Nov 2026; L measured in a browser at both sizes). `PENDING_AUDIT` in `conventions.test.ts` is empty and stays empty: a new exercise is built to the conventions from the start.
+**Audit status.** Every registered exercise follows W / R / C / L / Q (and V since Nov 2026): the `+1-2-tot-5`, `-1-2-tot-5` and `splitsen-noteren-5` exercises since the first round, the getalbegrip and splitsen-herken exercises since a second round (Nov 2026; L measured in a browser at both sizes). `PENDING_AUDIT` in `conventions.test.ts` is empty and stays empty: a new exercise is built to the conventions from the start.
 
 ## Adding a new exercise type
 
@@ -550,7 +560,7 @@ npm run build     # production build
   - **Exception — `rekenverhaal`, top tier only.** At `tekst` (80) the story hides the equation on the first attempt (the whole point is to read the words and extract the math). The tier below (`tekst-som`, 60) shows the sum forming alongside the sentences, and the retry (`question.isRetry`) shows it with the film. Justified because showing the equation would let the child skip reading.
   - **Exception — `dubbel-spiegel`, top tier only (Nov 2026).** At `vraag` (75) only "Wat is het dubbel van 4?" is asked; the sum 4 + 4 = 8 appears with the answer. The word alone must carry the fact. The tier below (`woord`, 50) and the retry show the sum.
   - These are the only sanctioned exceptions. A new one needs the same shape: top tier only, the tier below and the retry show the equation, and a reason why showing it would defeat the exercise.
-- **Reveal exercises build the equation piece by piece on a timer.** The sequence is: visual group A → `+` → visual group B → number A → `+` → number B → `= ?`. The child watches, input is locked until complete.
+- **Reveal exercises build the equation piece by piece on a timer.** The sequence is: group A with number A → sign, group B with number B → `= ?` (a number appears together with its picture — see the reveal rule under the conventions). The child watches, input is locked until complete; the ↻ shows it again (convention V).
 - **Reveal detail is each exercise's own concern.** Which steps are included and their timing depends on exercise type and score. High score → no reveal, equation is instant.
 - **The visual is an illustration, not a gate.** Dots/scenes appear alongside their number, not instead of it.
 

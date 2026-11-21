@@ -65,7 +65,7 @@ function VerschilParenComponent({ question, onResolve, disabled, scene }: Exerci
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // [rows + first number] → pairing (paren only) → ["− small"] → ["= ?"]
-  const { step } = useReveal([400, 500], question)
+  const { step, replay: replayReveal } = useReveal([400, 500], question)
   const rowsShown = step >= 1
   const pairing = paren && step >= 2
   useEffect(() => {
@@ -75,6 +75,8 @@ function VerschilParenComponent({ question, onResolve, disabled, scene }: Exerci
   }, [pairing, pairs, small, question])
   const pairsDone = !paren || (pairing && pairs >= small)
   const complete = step >= 2 && pairsDone
+  // ↻: the rows and the pairing again
+  const replay = () => { setPairs(0); replayReveal() }
 
   const pick = (v: number) => {
     if (disabled || answered || !complete) return
@@ -123,7 +125,7 @@ function VerschilParenComponent({ question, onResolve, disabled, scene }: Exerci
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens} style={{ fontSize: 21 }}>{title}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         {getallen ? (
           <div style={{ display: 'flex', gap: 36, opacity: rowsShown ? 1 : 0, transition: 'opacity .3s' }}>
             {first === 'big' ? <>{numberTile(big, meta.colorA)}{numberTile(small, meta.colorB)}</> : <>{numberTile(small, meta.colorB)}{numberTile(big, meta.colorA)}</>}

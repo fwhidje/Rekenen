@@ -8,7 +8,7 @@ import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { Huisje } from '../presentation/components/Huisje'
 import type { HuisjeCell } from '../presentation/components/Huisje'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -152,7 +152,7 @@ function HuisjeSomComponent({ question, onResolve, disabled, scene }: ExerciseCo
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>{erna ? 'Hoeveel is het?' : 'Kijk naar het huisje!'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 20px', gap: 8 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: flits && flash.seen && !flash.showing && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 20px', gap: 8 }}>
         <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
           <Huisje room={62} total={fam.total}
             roof={show(fam.total)} left={show(fam.left)} right={show(fam.right)}
@@ -163,18 +163,6 @@ function HuisjeSomComponent({ question, onResolve, disabled, scene }: ExerciseCo
           {sumRow(fam.sums[0], 0)}
           {two && sumRow(fam.sums[1], 1)}
         </div>
-
-        {/* huisje-flits: look again — space reserved from the start */}
-        {flits && (
-          <Reserve show={flash.seen && !flash.showing && !answered}>
-            <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-              style={{
-                padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-                background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-                cursor: 'pointer', userSelect: 'none',
-              }}>↻ Nog eens kijken</button>
-          </Reserve>
-        )}
       </ExerciseStage>
 
       {useChoice

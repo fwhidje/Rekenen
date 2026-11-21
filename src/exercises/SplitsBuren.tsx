@@ -54,7 +54,7 @@ function SplitsBurenComponent({ question, onResolve, disabled, scene }: Exercise
   useEffect(() => { setPicked(null) }, [question])
   const { solved, answered, resolve } = useClosure(question, onResolve)
   // [given split] → [the bead crosses, the asked split]
-  const { step, complete } = useReveal([400, 1400], question)
+  const { step, complete, replay } = useReveal([400, 1400], question)
   const second = step >= 2
 
   const pick = (v: number) => {
@@ -86,7 +86,7 @@ function SplitsBurenComponent({ question, onResolve, disabled, scene }: Exercise
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>En deze splitsing?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
         {picture && (
           <div style={{ position: 'relative', width: rowW, height: BEAD + 14, marginBottom: 6, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
             {Array.from({ length: t }, (_, i) => (
