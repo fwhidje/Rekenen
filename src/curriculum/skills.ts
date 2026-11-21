@@ -155,6 +155,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'count',
+    range: 5,
     unlockedBy: [],
     unlocks: ['splitsen-herken-5', 'getalbegrip-10'],
     subsumedBy: 'getalbegrip-10',
@@ -181,6 +182,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'count',
+    range: 10,
     unlockedBy: ['getalbegrip-5'],
     unlocks: ['splitsen-6-7', 'splitsen-8-9', '+1-2-tot-10', '-1-2-tot-10'],
     subsumedBy: null,
@@ -211,6 +213,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'split',
+    range: 5,
     unlockedBy: ['getalbegrip-5'],
     unlocks: ['splitsen-noteren-5', '+1-2-tot-5', '-1-2-tot-5', 'splitsen-6-7', 'splitsen-8-9'],
     // Never archived: no later split skill contains the totals 2–5 (the 6–7 and
@@ -243,6 +246,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'split',
+    range: 5,
     unlockedBy: ['splitsen-herken-5'],
     unlocks: [],
     subsumedBy: null,  // see splitsen-herken-5
@@ -277,6 +281,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'split',
+    range: 10,
     unlockedBy: ['splitsen-herken-5', 'getalbegrip-10'],
     unlocks: ['tienvrienden', 'optellen-tot-10', 'aftrekken-wegnemen-10'],
     subsumedBy: null,
@@ -310,6 +315,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'split',
+    range: 10,
     unlockedBy: ['splitsen-herken-5', 'getalbegrip-10'],
     unlocks: ['optellen-tot-10', 'aftrekken-wegnemen-10'],
     subsumedBy: null,
@@ -340,6 +346,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: 'split',
+    range: 10,
     unlockedBy: ['splitsen-6-7'],
     unlocks: [],
     subsumedBy: null,
@@ -371,6 +378,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: '+',
+    range: 5,
     unlockedBy: ['splitsen-herken-5'],
     unlocks: ['optellen-tot-5'],
     subsumedBy: 'optellen-tot-5',
@@ -408,6 +416,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: '+',
+    range: 5,
     unlockedBy: ['+1-2-tot-5'],
     unlocks: ['+1-2-tot-10'],
     subsumedBy: 'optellen-tot-10',
@@ -439,6 +448,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: '+',
+    range: 10,
     unlockedBy: ['optellen-tot-5', 'getalbegrip-10'],
     unlocks: ['+3-4-tot-10', 'dubbels-tot-10'],
     subsumedBy: 'optellen-tot-10',
@@ -477,11 +487,12 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: '+',
+    range: 10,
     unlockedBy: ['+1-2-tot-10'],
     unlocks: ['optellen-tot-10'],
     subsumedBy: 'optellen-tot-10',
     applicableExercises: [
-      EX.huisjeSom, EX.flitsSom, EX.buurSom, EX.doosje,
+      EX.huisjeSom, EX.flitsSom, EX.buurSom, EX.doosje, EX.numberlineJump,
       EX.choice, EX.tf, EX.fillPlain,
       EX.rekenverhaal, EX.snelWeten,
     ],
@@ -506,6 +517,7 @@ export const SKILLS: SkillDefinition[] = [
       pitfalls: [],
     },
     op: '+',
+    range: 10,
     unlockedBy: ['+3-4-tot-10', 'splitsen-6-7', 'splitsen-8-9'],
     unlocks: ['helften-tot-10'],
     subsumedBy: null,
@@ -538,6 +550,7 @@ export const SKILLS: SkillDefinition[] = [
       ],
     },
     op: '+',
+    range: 10,
     // From +1-2-tot-10, in parallel with +3-4-tot-10 (was: after optellen-tot-10).
     // Not a prerequisite of +3-4: buur-som states the dubbel it starts from.
     unlockedBy: ['+1-2-tot-10'],
@@ -561,6 +574,7 @@ export const SKILLS: SkillDefinition[] = [
       pitfalls: [],
     },
     op: 'half',
+    range: 10,
     unlockedBy: ['optellen-tot-10'],
     unlocks: [],
     subsumedBy: null,
@@ -588,6 +602,7 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'wegnemen',
     op: '-',
+    range: 5,
     unlockedBy: ['splitsen-herken-5'],
     unlocks: ['aftrekken-wegnemen-5'],
     subsumedBy: 'aftrekken-wegnemen-5',
@@ -624,12 +639,13 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'wegnemen',
     op: '-',
+    range: 5,
     unlockedBy: ['-1-2-tot-5', 'optellen-tot-5'],
     unlocks: ['aftrekken-verschil-5', 'getalfamilie-5', '-1-2-tot-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
       EX.flitsSom, EX.huisjeSom, EX.wegnemenCrossedOut,
-      EX.omkeerSom, EX.tekenKiezen,
+      EX.omkeerSom,
       EX.choice, EX.tf, EX.fillPlain,
       EX.splitsSomMatch, EX.rekenverhaal, EX.snelWeten,
     ],
@@ -654,12 +670,13 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'verschil',
     op: '-',
+    range: 5,
     unlockedBy: ['aftrekken-wegnemen-5'],
     unlocks: ['aftrekken-verschil-10'],
     subsumedBy: 'aftrekken-verschil-10',
     applicableExercises: [
       EX.verschilParen, EX.numberlineGap,
-      EX.tekenKiezen, EX.rekenverhaal,
+      EX.rekenverhaal,
     ],
     // The facts of wegnemen, tagged as a comparison so that op-generic exercises
     // show two groups, not a take-away. A difference of 0 (evenveel) stays in,
@@ -684,6 +701,7 @@ export const SKILLS: SkillDefinition[] = [
     // A family is a split problem (whole = partA + partB); the exercise chooses
     // which member is asked and in which notation.
     op: 'split',
+    range: 5,
     unlockedBy: ['aftrekken-wegnemen-5'],
     unlocks: ['getalfamilie-10'],
     subsumedBy: 'getalfamilie-10',
@@ -712,6 +730,7 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'wegnemen',
     op: '-',
+    range: 10,
     unlockedBy: ['aftrekken-wegnemen-5', 'getalbegrip-10'],
     unlocks: ['-3-4-tot-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
@@ -742,12 +761,13 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'wegnemen',
     op: '-',
+    range: 10,
     unlockedBy: ['-1-2-tot-10'],
     unlocks: ['aftrekken-wegnemen-10'],
     subsumedBy: 'aftrekken-wegnemen-10',
     applicableExercises: [
       EX.huisjeSom, EX.flitsSom, EX.omkeerSom,
-      EX.wegnemenCrossedOut, EX.tekenKiezen,
+      EX.wegnemenCrossedOut, EX.numberlineJumpBack,
       EX.choice, EX.tf, EX.fillPlain,
       EX.rekenverhaal, EX.snelWeten,
     ],
@@ -766,6 +786,7 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'wegnemen',
     op: '-',
+    range: 10,
     unlockedBy: ['-3-4-tot-10', 'splitsen-6-7', 'splitsen-8-9'],
     unlocks: ['aftrekken-verschil-10', 'getalfamilie-10'],
     subsumedBy: null,
@@ -793,12 +814,13 @@ export const SKILLS: SkillDefinition[] = [
     },
     semanticForm: 'verschil',
     op: '-',
+    range: 10,
     unlockedBy: ['aftrekken-wegnemen-10', 'aftrekken-verschil-5'],
     unlocks: [],
     subsumedBy: null,
     applicableExercises: [
       EX.verschilParen, EX.numberlineGap,
-      EX.tekenKiezen, EX.rekenverhaal,
+      EX.rekenverhaal,
     ],
     generate: () => ({ ...sampleFact(reweight(enumerateMinus(10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).filter(([f]) => f.whole >= 2), f => (f.whole === f.part ? 0.3 : 1))), form: 'verschil' as const }),
   },
@@ -814,6 +836,7 @@ export const SKILLS: SkillDefinition[] = [
       pitfalls: [],
     },
     op: 'split',
+    range: 10,
     unlockedBy: ['aftrekken-wegnemen-10', 'getalfamilie-5'],
     unlocks: [],
     subsumedBy: null,
@@ -829,3 +852,11 @@ export const SKILLS: SkillDefinition[] = [
 export const SKILLS_BY_ID: Record<string, SkillDefinition> = Object.fromEntries(
   SKILLS.map(s => [s.id, s])
 )
+
+// The number range a question belongs to — 0–5 or 0–10 — taken from its
+// skill, not from the numbers asked: in a tot-10 skill a question about 4
+// still gets the 0–10 line. Unknown ids (old records) fall back to the
+// numbers.
+export function skillRange(skillId: string, fallbackNumber = 10): 5 | 10 {
+  return SKILLS_BY_ID[skillId]?.range ?? (fallbackNumber <= 5 ? 5 : 10)
+}

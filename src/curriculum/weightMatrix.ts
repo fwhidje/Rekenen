@@ -146,8 +146,9 @@ const SKILL_TABLES: Record<string, SkillTable> = {
 
   // aftrekken-wegnemen-5: the shape of optellen-tot-5 with support for longer.
   // The counting-back exercises (wegneem-tap, doosje, numberline-jump-back) are
-  // absent on purpose. New here: omkeer-som (the reverse of a known sum) and
-  // teken-kiezen (the sign is read). snel-weten from 65.
+  // absent on purpose. New here: omkeer-som (the reverse of a known sum).
+  // snel-weten from 65. (teken-kiezen moved to the getalfamilie skills, Nov
+  // 2026: in a − skill the sign to choose is always −.)
   // Initial guesses, to be tuned with playtesting.
 
   'aftrekken-wegnemen-5': {
@@ -155,7 +156,6 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'flits-som':             [[0, 30], [45, 15], [70, 0]],
     'wegnemen-crossed-out':  [12, 5],
     'omkeer-som':            [[25, 0], [50, 18], [100, 10]],
-    'teken-kiezen':          [[20, 0], [40, 10], [100, 6]],
     'choice':                [10, 4],
     'splits-som-match':      [[30, 0], [50, 12], [100, 8]],
     'tf':                    [[40, 0], [65, 12], [100, 12]],
@@ -170,7 +170,6 @@ const SKILL_TABLES: Record<string, SkillTable> = {
 
   'aftrekken-verschil-5': {
     'verschil-paren':  [[0, 60], [60, 35], [100, 25]],
-    'teken-kiezen':    [[15, 0], [35, 12], [100, 8]],
     'numberline-gap':  [[35, 0], [55, 18], [100, 15]],
     'rekenverhaal':    [[60, 0], [75, 20], [100, 25]],
   },
@@ -183,7 +182,7 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'familie-sommen':          [[0, 25], [40, 30], [100, 20]],
     'splits-ontbreken-rechts': [[20, 12], [100, 8]],
     'numberline-gap':          [[20, 0], [40, 12], [100, 8]],
-    'teken-kiezen':            [[30, 6], [100, 6]],
+    'teken-kiezen':            [[0, 6], [40, 10], [100, 8]],
     'rekenverhaal':            [[60, 0], [75, 12], [100, 12]],
     'snel-weten':              [[65, 0], [85, 20], [100, 25]],
   },
@@ -225,14 +224,16 @@ const SKILL_TABLES: Record<string, SkillTable> = {
   // ── ±3 / ±4 tot 10 ───────────────────────────────────────────────────────────
   // Too far to count: the sum comes from structure. huisje-som leads (the house
   // is given, so the split need not be known yet), flits-som shows the sum in
-  // the 5-structure for a moment. No number line — hopping three or four cells
-  // is the counting these skills leave behind. doosje keeps a small, fading
-  // share for + as the fallback. PLANNED weights (Nov 2026): never played.
+  // the 5-structure for a moment. The number line comes back as a picture, not
+  // a count: the jump of 3 or 4 is one bow, with 5 and 10 drawn stronger, so
+  // 5 + 4 is read as "from 5 to 9" (playtest, Nov 2026). doosje keeps a small,
+  // fading share for + as the fallback. PLANNED weights (Nov 2026): never played.
 
   '+3-4-tot-10': {
     'huisje-som':    [[0, 35], [60, 25], [100, 10]],
     'flits-som':     [[0, 30], [45, 15], [70, 0]],
     'buur-som':      [[20, 0], [45, 18], [100, 10]],
+    'numberline-jump': [[0, 10], [40, 15], [100, 6]],
     'doosje':        [[0, 10], [50, 0]],
     'choice':        [[0, 12], [60, 6], [100, 4]],
     'tf':            [[30, 0], [60, 12], [100, 12]],
@@ -245,8 +246,8 @@ const SKILL_TABLES: Record<string, SkillTable> = {
     'huisje-som':            [[0, 35], [60, 25], [100, 10]],
     'flits-som':             [[0, 28], [45, 15], [70, 0]],
     'omkeer-som':            [[15, 0], [40, 20], [100, 12]],
+    'numberline-jump-back':  [[0, 10], [40, 15], [100, 6]],
     'wegnemen-crossed-out':  [10, 4],
-    'teken-kiezen':          [[20, 0], [40, 8], [100, 5]],
     'choice':                [10, 4],
     'tf':                    [[40, 0], [65, 12], [100, 12]],
     'fill-plain':            [[40, 0], [70, 18], [100, 18]],

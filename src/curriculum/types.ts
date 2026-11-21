@@ -64,6 +64,8 @@ export interface SkillDefinition {
   intent: string           // one-line plain-language tagline for documentation
   didactics: SkillDidactics
   op: Operation            // primary operation this skill teaches
+  range: 5 | 10            // the numbers this skill works in: lines, number strips and
+                           // option sets span 0–range, whatever the number asked
   semanticForm?: SemanticForm  // subtraction flavour, when applicable
   unlockedBy: string[]
   unlocks: string[]

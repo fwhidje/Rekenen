@@ -21,7 +21,7 @@ function questionFor(skillIdx: number, exId: string, score: number): ExerciseQue
   const def = getExercise(exId)
   const problem = skill.generate({ score })
   const { a, b } = problemOperands(problem)
-  if (def.isCompatible && !def.isCompatible(a, b)) return null
+  if (def.isCompatible && !def.isCompatible(a, b, problem, skill.id)) return null
   return {
     exerciseId: exId,
     skillId: skill.id,
@@ -30,7 +30,7 @@ function questionFor(skillIdx: number, exId: string, score: number): ExerciseQue
     operandB: b,
     op: problem.op,
     answer: computeAnswer(problem),
-    meta: def.generateMeta(a, b, score, problem),
+    meta: def.generateMeta(a, b, score, problem, { skillId: skill.id }),
   }
 }
 

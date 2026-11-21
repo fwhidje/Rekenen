@@ -70,6 +70,9 @@ export interface ExerciseDidactics {
 export interface MetaContext<Meta = Record<string, unknown>> {
   // The original question's meta, on a retry (see generateMeta).
   retryOf?: Meta
+  // The skill the question is served for — for what depends on the skill and
+  // not on the numbers asked, such as the length of a number line (skillRange).
+  skillId?: string
 }
 
 // ─── Definition ───────────────────────────────────────────────────────────────
@@ -116,7 +119,9 @@ export interface ExerciseDefinition<Meta = Record<string, unknown>> {
   // the generated (a, b) pair doesn't satisfy it. Use to exclude degenerate
   // inputs (e.g. zero-splits for frame-based exercises).
   // `problem` is passed so a guard can depend on the operation (a − 0 vs a + 0).
-  isCompatible?: (a: number, b: number, problem?: Problem) => boolean
+  // `skillId` is passed so a guard can depend on the skill (the number line
+  // takes jumps of 3 and 4 only in the ±3 / ±4 skills).
+  isCompatible?: (a: number, b: number, problem?: Problem, skillId?: string) => boolean
 
   Component: ComponentType<ExerciseComponentProps<Meta>>
 }

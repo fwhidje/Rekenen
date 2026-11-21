@@ -5,6 +5,7 @@ import { NATURE_TOKENS } from '../presentation/tokens'
 import { useEffect, useState } from 'react'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useClosure } from '../presentation/useClosure'
+import { skillRange } from '../curriculum/skills'
 
 const TIERS: ExerciseTier[] = [
   { id: 'labelled', minScore: 0,  label: 'met getallen', description: 'Every cell is labelled — the child matches the numeral to its position.' },
@@ -94,9 +95,12 @@ const NumberlinePlace: ExerciseDefinition<NumberlinePlaceMeta> = {
   // The answer is a place, not a number to read back — neutral message; the
   // retry (all cells labelled) is the help.
   correctStatement: () => null,
-  generateMeta(_a, _b, score) {
+  generateMeta(_a, _b, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
-    return { showLabels: tier.id === 'labelled', max: _a <= 5 ? 5 : 10, tierId: tier.id }
+    // The line is as long as the skill's numbers, not the number asked: in a
+    // tot-10 skill a 3 is placed on 0–10 too (playtest, Nov 2026).
+    const max = ctx?.retryOf?.max ?? skillRange(ctx?.skillId ?? '', _a)
+    return { showLabels: tier.id === 'labelled', max, tierId: tier.id }
   },
   Component: NumberlinePlaceComponent,
 }
