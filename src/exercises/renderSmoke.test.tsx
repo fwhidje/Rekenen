@@ -27,7 +27,7 @@ describe('every applicable exercise renders at every score band', () => {
           for (let d = 0; d < DRAWS; d++) {
             const problem = skill.generate({ score })
             const { a, b } = problem ? problemOperands(problem) : { a: 1, b: 1 }
-            if (def.isCompatible && !def.isCompatible(a, b, problem)) continue
+            if (def.isCompatible && !def.isCompatible(a, b, problem, skill.id)) continue
             const question: ExerciseQuestion = {
               exerciseId: exId,
               skillId: skill.id,
@@ -36,7 +36,7 @@ describe('every applicable exercise renders at every score band', () => {
               operandB: b,
               op: problem.op,
               answer: computeAnswer(problem),
-              meta: def.generateMeta(a, b, score, problem),
+              meta: def.generateMeta(a, b, score, problem, { skillId: skill.id }),
             }
             const Component = def.Component
             const html = renderToString(

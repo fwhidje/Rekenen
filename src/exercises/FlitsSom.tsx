@@ -8,7 +8,7 @@ import { makeSumOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { FiveRow, fiveRowSize } from '../presentation/components/FiveRow'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -110,16 +110,21 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
   }
 
   // The picture's box is sized for the picture; the cover lies over it.
-  const cols = minus ? Math.min(operandA, 5) : Math.min(Math.max(operandA, 1), 5) + Math.min(Math.max(operandB, 1), 5)
+  // In the dubbels skill a dubbel is drawn as a row and its mirror image (as in
+  // dubbel-spiegel), one under the other — only there (playtest, Nov 2026).
+  const mirror = question.skillId === 'dubbels-tot-10' && !minus && operandA === operandB && operandA > 0
+  const cols = mirror ? Math.min(operandA, 5) : minus ? Math.min(operandA, 5) : Math.min(Math.max(operandA, 1), 5) + Math.min(Math.max(operandB, 1), 5)
   const size = dotSize(cols)
-  const rowH = fiveRowSize(Math.max(operandA, operandB, 1), size.item, size.gap).height
+  const rowH = mirror
+    ? 2 * fiveRowSize(operandA, size.item, size.gap).height + 12
+    : fiveRowSize(Math.max(operandA, operandB, 1), size.item, size.gap).height
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       {/* fixed width: the band does not resize when its text changes */}
       <ExerciseTitle tokens={tokens} style={{ minWidth: 180 }}>{canAnswer ? 'Hoeveel is het?' : 'Kijk goed!'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 12 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: flash.seen && !flash.showing && !hold && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 12 }}>
         {/* The sum — always visible */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Fredoka One, cursive', fontSize: 38, height: 48 }}>
           <span style={{ color: tokens.accentText }}>{operandA}</span>
@@ -131,7 +136,13 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
 
         {/* The picture, and the cover that lies over it most of the time */}
         <div style={{ position: 'relative', padding: '10px 14px', minHeight: rowH, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          {minus ? (
+          {mirror ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+              <Group n={operandA} color={meta.colorA} ink={ink} {...size} />
+              <div style={{ alignSelf: 'stretch', height: 0, borderTop: `2px dashed ${ink}66` }} />
+              <Group n={operandB} color={meta.colorA} ink={ink} {...size} />
+            </div>
+          ) : minus ? (
             <Group n={operandA} color={meta.colorA} crossed={operandB} ink={ink} {...size} />
           ) : (
             <>
@@ -148,16 +159,6 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
             opacity: open ? 0 : 1, transition: 'opacity .25s', pointerEvents: 'none',
           }}>?</div>
         </div>
-
-        {/* Look again — there from the start as reserved space, so nothing moves */}
-        <Reserve show={flash.seen && !flash.showing && !hold && !answered}>
-          <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-            style={{
-              padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-              background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-              cursor: 'pointer', userSelect: 'none',
-            }}>↻ Nog eens kijken</button>
-        </Reserve>
       </ExerciseStage>
 
       {useStrip

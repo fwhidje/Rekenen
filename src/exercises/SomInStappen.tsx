@@ -79,7 +79,7 @@ function SomInStappenComponent({ question, onResolve, disabled, scene }: Exercis
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // [sum] → [the split of the second term] → [step 1] → [step 2]
-  const { step, complete } = useReveal(zien ? [350, 800, 900, 800] : [350, 500], question)
+  const { step, complete, replay } = useReveal(zien ? [350, 800, 900, 800] : [350, 500], question)
   const firstKnown = zien ? step >= 2 : phase === 1 || solved
   const waiting = zelf && phase === 0 && picked !== null   // first step answered, second not yet shown
 
@@ -136,7 +136,7 @@ function SomInStappenComponent({ question, onResolve, disabled, scene }: Exercis
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>{drie ? 'Hoeveel is het?' : 'Eerst naar 5!'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 20px', gap: 6 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: !waiting && complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '12px 20px', gap: 6 }}>
         {zien && <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s', marginBottom: 4 }}>{picture()}</div>}
 
         {drie ? (

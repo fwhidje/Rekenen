@@ -7,6 +7,7 @@ import { ExerciseTitle, ExerciseStage } from '../presentation/components/Exercis
 import { DOT_POS } from '../presentation/diePatterns'
 import { useClosure } from '../presentation/useClosure'
 import { splitText } from './opDisplay'
+import { KlaarButton } from '../ui/components/KlaarButton'
 import type { ExerciseQuestion } from './types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -27,7 +28,7 @@ const TIERS: ExerciseTier[] = [
   { id: 'die-both',   minScore: 0,  label: 'beide stippen',  description: 'Drag both die-parts into the colour-coded rooms — always correct, an orientation to the house shape.' },
   { id: 'die-one',    minScore: 24, label: 'één stip',       description: 'One die-part given; drag the matching die for the other room.' },
   { id: 'die-numaid', minScore: 50, label: 'getal + stip',   description: 'One numeral part given with a die aid in the roof; drag the missing numeral.' },
-  { id: 'num-two',    minScore: 74, label: 'twee getallen',  description: 'Two-row numeral splitshuisje; drag numerals to complete both splits. Most abstract.' },
+  { id: 'num-two',    minScore: 74, label: 'twee getallen',  description: 'Two-row numeral splitshuisje; drag numerals to complete both splits, tap a placed one to take it back, ✓ Klaar hands both in. Most abstract.' },
 ]
 
 interface SplitsHerkenHuisjeMeta {
@@ -134,7 +135,7 @@ function Roof({ total, operandA, colourA, colourB, stage, ink, paper }: {
 
 // ─── Room cell ────────────────────────────────────────────────────────────────
 
-function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, paper, refCb, tint, held }: {
+function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, paper, refCb, tint, held, onTap }: {
   value: number; colour: string
   isEmpty: boolean; isGiven: boolean
   givenStyle: 'die' | 'num'
@@ -142,9 +143,11 @@ function RoomCell({ value, colour, isEmpty, isGiven, givenStyle, isLeft, ink, pa
   refCb: (el: HTMLDivElement | null) => void
   tint: boolean   // colour tint on empty cell (stage 1)
   held: string | null   // closure: a filled room takes this tint once solved
+  onTap?: () => void     // twee getallen: tapping a placed tile sends it back
 }) {
   return (
-    <div ref={refCb} style={{
+    <div ref={refCb} onClick={onTap} style={{
+      cursor: onTap ? 'pointer' : 'default',
       width: ROOM, height: ROOM,
       background: held ?? ((isEmpty && tint) ? `${colour}25` : paper),
       transition: 'background .15s',
@@ -257,14 +260,25 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         }
         return
       }
-      if (roomId !== 'row0-right' && roomId !== 'row1-right') return
-      const nextR0 = roomId === 'row0-right' ? optVal : options[placed['row0-right'] ?? -1]
-      const nextR1 = roomId === 'row1-right' ? optVal : options[placed['row1-right'] ?? -1]
-      if (next['row0-right'] !== undefined && next['row1-right'] !== undefined) {
-        const b0 = total - givenRows[0], b1 = total - givenRows[1]
-        resolve(nextR0 === b0 && nextR1 === b1)
-      }
+      // Two rows: nothing is handed in on the drop. A placed tile can be
+      // tapped back to the tray, and ✓ Klaar hands in both (playtest, Nov
+      // 2026: the second drop used to submit at once, with no way to correct).
     }
+  }
+
+  const twoRows = stage === 'num-two' && givenRows !== null
+  const bothFilled = placed['row0-right'] !== undefined && placed['row1-right'] !== undefined
+  function unplace(roomId: string) {
+    if (disabled || answered || placed[roomId] === undefined) return
+    const next = { ...placed }
+    delete next[roomId]
+    setPlaced(next)
+  }
+  function klaar() {
+    if (disabled || answered || !twoRows || !bothFilled || !givenRows) return
+    const r0 = options[placed['row0-right']], r1 = options[placed['row1-right']]
+    const b0 = total - givenRows[0], b1 = total - givenRows[1]
+    resolve(r0 === b0 && r1 === b1, { tapCount: 2 })
   }
 
   function handlePointerDown(e: React.PointerEvent, idx: number, value: number) {
@@ -314,6 +328,7 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
         isLeft={isLeft} ink={ink} paper={paper}
         refCb={el => { roomRefs.current[roomId] = el }}
         tint={tint}
+        onTap={twoRows && hasPlaced && !answered ? () => unplace(roomId) : undefined}
       />
     )
   }
@@ -392,6 +407,10 @@ function SplitsHerkenHuisjeComponent({ question, onResolve, disabled, scene }: E
           })}
         </div>
       </ExerciseStage>
+
+      {/* Two rows: the child checks both and hands them in (the button is
+          there from the start, greyed until both rooms are filled). */}
+      {twoRows && <KlaarButton onClick={klaar} enabled={bothFilled && !answered && !disabled} tokens={scene?.tokens} />}
 
       {/* Floating drag ghost */}
       {drag && (

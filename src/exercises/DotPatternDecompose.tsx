@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { noteReplay } from '../presentation/replays'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
@@ -198,6 +199,9 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
   // step 3..: options fade in one by one, quicker cadence.
   // Same gap between b and first option as between a and b.
   const [step, setStep] = useState(0)
+  // ↻ (convention V): the reveal again
+  const [run, setRun] = useState(0)
+  const replay = () => { noteReplay(question); setRun(r => r + 1) }
   useEffect(() => {
     setStep(0)
     setPicked(null)
@@ -208,7 +212,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
       timers.push(setTimeout(() => setStep(3 + i), 3100 + i * 220))
     })
     return () => timers.forEach(clearTimeout)
-  }, [question, options])
+  }, [question, options, run])
 
   const showGiven     = step >= 1
   const showQ         = step >= 2
@@ -224,7 +228,7 @@ function DotPatternDecomposeComponent({ question, onResolve, disabled, scene }: 
       </ExerciseTitle>
 
       {/* Puzzle stage: total + given/? row */}
-      <ExerciseStage tokens={scene?.tokens} style={{ gap: 20 }}>
+      <ExerciseStage tokens={scene?.tokens} replay={{ show: fullyRevealed && !answered && !disabled, onClick: replay }} style={{ gap: 20 }}>
         {showTotalNum
           ? <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{

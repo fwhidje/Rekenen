@@ -218,7 +218,7 @@ export function rowToQuestion(row: EventRow, allowApprox: boolean): ReplayResult
     return { kind: 'impossible', reason: 'Wat er getoond werd is niet bewaard (oude opname, of te groot).' }
   }
   const def = getExercise(row.exercise_id)
-  const meta = def.generateMeta(row.operand_a, row.operand_b, row.score_before ?? 0, row.problem)
+  const meta = def.generateMeta(row.operand_a, row.operand_b, row.score_before ?? 0, row.problem, { skillId: row.skill_id ?? undefined })
   return { kind: 'approx', question: { ...base, meta } }
 }
 

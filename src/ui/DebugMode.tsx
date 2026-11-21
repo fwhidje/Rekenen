@@ -88,11 +88,11 @@ export function DebugMode({ onClose }: Props) {
     let problem = skill.generate({ score })
     for (let tries = 0; tries < 12 && def.isCompatible; tries++) {
       const o = problemOperands(problem)
-      if (def.isCompatible(o.a, o.b, problem)) break
+      if (def.isCompatible(o.a, o.b, problem, skill.id)) break
       problem = skill.generate({ score })
     }
     const { a, b } = problemOperands(problem)
-    const meta = def.generateMeta(a, b, score, problem)
+    const meta = def.generateMeta(a, b, score, problem, { skillId: skill.id })
     return { exerciseId, skillId: skill.id, problem, operandA: a, operandB: b, op: problem.op, answer: computeAnswer(problem), meta }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillId, score, exerciseId, qKey])

@@ -28,8 +28,10 @@ import { splitText } from './opDisplay'
 // A wrong answer comes back untimed, with the family's house on screen.
 
 // Extra time on top of the child's tap baseline. With the default baseline of
-// 1.5 s these give about 3 s and 2.3 s — the usual thresholds for "automatised".
-const MARGIN_MS = { rustig: 1500, vlot: 800 } as const
+// 1.5 s these give about 4 s and 3 s. Loosened after the playtest (Nov 2026,
+// was 1.5 s / 0.8 s): the stricter limits held a young child's correct answers
+// back too often — vlot now has rustig's former margin.
+const MARGIN_MS = { rustig: 2500, vlot: 1500 } as const
 
 const TIERS: ExerciseTier[] = [
   { id: 'met-huisje', minScore: 0,  label: 'met huisje', description: 'Not timed; the house of the family stands next to the fact, the asked place open. This tier is only met as the retry of a wrong answer — the exercise has no weight below 60.' },

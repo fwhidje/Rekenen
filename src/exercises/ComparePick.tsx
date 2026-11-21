@@ -9,10 +9,11 @@ import { useEffect, useState } from 'react'
 import { ExerciseTitle, ExerciseStage, heldStyle } from '../presentation/components/ExerciseFrame'
 import { FiveRow } from '../presentation/components/FiveRow'
 import { useClosure } from '../presentation/useClosure'
+import { skillRange } from '../curriculum/skills'
 
 const TIERS: ExerciseTier[] = [
-  { id: 'beeld', minScore: 0,  label: 'met beeld',   description: 'Anchor shown as numeral + counter group; the four options are counter groups (sizes vary so length is no cue). The relation is judged on visible quantities.' },
-  { id: 'getal', minScore: 60, label: 'enkel getal', description: 'Anchor and options as bare numerals — the relation judged symbolically.' },
+  { id: 'beeld', minScore: 0,  label: 'met beeld',   description: 'Title "Meer dan 3"; the anchor stands on the stage as a counter group; the four options are counter groups (sizes vary so length is no cue). The relation is judged on visible quantities.' },
+  { id: 'getal', minScore: 60, label: 'enkel getal', description: 'No stage: the title names the anchor ("Meer dan 3"), the options are bare numerals — the relation judged symbolically.' },
 ]
 
 type Relation = 'meer' | 'minder' | 'evenveel'
@@ -72,15 +73,17 @@ function ComparePickComponent({ question, onResolve, disabled, scene }: Exercise
         <span style={{ color: accentText }}>{relationWord}</span> {operandA}
       </ExerciseTitle>
 
-      {/* Anchor — on the exercise stage */}
-      <ExerciseStage tokens={tokens} style={{ flexDirection: 'row', gap: 14, padding: '12px 20px' }}>
-        <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: ink, lineHeight: 1 }}>
-          {operandA}
-        </div>
-        {style === 'beeld' && Counter && (
-          <CounterGroup n={operandA} Counter={Counter} size={30} gap={5} />
-        )}
-      </ExerciseStage>
+      {/* Anchor. met beeld: the anchor's group on the stage — its number is in
+          the title, so the stage shows the quantity only. enkel getal: no stage
+          at all; title and number buttons (playtest, Nov 2026: the stage
+          repeated the title's number). */}
+      {style === 'beeld' && (
+        <ExerciseStage tokens={tokens} style={{ flexDirection: 'row', gap: 14, padding: '12px 20px' }}>
+          {Counter
+            ? <CounterGroup n={operandA} Counter={Counter} size={30} gap={5} />
+            : <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 44, color: ink, lineHeight: 1 }}>{operandA}</div>}
+        </ExerciseStage>
+      )}
 
       {/* Options */}
       {style === 'getal' || !Counter ? (
@@ -129,7 +132,7 @@ const ComparePick: ExerciseDefinition<ComparePickMeta> = {
   correctStatement: q => `${q.meta.correctB} is ${q.meta.relation === 'evenveel' ? 'evenveel als' : q.meta.relation === 'meer' ? 'meer dan' : 'minder dan'} ${q.operandA}`,
   generateMeta(operandA, _b, score, _problem, ctx) {
     const tier = pickTier(TIERS, score)
-    const max = operandA <= 5 ? 5 : 10
+    const max = skillRange(ctx?.skillId ?? '', operandA)
     const prev = ctx?.retryOf
     if (prev) {
       return {

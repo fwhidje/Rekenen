@@ -8,7 +8,7 @@ import { makeSumOptions, numeralRangeMax } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { FiveRow, fiveRowSize } from '../presentation/components/FiveRow'
-import { ExerciseTitle, ExerciseStage, Reserve } from '../presentation/components/ExerciseFrame'
+import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useFlash } from '../presentation/useFlash'
 import { useClosure } from '../presentation/useClosure'
@@ -20,14 +20,21 @@ import { splitText } from './opDisplay'
 // parts. The recognition entry of the split bands — what the dice exercises
 // are for the totals up to 5 (dice stop at 6, and a part of 7 has no die).
 //
-// The picture carries less and less: both parts in view, then one part covered,
-// then the whole picture only for a moment.
+// The picture carries less and less: both parts in view, then the asked part
+// fades away while the child looks (it comes back with the answer), then the
+// whole picture only for a moment.
+//
+// Colour rule (CLAUDE.md): a number has the colour of its quantity — the given
+// part and its dots share one colour, the asked part ("?") and its dots the
+// other; the whole is ink.
 
 const FLASH_MS = 1500
+// vervaag: how long the asked part stays before it fades, and the fade itself
+const FADE_AFTER_MS = 1300
 
 const TIERS: ExerciseTier[] = [
   { id: 'zien',   minScore: 0,  label: 'beide delen', description: 'The whole in two colours; the child names the second colour\'s part. Choice.' },
-  { id: 'bedekt', minScore: 25, label: 'één deel bedekt', description: 'Only the given part is drawn; the other is under a cover whose size says nothing. The whole is known as a number. Number strip.' },
+  { id: 'vervaag', minScore: 25, label: 'deel vervaagt', description: 'The whole in two colours, then the asked part fades away ("7 is 4 en ?"); it comes back with the answer. The part is remembered, not counted. Number strip.' },
   { id: 'flits',  minScore: 50, label: 'flits',       description: 'The two-colour picture is shown briefly, then covered: the split is seen, not counted.' },
 ]
 
@@ -56,7 +63,7 @@ function SplitsBeeldComponent({ question, onResolve, disabled, scene }: Exercise
   const { t, g, m } = parts(question)
   const retry = !!question.isRetry
   const tier = meta.tierId
-  const bedekt = tier === 'bedekt' && !retry
+  const vervaag = tier === 'vervaag' && !retry
   const flits = tier === 'flits' && !retry
   const useChoice = tier === 'zien'
 
@@ -64,10 +71,11 @@ function SplitsBeeldComponent({ question, onResolve, disabled, scene }: Exercise
   useEffect(() => { setPicked(null) }, [question])
   const { solved, answered, resolve } = useClosure(question, onResolve)
   const { step, complete } = useReveal([350, 450], question)
-  const flash = useFlash(FLASH_MS, question, { start: flits && complete })
-  const canAnswer = complete && (!flits || (flash.seen && !flash.showing))
-  // which dots are drawn: all of them, unless one part is under the cover
-  const allShown = solved || !bedekt
+  // flits covers the whole picture after a moment; vervaag fades the asked part
+  const flash = useFlash(vervaag ? FADE_AFTER_MS : FLASH_MS, question, { start: (flits || vervaag) && complete })
+  const canAnswer = complete && (!(flits || vervaag) || (flash.seen && !flash.showing))
+  // the asked part is drawn unless it has faded (vervaag); it returns when solved
+  const askedShown = solved || !vervaag || !complete || flash.showing
   const covered = flits && !flash.showing && !solved
 
   const pick = (v: number) => {
@@ -81,25 +89,16 @@ function SplitsBeeldComponent({ question, onResolve, disabled, scene }: Exercise
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>En het andere deel?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: (flits || vervaag) && flash.seen && !flash.showing && !answered && !disabled, onClick: flash.replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         <div style={{ position: 'relative', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 14, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
           {/* the whole, laid out for all its places from the start */}
           <FiveRow n={t} item={ITEM} gap={GAP} style={{ width: box.width, height: box.height }} renderItem={(i) => (
             <div style={{
               width: ITEM - 4, height: ITEM - 4, borderRadius: '50%',
               background: i < g ? meta.colorA : meta.colorB,
-              opacity: i < g || allShown ? 1 : 0, transition: 'opacity .35s',
+              opacity: i < g || askedShown ? 1 : 0, transition: vervaag ? 'opacity .9s' : 'opacity .35s',
             }} />
           )} />
-          {/* bedekt: a cover of fixed size stands for the hidden part */}
-          {tier === 'bedekt' && !retry && (
-            <div style={{
-              width: 44, height: 44, boxSizing: 'border-box', borderRadius: 10, background: tokens.paperMid,
-              border: `2px dashed ${ink}66`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Fredoka One, cursive', fontSize: 24, color: `${ink}66`,
-              opacity: solved ? 0 : 1, transition: 'opacity .3s',
-            }}>?</div>
-          )}
           <div aria-hidden style={{
             position: 'absolute', inset: 0, borderRadius: 12, background: tokens.paperMid,
             border: `2px dashed ${ink}55`, boxSizing: 'border-box',
@@ -112,23 +111,12 @@ function SplitsBeeldComponent({ question, onResolve, disabled, scene }: Exercise
           display: 'flex', alignItems: 'baseline', gap: 9, fontFamily: 'Fredoka One, cursive', fontSize: 36, lineHeight: 1.3, color: ink,
           opacity: step >= 2 ? 1 : 0, transition: 'opacity .3s',
         }}>
-          <span style={{ color: tokens.accentText }}>{t}</span>
+          <span>{t}</span>
           <span style={{ fontSize: 26, opacity: 0.6 }}>is</span>
-          <span style={{ color: tokens.pop }}>{g}</span>
+          <span style={{ color: meta.colorA, WebkitTextStroke: `1px ${ink}` }}>{g}</span>
           <span style={{ fontSize: 26, opacity: 0.6 }}>en</span>
-          <span style={{ color: solved ? tokens.confirm : tokens.accentText }}>{solved ? m : '?'}</span>
+          <span style={{ color: solved ? tokens.confirm : meta.colorB, WebkitTextStroke: solved ? undefined : `1px ${ink}` }}>{solved ? m : '?'}</span>
         </div>
-
-        {flits && (
-          <Reserve show={flash.seen && !flash.showing && !answered}>
-            <button onClick={() => { if (!disabled && !answered) flash.replay() }}
-              style={{
-                padding: '6px 18px', fontFamily: 'Patrick Hand, cursive', fontSize: 17,
-                background: tokens.paper, color: ink, border: `2px solid ${ink}`, borderRadius: 14,
-                cursor: 'pointer', userSelect: 'none',
-              }}>↻ Nog eens kijken</button>
-          </Reserve>
-        )}
       </ExerciseStage>
 
       {useChoice
@@ -150,7 +138,7 @@ const SplitsBeeld: ExerciseDefinition<SplitsBeeldMeta> = {
       'Naming the whole or the given part (both are among the choice options).',
       'One off, from an unsure picture of the total next door.',
     ],
-    progression: 'zien: both parts in view. bedekt (25): one part under a cover of fixed size — the whole is a number now, the answer comes from knowing. flits (50): the two-colour picture for a moment only. A retry shows the whole picture, standing still.',
+    progression: 'zien: both parts in view. vervaag (25): the asked part fades away while the child looks and comes back with the answer — it has to be held in mind, not counted. flits (50): the two-colour picture for a moment only. A retry shows the whole picture, standing still.',
   },
   retryStable: ['given', 'colorA', 'colorB'],
   correctStatement: q => { const p = parts(q); return splitText(p.t, p.g, p.m) },

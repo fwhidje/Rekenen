@@ -54,14 +54,43 @@ export function ExerciseTitle({ children, tokens = NATURE_TOKENS, style, warning
 // The stage card — the one paper surface the exercise proper sits on. Callers
 // pass `style` to set width / minWidth / overflowX for wide content (number
 // lines, tables). Defaults match the reference exercises exactly.
-export function ExerciseStage({ children, tokens = NATURE_TOKENS, style }: PieceProps) {
+//
+// `replay`: the ↻ button of convention V — see the animation again. It sits on
+// the stage's top-right corner, outside the content, so it takes no space and
+// can appear and go without moving anything (convention L). Show it only when
+// the animation has finished and the question is not answered yet.
+export function ExerciseStage({ children, tokens = NATURE_TOKENS, style, replay }: PieceProps & {
+  replay?: { show: boolean; onClick: () => void }
+}) {
   return (
     <div style={{
       background: tokens.paper, border: `2px solid ${tokens.ink}`, borderRadius: 18,
       padding: '20px 24px', boxShadow: SHADOW,
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
       ...style,
-    }}>{children}</div>
+      ...(replay ? { position: 'relative' as const } : {}),
+    }}>
+      {children}
+      {replay && <ReplayButton show={replay.show} onClick={replay.onClick} tokens={tokens} />}
+    </div>
+  )
+}
+
+// ↻ — a round badge on the stage's corner. 40 px plus a margin of invisible
+// hit area. Hidden (not removed) while it may not be used.
+export function ReplayButton({ show, onClick, tokens = NATURE_TOKENS }: { show: boolean; onClick: () => void; tokens?: SceneTokens }) {
+  return (
+    <button aria-label="Nog eens kijken" aria-hidden={!show} tabIndex={show ? 0 : -1}
+      onClick={() => { if (show) onClick() }}
+      style={{
+        position: 'absolute', top: -14, right: -14, width: 40, height: 40, padding: 0,
+        borderRadius: '50%', border: `2px solid ${tokens.ink}`, background: tokens.cream,
+        boxShadow: SHADOW, color: tokens.ink, fontSize: 22, lineHeight: 1, fontFamily: 'system-ui, sans-serif',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: show ? 'pointer' : 'default', userSelect: 'none',
+        opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none', transition: 'opacity .25s',
+        zIndex: 2,
+      }}>↻</button>
   )
 }
 

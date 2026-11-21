@@ -51,7 +51,7 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
   const delays = animate
     ? [350, 450, ...Array.from({ length: operandB }, () => 550), 500]
     : []
-  const { step, complete } = useReveal(delays, question)
+  const { step, complete, replay } = useReveal(delays, question)
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   const crossed = complete ? operandB : Math.max(0, Math.min(step - 2, operandB))
@@ -73,7 +73,7 @@ function WegnemenCrossedOutComponent({ question, onResolve, disabled, scene }: E
 
       <ExerciseTitle tokens={tokens}>Hoeveel blijven er over?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens}>
+      <ExerciseStage tokens={tokens} replay={{ show: animate && complete && !answered && !disabled, onClick: replay }}>
         {/* The picture: whole group, removed part crossing out one at a time */}
         <div style={{ display: 'flex', justifyContent: 'center', ...fade(showA) }}>
           {meta.style === 'dots'

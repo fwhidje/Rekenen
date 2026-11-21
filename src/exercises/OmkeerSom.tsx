@@ -78,7 +78,7 @@ function OmkeerSomComponent({ question, onResolve, disabled, scene }: ExerciseCo
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // [given sum] → ["dus" + asked sum, the picture changes with it]
-  const { step, complete } = useReveal([400, 1300], question)
+  const { step, complete, replay } = useReveal([400, 1300], question)
   const second = step >= 2
 
   const pick = (v: number) => {
@@ -100,7 +100,7 @@ function OmkeerSomComponent({ question, onResolve, disabled, scene }: ExerciseCo
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Keer de som om!</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
         {picture && (
           <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s', marginBottom: 6 }}>
             <FiveRow n={whole} item={ITEM} gap={GAP} renderItem={(i) => {

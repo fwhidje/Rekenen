@@ -10,6 +10,7 @@ import { makeNumeralOptions } from './choiceOptions'
 import { useClosure } from '../presentation/useClosure'
 import { AnswerSlot } from '../presentation/components/AnswerSlot'
 import { FEEDBACK } from '../presentation/feedback'
+import { skillRange } from '../curriculum/skills'
 
 const TIERS: ExerciseTier[] = [
   { id: 'choice', minScore: 0,  label: 'kiezen',   description: 'Number line with one cell highlighted; kid picks the numeral from a strip of 4 options.' },
@@ -136,7 +137,9 @@ const NumberlineRead: ExerciseDefinition<NumberlineReadMeta> = {
   retryStable: ['max', 'options'],
   correctStatement: q => FEEDBACK.wrongMessage(q.answer),
   generateMeta(operandA, _b, score, _problem, ctx) {
-    const max = operandA <= 5 ? 5 : 10
+    // The line is as long as the skill's numbers, not the number asked: in a
+    // tot-10 skill a 3 is read off 0–10 too (playtest, Nov 2026).
+    const max = ctx?.retryOf?.max ?? skillRange(ctx?.skillId ?? '', operandA)
     return { max, options: ctx?.retryOf?.options ?? makeNumeralOptions(operandA, max, 0), tierId: pickTier(TIERS, score).id }
   },
   Component: NumberlineReadComponent,

@@ -87,10 +87,12 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'Built, gated (Nov 2026). The picture first, the notations from the middle, the neighbour ' +
     'step and speed at the top — the herken → noteren arc of tot 5 inside one skill, in the ' +
     '5-structure throughout. splits-beeld owns the entry (45 → 6): the whole on 5-rows in two ' +
-    'colours, then one part under a cover, then the picture only for a moment. splitshuisje ' +
+    'colours, then the asked part fading away (back with the answer), then the picture only ' +
+    'for a moment. splitshuisje ' +
     'joins at 10 and carries the middle; splits-ontbreken-rechts and splitsbenen follow from ' +
     '25–30. splits-buren (from 20, peak 20 at 50) is the new idea: a split derived from its ' +
-    'neighbour, one part down and the other up — the way back that is not counting. Post-60: ' +
+    'neighbour, one part down and the other up — the way back that is not counting; from 55 ' +
+    'three rows of the table, then two steps at once (with the bead rod at 70, bare at 90). Post-60: ' +
     'ontbreken-links, splits-vrij, and snel-weten (one tap, time-aware) ramping to the largest ' +
     'share. Not here: the dice exercises of tot 5 (dice stop at 6) and splits-alle (the table ' +
     'of 8 or 9 does not fit the screen). Weights are initial guesses pending playtesting.',
@@ -100,7 +102,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
   'tienvrienden':
     'Built, gated (Nov 2026). The picture first, then every form, then mostly speed. maak-tien ' +
     'owns the entry (45 → 8): a full ten with some places taken — on a tienveld the empty ' +
-    'places ARE the partner, on two hands the fingers that are down; it flashes from 30 and is ' +
+    'places ARE the partner, on a bead rod of ten the beads after the gap; it flashes from 30 and is ' +
     'only a confirmation from 55. tien-paren (from 10) asks for the pair from either side, ' +
     'with two cards that belong to nobody from 60. The forms come in through the middle: the ' +
     'house of 10, "10 is 7 en ?" (splits-ontbreken-rechts) and "7 + ? = 10" (puntoefening). ' +
@@ -141,8 +143,9 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'not a prerequisite; its twee-sommen tier gives 3 + 4 and 4 + 3 from one house. flits-som ' +
     '(30, gone by 70) shows the sum in the 5-structure for a moment: 4 + 3 is seen to fill the ' +
     'row and leave two. doosje keeps a small share that is gone by 50 — counting on as the ' +
-    'fallback the child still has. No number line: hopping three or four cells is the counting ' +
-    'this skill leaves behind. choice throughout, tf and fill-plain from 30–35, post-60 ' +
+    'fallback the child still has. The number line is back since the playtest (Nov 2026) as ' +
+    'a picture, not a count: the jump of 3 or 4 is one bow, 5 and 10 drawn stronger, so 5 + 4 ' +
+    'reads as "from 5 to 9" (10 → 15 → 6). choice throughout, tf and fill-plain from 30–35, post-60 ' +
     'rekenverhaal and snel-weten; the generator then serves small-first sums (3 + 6). The ' +
     'derived-fact route has its own exercise: buur-som from 20 ("3 + 3 = 6, dus 3 + 4" — ' +
     'from a dubbel, a sum of 10, a sum with five). Going through the five in two steps ' +
@@ -182,20 +185,20 @@ export const EXERCISE_PLAN: Record<string, string> = {
     '"alles weg") are exactly where counting back breaks, so wegneem-tap, doosje and ' +
     'numberline-jump-back are absent. Entry: flits-som (the crossed-out picture, flashed; gone ' +
     'by 70) and huisje-som (30 → 8; "5 is 3 en 2, dus 5 − 3 = 2"). wegnemen-crossed-out keeps ' +
-    'its low flat share as the werkboek picture. Two things are new and get their own ' +
-    'exercise: omkeer-som from 25 (a finished + sum gives its − reverse; its top tier tests ' +
-    'the "one more gives one more" error on neighbouring − sums) and teken-kiezen from 20 ' +
-    '(the sign is chosen, now that + and − rotate together). Middle and top as for +: ' +
+    'its low flat share as the werkboek picture. New and with its own exercise: omkeer-som ' +
+    'from 25 (a finished + sum gives its − reverse; its top tier tests the "one more gives ' +
+    'one more" error on neighbouring − sums). teken-kiezen was here until Nov 2026 and moved ' +
+    'to getalfamilie: in a − skill the sign to choose is always −. Middle and top as for +: ' +
     'splits-som-match, tf (reversal and zero traps), fill-plain, rekenverhaal, and snel-weten ' +
-    'from 65. a − 0 and a − a together run at about 15% of the draws; omkeer-som and ' +
-    'teken-kiezen skip them. Weights are initial guesses pending playtesting.',
+    'from 65. a − 0 and a − a together run at about 15% of the draws; omkeer-som skips ' +
+    'them. Weights are initial guesses pending playtesting.',
   'aftrekken-verschil-5':
     'Built (Nov 2026). A meaning skill: the facts are those of wegnemen, the question is new. So there is ' +
     'no bare sum here at all — "5 − 2" says nothing about verschil — and the meaning-carrying ' +
     'exercise stays the largest to the top. verschil-paren (60 → 25): two owners, two 5-rows ' +
     'under each other (each owner is a colour, shown as a chip in the question); the pairs dim ' +
     'one by one, the ones without a partner are the difference, and the − sum forms meanwhile; from 55 the rows are no longer aligned, from 75 only numbers. ' +
-    'teken-kiezen from 15 (nothing leaves and it is still −), numberline-gap from 35 (the ' +
+    'numberline-gap from 35 (the ' +
     'difference as a distance), rekenverhaal from 60 (the question in words alone). A ' +
     'difference of 0 is kept but made rarer: everyone has a partner. Weights are initial guesses.',
   'getalfamilie-5':
@@ -204,7 +207,9 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'then in a − sum. familie-sommen (25 → 30 → 20) is the core: a huisje, three number tiles ' +
     'and the four sums to complete, later (40) to lay with both numbers before the = open. ' +
     'splits-ontbreken-rechts keeps a small share as the same question in split notation. ' +
-    'numberline-gap from 20 (going up to find the difference), teken-kiezen low, rekenverhaal ' +
+    'numberline-gap from 20 (going up to find the difference), teken-kiezen throughout ' +
+    '(its only home since Nov 2026: the sign varies per question, the − half as wegnemen ' +
+    'or as verschil — "nothing leaves and it is still −"), rekenverhaal ' +
     'from 60 with the deel-geheel and aanvullen stories; snel-weten from 65, asking ' +
     'any view. Weights are initial guesses pending playtesting.',
   '-1-2-tot-10':
@@ -224,9 +229,11 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'omkeer-som comes early (from 15, 20 at 40): 5 + 4 = 9, dus 9 − 4 — the sum the child knows ' +
     'answers the difference; its buur tier asks 9 − 3 after 9 − 4. flits-som shows the ' +
     'crossed-out picture in the 5-structure for a moment; wegnemen-crossed-out keeps a small ' +
-    'share as the standing picture. teken-kiezen low, choice throughout, tf and fill-plain ' +
-    'from 40, post-60 rekenverhaal and snel-weten. No number line and no doosje: both are ' +
-    'counting back. No two steps through the five (som-in-stappen): not in the sources read.',
+    'share as the standing picture. choice throughout, tf and fill-plain from 40, post-60 ' +
+    'rekenverhaal and snel-weten. No doosje: counting back. The number line is back since ' +
+    'the playtest (Nov 2026) as a picture, not a count: the jump of 3 or 4 is one bow ' +
+    'backwards, 5 and 10 drawn stronger (10 → 15 → 6). No two steps through the five ' +
+    '(som-in-stappen): not in the sources read.',
   'aftrekken-wegnemen-10': TODO,
   'aftrekken-verschil-10': TODO,
   'getalfamilie-10': TODO,

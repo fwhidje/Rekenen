@@ -78,7 +78,7 @@ function BuurSomComponent({ question, onResolve, disabled, scene }: ExerciseComp
   useEffect(() => { setPicked(null) }, [question])
   const { solved, answered, resolve } = useClosure(question, onResolve)
   // [anchor] → ["dus" + the asked sum; the picture gains or loses one]
-  const { step, complete } = useReveal([400, 1300], question)
+  const { step, complete, replay } = useReveal([400, 1300], question)
   const second = step >= 2
 
   const pick = (v: number) => {
@@ -96,7 +96,7 @@ function BuurSomComponent({ question, onResolve, disabled, scene }: ExerciseComp
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>{more ? 'Eentje meer!' : 'Eentje minder!'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
         {picture && (
           <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s', marginBottom: 6 }}>
             <FiveRow n={big} item={ITEM} gap={GAP} renderItem={(i) => {

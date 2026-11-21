@@ -58,7 +58,7 @@ function TekenKiezenComponent({ question, onResolve, disabled, scene }: Exercise
   const { solved, answered, resolve } = useClosure(question, onResolve)
 
   // film: [first group] → [what happens] → [the sum]; otherwise the sum at once
-  const { step, complete } = useReveal(film ? [350, 1100, 900] : [350], question)
+  const { step, complete, replay } = useReveal(film ? [350, 1100, 900] : [350], question)
   const happened = !film || step >= 2
 
   const pick = (s: EqSign) => {
@@ -118,7 +118,7 @@ function TekenKiezenComponent({ question, onResolve, disabled, scene }: Exercise
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
       <ExerciseTitle tokens={tokens}>Plus of min?</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: film && complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 10 }}>
         {film && <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>{picture()}</div>}
         {zin && (
           <div style={{ fontFamily: 'Fredoka One, cursive', fontSize: 21, color: ink, lineHeight: 1.2, textAlign: 'center' }}>
@@ -148,7 +148,7 @@ const TekenKiezen: ExerciseDefinition<TekenKiezenMeta> = {
     goal: 'Read and choose the sign instead of assuming it: a situation (things arrive, things leave, two groups are compared) or a finished sum is turned into + or −. For verschil it carries the point that a comparison is a − although nothing leaves.',
     pitfalls: [
       'Two options: a guess is right half the time. The −3 on a wrong answer makes guessing lose, and the weight stays low.',
-      'Always the sign of the skill at hand (always − in a − skill). In the getalfamilie skill the sign varies per question; in the − skills it does not — there the scene and the outcome, not the sign, are what is read.',
+      'Always the sign of the skill at hand — which is why it is listed only in the getalfamilie skills (Nov 2026), where + and − come from the same family and the sign varies per question. The − half is a wegnemen scene or a verschil scene.',
     ],
     progression: 'film: a scene plays, then the sum with its outcome. som (40): the sum only — the sign follows from whether the outcome is more or less. zin (70): a cue sentence and the two numbers; the outcome appears only with the answer. A retry brings the scene back.',
   },
@@ -167,11 +167,15 @@ const TekenKiezen: ExerciseDefinition<TekenKiezenMeta> = {
     } else if (problem?.op === '-') {
       view = { x: operandA, y: operandB, res: operandA - operandB, sign: '-', scene: problem.form === 'verschil' ? 'verschil' : 'wegnemen' }
     } else if (problem?.op === 'split') {
-      // a family: either of its two operations
+      // a family: either of its two operations, and for − either of its two
+      // meanings — things leave, or two groups are compared (nothing leaves
+      // and it is still −). Since Nov 2026 the family skills are the only home
+      // of this exercise: in a − skill the sign to choose was always −.
       const total = operandA + operandB
-      view = Math.random() < 0.5
+      const r = Math.random()
+      view = r < 0.5
         ? { x: operandA, y: operandB, res: total, sign: '+', scene: 'erbij' }
-        : { x: total, y: operandA, res: operandB, sign: '-', scene: 'wegnemen' }
+        : { x: total, y: operandA, res: operandB, sign: '-', scene: r < 0.75 ? 'wegnemen' : 'verschil' }
     } else {
       view = { x: operandA, y: operandB, res: operandA + operandB, sign: '+', scene: 'erbij' }
     }

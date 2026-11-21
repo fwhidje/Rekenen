@@ -15,6 +15,8 @@ import { DOT_POS } from '../diePatterns'
 
 export type HuisjeCell = 'roof' | 'left' | 'right'
 
+const DIE_AID = 26
+
 // Unsplit die-aid: one colour, deliberately NOT showing the split.
 function PlainDie({ n, colour, size }: { n: number; colour: string; size: number }) {
   const positions = DOT_POS[n] ?? []
@@ -76,12 +78,16 @@ export function Huisje({ total, roof, left, right, activeCell = null, dieAid = f
           <polyline points={`2,${ROOF_H - 1} ${HOUSE_W / 2},2 ${HOUSE_W - 2},${ROOF_H - 1} 2,${ROOF_H - 1}`}
             fill="none" stroke={roofLit ? accent : ink} strokeWidth={roofLit ? 3 : 2} strokeLinejoin="round" />
         </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 6, paddingBottom: 4 }}>
+        {/* The number sits in the middle of the roof. The die-aid stands to its
+            right; an empty box of the same width on its left keeps the number
+            centred (playtest, Nov 2026: with the aid it sat off-centre). */}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 4, paddingBottom: 4 }}>
+          {dieAid && <div style={{ width: DIE_AID, flexShrink: 0 }} />}
           <span style={{
             fontFamily: 'Fredoka One, cursive', fontSize: Math.round(ROOM_SIZE * 0.37), lineHeight: 1,
             color: roofGood ? 'white' : roofText === '?' ? `${ink}55` : ink,
           }}>{roofText}</span>
-          {dieAid && <PlainDie n={total} colour={dot} size={30} />}
+          {dieAid && <PlainDie n={total} colour={dot} size={DIE_AID} />}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 6, borderTop: `2px solid ${ink}`, paddingTop: 0 }}>

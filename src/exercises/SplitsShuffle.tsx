@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { noteReplay } from '../presentation/replays'
 import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier } from './types'
 import { pickTier } from './tiers'
@@ -17,7 +18,7 @@ import type { ExerciseQuestion } from './types'
 const TIERS: ExerciseTier[] = [
   { id: 'kijk',            minScore: 0,  label: 'kijk',          description: 'Watch the whole split into two groups (original stays greyed above). "Nog steeds 5?" — always ja; orientation in the part-whole move.' },
   { id: 'klopt-het',       minScore: 30, label: 'klopt het?',    description: 'Same animation, but ~50% of rounds a dot drops out or sneaks in mid-split. The kid verifies against the greyed original — conservation as comparison.' },
-  { id: 'welke-splitsing', minScore: 60, label: 'welke splitsing', description: 'Always conserving; after the split the kid picks the resulting split from 4 tiles (distractors include wrong-total splits).' },
+  { id: 'welke-splitsing', minScore: 60, label: 'welke splitsing', description: 'Always conserving; after the split the kid picks the resulting split from 4 tiles written as "5 is 2 en 3" (distractors include wrong-total splits).' },
 ]
 
 // ─── Animation constants ─────────────────────────────────────────────────────
@@ -116,16 +117,19 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
   const [pickedTF, setPickedTF] = useState<number | null>(null)
   const [pickedOpt, setPickedOpt] = useState<number | null>(null)
   const locked = disabled || answered || !settled
+  // ↻ (convention V): the split again
+  const [run, setRun] = useState(0)
+  const replay = () => { noteReplay(question); setRun(r => r + 1) }
 
   useEffect(() => {
     setPhase('initial')
     setSettled(false)
-    setPickedTF(null); setPickedOpt(null)
+    setPickedTF(null); setPickedOpt(null)   // a replay comes before any answer
     setDots(buildDots(total, finalParts))
     const t1 = setTimeout(() => setPhase('split'), PHASE_DELAY)
     const t2 = setTimeout(() => setSettled(true), SETTLE_DELAY)
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [question, total, finalParts])
+  }, [question, total, finalParts, run])
 
   const resolveBinary = (v: number) => {
     if (locked) return
@@ -151,7 +155,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
       <ExerciseTitle tokens={scene?.tokens} style={{ minHeight: 30 }}>{header}</ExerciseTitle>
 
       {/* Stage: greyed original on top, the split animates below it */}
-      <ExerciseStage tokens={tokens} style={{ padding: '10px 12px' }}>
+      <ExerciseStage tokens={tokens} replay={{ show: settled && !answered && !disabled, onClick: replay }} style={{ padding: '10px 12px' }}>
       <div style={{
         position: 'relative', width: CONTAINER_W, height: CONTAINER_H,
         overflow: 'hidden',
@@ -205,7 +209,7 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
                 onPointerUp={e =>   { e.currentTarget.style.transform = 'scale(1)' }}
                 onPointerLeave={e =>{ e.currentTarget.style.transform = 'scale(1)' }}
                 style={{
-                  padding: '14px 10px', fontFamily: 'Fredoka One, cursive', fontSize: 26,
+                  padding: '14px 6px', fontFamily: 'Fredoka One, cursive', fontSize: 22, whiteSpace: 'nowrap',
                   background: paper, border: `2px solid ${ink}`, borderRadius: 16,
                   cursor: locked ? 'default' : 'pointer',
                   boxShadow: `0 2px 0 rgba(61,47,30,.18)`,
@@ -213,8 +217,12 @@ function SplitsShuffleComponent({ question, onResolve, disabled, scene }: Exerci
                   color: ink,
                   ...(solved && pickedOpt === i ? heldStyle(tokens) : {}),
                 }}>
+                {/* written as a split statement (playtest, Nov 2026: "2 + 3"
+                    read as a sum). A distractor's own total is named, so a
+                    wrong-total option reads "6 is 3 en 3". */}
+                {opt[0] + opt[1]}<span style={{ opacity: 0.6 }}> is </span>
                 <span style={{ color: refuse }}>{opt[0]}</span>
-                <span style={{ opacity: 0.6 }}> + </span>
+                <span style={{ opacity: 0.6 }}> en </span>
                 <span style={{ color: pop }}>{opt[1]}</span>
               </button>
             ))}

@@ -16,6 +16,8 @@ import type { ExerciseQuestion } from './types'
 //   C  closure             — answers go through useClosure, never onResolve directly
 //   Q  quantities          — groups come from the shared 5-row / die components,
 //                            never from a free-wrapping container
+//   V  replay              — an exercise that animates before the answer offers
+//                            the ↻ on its stage (ExerciseStage `replay`)
 // (L, "nothing moves / fits the screen", needs a real browser — see CLAUDE.md.)
 //
 // PENDING_AUDIT is the to-do list: exercises that have NOT yet been checked
@@ -46,11 +48,11 @@ function questionsFor(exId: string): ExerciseQuestion[] {
       for (let d = 0; d < DRAWS; d++) {
         const problem = skill.generate({ score })
         const { a, b } = problemOperands(problem)
-        if (def.isCompatible && !def.isCompatible(a, b, problem)) continue
+        if (def.isCompatible && !def.isCompatible(a, b, problem, skill.id)) continue
         out.push({
           exerciseId: exId, skillId: skill.id, problem, operandA: a, operandB: b,
           op: problem.op, answer: computeAnswer(problem),
-          meta: def.generateMeta(a, b, score, problem),
+          meta: def.generateMeta(a, b, score, problem, { skillId: skill.id }),
         })
       }
     }
@@ -138,5 +140,27 @@ describe('C — closure', () => {
 describe('Q — quantities are structured', () => {
   it.each(convertedFiles)('%s has no free-wrapping layout', (path, src) => {
     expect(/flexWrap/.test(src), `${path}: use FiveRow (or a die pattern) instead of a wrapping flex container`).toBe(false)
+  })
+})
+
+// V — an exercise with a timed reveal or a flash before the answer offers the ↻
+// on its stage (ExerciseStage's `replay`; the count rides on the answer as
+// replayCount via useClosure). Exempt, with the reason: the timers there are not
+// a picture to watch.
+const NO_REPLAY: Record<string, string> = {
+  './ErbijTap.tsx': 'the child performs the action; the opening reveal only sets it up',
+  './Rekenverhaal.tsx': 'has its own ▶ that acts the story out',
+}
+describe('V — replay', () => {
+  const animated = Object.entries(sources).filter(
+    ([path, src]) => !path.endsWith('.test.tsx') && /useReveal\(|useFlash\(/.test(src),
+  )
+  it('finds the animated exercise files', () => { expect(animated.length).toBeGreaterThan(0) })
+  it.each(animated)('%s offers the ↻ on its stage', (path, src) => {
+    if (NO_REPLAY[path]) return
+    expect(/replay=\{/.test(src), `${path}: pass ExerciseStage a replay (or list it in NO_REPLAY with a reason)`).toBe(true)
+  })
+  it('lists only files that exist', () => {
+    expect(Object.keys(NO_REPLAY).filter(p => !(p in sources))).toEqual([])
   })
 })

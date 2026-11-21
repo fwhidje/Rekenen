@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AnswerDetail } from '../exercises/types'
 import { FEEDBACK } from './feedback'
+import { replaysOf } from './replays'
 
 // ─── Closure: how every exercise hands its answer to the engine ──────────────
 // Convention (CLAUDE.md → Exercise behaviour conventions):
@@ -34,9 +35,15 @@ export function useClosure(
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [question])
 
-  const resolve = useCallback((correct: boolean, detail?: AnswerDetail) => {
+  const q = useRef(question)
+  q.current = question
+
+  const resolve = useCallback((correct: boolean, given?: AnswerDetail) => {
     if (done.current) return
     done.current = true
+    // Replays (↻) of this question ride on the answer (convention V).
+    const replays = Math.max(replaysOf(q.current), given?.replayCount ?? 0)
+    const detail = replays > 0 ? { ...given, replayCount: replays } : given
     setAnswered(true)
     if (correct) {
       setSolved(true)

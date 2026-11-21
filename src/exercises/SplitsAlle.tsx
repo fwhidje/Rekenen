@@ -20,6 +20,12 @@ import { useClosure } from '../presentation/useClosure'
 // is full; wrong rows are highlighted before the wrong answer is handed off to
 // the engine's retry-one-tier-down mechanism.
 //
+// tabel-vol (since the playtest, Nov 2026): the table keeps its order — the
+// left column counting down — but three or four whole rows are left empty, the
+// rest printed. The child fills both numbers of an empty row; the place in the
+// order decides which split belongs there. (Before, the table was empty and
+// any order was accepted, which made "the order is the trick" invisible.)
+//
 // Left-column duplicate guard (tabel-vol only): typing a value already present
 // in another left cell shows an orange warning and does not commit. This teaches
 // that the left column must enumerate all values exactly once.
@@ -28,11 +34,12 @@ import { useClosure } from '../presentation/useClosure'
 
 const TIERS: ExerciseTier[] = [
   { id: 'tabel-aanvullen', minScore: 65, label: 'tabel aanvullen', description: 'Left column pre-printed counting down (the systematic pattern given); fill the right column\'s gaps in any order, validated on submit.' },
-  { id: 'tabel-vol',       minScore: 85, label: 'hele tabel',      description: 'Empty table; the child fills both columns freely, left-column duplicate guard teaches uniqueness, full validation on submit.' },
+  { id: 'tabel-vol',       minScore: 85, label: 'hele rijen',      description: 'The ordered table with three or four whole rows empty (the rest printed); the child fills both numbers of each empty row, its place in the order decides which split; left-column duplicate guard; validated on submit.' },
 ]
 
 interface SplitsAlleMeta {
-  // per-row: is the right cell pre-printed? (tabel-aanvullen only)
+  // per-row: is it pre-printed? tabel-aanvullen: the right cell (the left
+  // column is always printed). tabel-vol: the whole row.
   prefill: boolean[]
   // Retry only — per-row: is the right cell printed on the retry? When present
   // it REPLACES `prefill`: a row is printed if it was printed before or the
@@ -62,7 +69,7 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   const given = (r: number) => meta.kept ? !!meta.kept[r] : !!meta.prefill[r]
 
   const isRequired = useCallback((r: number, col: number): boolean => {
-    if (meta.tierId === 'tabel-vol') return true
+    if (meta.tierId === 'tabel-vol') return !given(r)
     return col === 1 && !given(r)
   }, [meta]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -78,15 +85,14 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   useEffect(() => {
     const vol = meta.tierId === 'tabel-vol'
     setCells(Array.from({ length: rows }, (_, r) => [
-      vol ? null : total - r,
-      !vol && given(r) ? r : null,
+      !vol || given(r) ? total - r : null,
+      given(r) ? r : null,
     ]))
     // The first cell to fill is active from the start — typing works at once,
     // and the highlight shows where to begin.
     let first: [number, number] | null = null
     for (let r = 0; r < rows && !first; r++) {
-      if (vol) first = [r, 0]
-      else if (!given(r)) first = [r, 1]
+      if (!given(r)) first = vol ? [r, 0] : [r, 1]
     }
     setActiveCell(first)
     setLeftWarning(false)
@@ -109,8 +115,9 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
   const nextEmpty = (updated: (number | null)[][], fromRow: number, fromCol: number): [number, number] | null => {
     const order: [number, number][] = []
     for (let r = 0; r < rows; r++) {
-      if (meta.tierId === 'tabel-vol') { order.push([r, 0], [r, 1]) }
-      else if (!given(r)) { order.push([r, 1]) }
+      if (given(r)) continue
+      if (meta.tierId === 'tabel-vol') order.push([r, 0], [r, 1])
+      else order.push([r, 1])
     }
     const cur = order.findIndex(([r, c]) => r === fromRow && c === fromCol)
     for (let i = cur + 1; i < order.length; i++) {
@@ -122,8 +129,9 @@ function SplitsAlleComponent({ question, onResolve, disabled, scene }: ExerciseC
 
   const submit = (currentCells: (number | null)[][]) => {
     const wrongSet = new Set<number>()
+    // The table is ordered: row i is (total − i) and i.
     currentCells.forEach(([l, r], i) => {
-      if ((l ?? 0) + (r ?? 0) !== total) wrongSet.add(i)
+      if (l !== total - i || r !== i) wrongSet.add(i)
     })
     const tapCount = currentCells.flat().filter(v => v !== null).length
     if (wrongSet.size === 0) {
@@ -242,7 +250,7 @@ const SplitsAlle: ExerciseDefinition<SplitsAlleMeta> = {
       'Stopping at the "sensible" splits and stumbling on the 0-rows.',
       'Complement errors concentrated in the middle of the table where the pattern helps least.',
     ],
-    progression: 'tabel-aanvullen (65): the left column is pre-printed counting down — the systematic trick is given; the child fills the right column\'s gaps (the first one is active from the start, the cursor moves on by itself) and submits. tabel-vol (85): empty table — the child fills both columns; the left-column duplicate guard (a warning on repeat values) teaches uniqueness. On submit the wrong rows are marked; the retry, one tier down, keeps the rows that were right and asks again only for the others.',
+    progression: 'tabel-aanvullen (65): the left column is pre-printed counting down — the systematic trick is given; the child fills the right column\'s gaps (the first one is active from the start, the cursor moves on by itself) and submits. tabel-vol (85): the ordered table with three or four whole rows empty — the child fills both numbers of each, its place in the descending order decides which split; the left-column duplicate guard (a warning on repeat values) stays. On submit the wrong rows are marked; the retry, one tier down, keeps the rows that were right and asks again only for the others.',
   },
   // Retry: the same pre-printed cells — a retry never gives fewer hints.
   retryStable: ['prefill'],
@@ -254,16 +262,24 @@ const SplitsAlle: ExerciseDefinition<SplitsAlleMeta> = {
     if (ctx?.retryOf) {
       const prev = ctx.retryOf
       if (!prev.entries) return { prefill: prev.prefill, kept: prev.kept, tierId: tier.id }
-      // What was printed for the child on the failed attempt (nothing, at tabel-vol).
-      const printed = (r: number) => prev.tierId === 'tabel-vol' ? false : (prev.kept ? !!prev.kept[r] : !!prev.prefill[r])
+      // What was printed for the child on the failed attempt (at tabel-vol: the
+      // whole row, so on the retry its right cell is printed too).
+      const printed = (r: number) => prev.kept ? !!prev.kept[r] : !!prev.prefill[r]
       // Row r of the retry has left = total − r: the child had it right when
       // some row carried that left number with its complement.
       const right = (r: number) => prev.entries!.some(([l, v]) => l === total - r && v !== null && l + v === total)
       const kept = Array.from({ length: total + 1 }, (_, r) => printed(r) || right(r))
       return { prefill: prev.prefill, kept, tierId: tier.id }
     }
+    const rows = total + 1
+    if (tier.id === 'tabel-vol') {
+      // three or four whole rows empty (fewer for a small table), the rest printed
+      const empty = rows >= 6 ? 3 + Math.floor(Math.random() * 2) : Math.max(2, rows - 2)
+      const open = [...Array(rows).keys()].sort(() => Math.random() - 0.5).slice(0, empty)
+      return { prefill: Array.from({ length: rows }, (_, r) => !open.includes(r)), tierId: tier.id }
+    }
     // pre-print roughly half the right column, never all, never none
-    const prefill = Array.from({ length: total + 1 }, () => Math.random() < 0.5)
+    const prefill = Array.from({ length: rows }, () => Math.random() < 0.5)
     if (prefill.every(Boolean)) prefill[0] = false
     if (!prefill.some(Boolean)) prefill[total] = true
     return { prefill, tierId: tier.id }

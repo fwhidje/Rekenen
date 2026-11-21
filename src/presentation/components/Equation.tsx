@@ -12,13 +12,16 @@ import type { SceneTokens } from '../tokens'
 //   fill    what the open place holds once solved (defaults to its own value)
 //   shown   how much of the sum is on screen: 1 = x, 2 = + sign and y,
 //           3 = "= res" as well. Hidden pieces keep their place.
+//   colors  per-place colours, for the colour rule: a number takes the colour
+//           of the quantity it stands for (CLAUDE.md). The open place keeps
+//           the "?" colour until solved unless it is given one here.
 
 export type EqHole = 'x' | 'y' | 'res' | 'sign' | null
 export type EqSign = '+' | '-'
 
 const glyph = (s: EqSign) => (s === '-' ? '−' : '+')
 
-export function Equation({ x, sign, y, res, hole = 'res', solved = false, shown = 3, size = 34, dim = false, tokens = NATURE_TOKENS, style }: {
+export function Equation({ x, sign, y, res, hole = 'res', solved = false, shown = 3, size = 34, dim = false, tokens = NATURE_TOKENS, style, colors }: {
   x: number; sign: EqSign; y: number; res: number
   hole?: EqHole
   solved?: boolean
@@ -27,13 +30,17 @@ export function Equation({ x, sign, y, res, hole = 'res', solved = false, shown 
   dim?: boolean
   tokens?: SceneTokens
   style?: CSSProperties
+  colors?: Partial<Record<'x' | 'y' | 'res', string>>
 }) {
   const signColor = sign === '-' ? tokens.refuse : tokens.confirm
   const piece = (key: Exclude<EqHole, null>, text: string | number, color: string, need: number, extra?: CSSProperties) => {
     const open = hole === key
+    // a group colour can be pale (the scene palette): an ink outline keeps it readable
+    const outlined = key !== 'sign' && !!colors?.[key] && !(open && solved)
     return (
       <span style={{
-        color: open ? (solved ? tokens.confirm : tokens.accentText) : color,
+        color: open ? (solved ? tokens.confirm : (key !== 'sign' && colors?.[key]) || tokens.accentText) : color,
+        WebkitTextStroke: outlined ? `1px ${tokens.ink}` : undefined,
         opacity: shown >= need ? 1 : 0, transition: 'opacity .3s, color .2s',
         minWidth: Math.round(size * 0.6), textAlign: 'center', display: 'inline-block', ...extra,
       }}>{open && !solved ? (key === 'sign' ? '○' : '?') : text}</span>
@@ -45,11 +52,11 @@ export function Equation({ x, sign, y, res, hole = 'res', solved = false, shown 
       fontFamily: 'Fredoka One, cursive', fontSize: size, lineHeight: 1,
       opacity: dim ? 0.5 : 1, transition: 'opacity .3s', ...style,
     }}>
-      {piece('x', x, tokens.accentText, 1)}
+      {piece('x', x, colors?.x ?? tokens.accentText, 1)}
       {piece('sign', glyph(sign), signColor, 2)}
-      {piece('y', y, tokens.pop, 2)}
+      {piece('y', y, colors?.y ?? tokens.pop, 2)}
       <span style={{ color: tokens.ink, opacity: shown >= 3 ? 0.4 : 0, fontSize: Math.round(size * 0.85), transition: 'opacity .3s' }}>=</span>
-      {piece('res', res, tokens.accentText, 3)}
+      {piece('res', res, colors?.res ?? tokens.accentText, 3)}
     </div>
   )
 }

@@ -33,6 +33,7 @@ function mkSkill(id: string, generate: () => Problem, exercises: string[] = ['se
     intent: '',
     didactics: { startingPoint: '', goal: '', pitfalls: [] },
     op: '+',
+    range: 5,
     unlockedBy: [],
     unlocks: [],
     subsumedBy: null,

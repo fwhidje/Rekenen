@@ -45,7 +45,7 @@ export function buildRetry(original: ExerciseQuestion): ExerciseQuestion {
   const target = idx > 0 ? tiers[idx - 1] : tiers[0]
   // The original meta rides along (ctx.retryOf) so the exercise can keep what
   // defines the question — the retry is the same question with more help.
-  const meta = def.generateMeta(original.operandA, original.operandB, target?.minScore ?? 0, original.problem, { retryOf: original.meta })
+  const meta = def.generateMeta(original.operandA, original.operandB, target?.minScore ?? 0, original.problem, { retryOf: original.meta, skillId: original.skillId })
   return { ...original, meta, isRetry: true }
 }
 
@@ -96,7 +96,7 @@ function buildQuestion(
     const { a, b } = problemOperands(problem)
     const filtered = candidates.filter(([exId]) => {
       const def = getExercise(exId)
-      return !def.isCompatible || def.isCompatible(a, b, problem)
+      return !def.isCompatible || def.isCompatible(a, b, problem, skill.id)
     })
     if (filtered.length === 0) continue
 
@@ -110,7 +110,7 @@ function buildQuestion(
       operandB: b,
       op: problem.op,
       answer: computeAnswer(problem),
-      meta: def.generateMeta(a, b, score, problem),
+      meta: def.generateMeta(a, b, score, problem, { skillId: skill.id }),
     }
   }
   return null

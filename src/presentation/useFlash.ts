@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { noteReplay } from './replays'
 
 // ─── Flash: an aid that is shown for a set time, then covered ────────────────
 // For pictures (and facts) that must be SEEN, not counted or read off at
@@ -42,9 +43,10 @@ export function useFlash(ms: number, resetKey: unknown, opts: { start?: boolean;
   }, [start, resetKey])
 
   const replay = useCallback(() => {
+    noteReplay(resetKey)
     setReplays(r => r + 1)
     show()
-  }, [show])
+  }, [show, resetKey])
 
   return { showing, seen, replay, replays }
 }
