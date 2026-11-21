@@ -337,7 +337,7 @@ export const SKILLS: SkillDefinition[] = [
     intent: 'Instant recall of the 5 pairs that make 10 (1+9, 2+8, 3+7, 4+6, 5+5) in both orders — the splits of 10, practised until no thinking time is needed. Fact-recall drill, never archived: the brug over 10 leans on it.',
     // Didactics: see the note on splitsen-6-7.
     didactics: {
-      startingPoint: 'Secure with the splits of 6 and 7: knows what a split is at this size and reads 6–10 from a 5-structured picture. Has not yet split 10 itself. The picture does much of the work here: on a full ten the empty places are the partner, on two hands the fingers that are down — so the pairs can be seen before they are known.',
+      startingPoint: 'Secure with the splits of 6 and 7: knows what a split is at this size and reads 6–10 from a 5-structured picture. Has not yet split 10 itself. The picture does much of the work here: on a full ten the empty places are the partner, on a bead rod of ten the beads after the gap — so the pairs can be seen before they are known.',
       goal: 'Sees or hears any number 1–9 and names its partner in 10 at once — no counting, no fingers, no picture — from either side (7 → 3 and 3 → 7) and in every form: the split ("10 is 7 en ?"), aanvullen tot 10 (7 + . = 10) and 10 − 7. Fast enough that splitting the second term in the brug over 10 will cost no attention.',
       pitfalls: [
         'Counts up to 10 — on fingers or in the head. Accurate, so the score rises anyway; only response time shows the pair is not yet known. This skill is about speed, which a right/wrong score does not measure.',

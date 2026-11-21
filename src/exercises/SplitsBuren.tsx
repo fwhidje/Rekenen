@@ -10,6 +10,7 @@ import { ExerciseTitle, ExerciseStage } from '../presentation/components/Exercis
 import { useReveal } from '../presentation/useReveal'
 import { useClosure } from '../presentation/useClosure'
 import { splitText } from './opDisplay'
+import { BeadRod } from '../presentation/components/BeadRod'
 
 // ─── splits-buren ─────────────────────────────────────────────────────────────
 // A split that is given, and its neighbour to complete:
@@ -18,93 +19,131 @@ import { splitText } from './opDisplay'
 // table of splits, and — more important — a way to FIND a split that is not
 // known yet from one that is, without counting: the derived-fact route.
 //
-// At the entry a row of beads (coloured per five, like the rekenrek) shows it:
-// one bead crosses the gap between the two parts.
+// The picture is a bead rod: one row of beads on a rod, a gap between the two
+// parts. Beads left of the gap have the first part's colour, beads right of it
+// the second's; when the gap moves, the bead that crosses it changes colour.
+// The numbers of the statements carry the same two colours (colour rule).
 //
-// Designed, not built: a middle tier with three consecutive rows of the table.
+// Tiers, concrete → abstract:
+//   schuif-zien  0   the gap moves one bead; choice
+//   twee-regels  35  the two statements only; number strip
+//   rij          55  three rows of the table in order, the first complete
+//                    ("7 is 5 en 2 / 7 is 4 en ? / 7 is 3 en ?"): two steps,
+//                    one at a time — the bridge to two steps at once
+//   sprong       70  two steps at once, with the bead rod (the gap moves twice)
+//   sprong-kaal  90  two steps at once, statements only
 
 const TIERS: ExerciseTier[] = [
-  { id: 'schuif-zien', minScore: 0,  label: 'kraal schuift', description: 'A bead row with a gap between the parts; one bead crosses the gap. The given split stays on screen, greyed. Choice — the options include "both parts moved the same way".' },
+  { id: 'schuif-zien', minScore: 0,  label: 'kraal schuift', description: 'A bead rod, the two parts in two colours; the gap moves one bead and that bead changes colour. The given split stays on screen, greyed. Choice — the options include "both parts moved the same way".' },
   { id: 'twee-regels', minScore: 35, label: 'twee regels',   description: 'The two statements only. Number strip.' },
-  { id: 'sprong',      minScore: 70, label: 'twee stappen',  description: 'The asked split is two steps away from the given one ("7 is 5 en 2 — 7 is 3 en ?").' },
+  { id: 'rij',         minScore: 55, label: 'rij',           description: 'Three rows of the table in order, the first complete ("7 is 5 en 2 / 7 is 4 en ? / 7 is 3 en ?"); the child fills the middle row, then the last. Number strip.' },
+  { id: 'sprong',      minScore: 70, label: 'twee stappen',  description: 'The asked split is two steps away ("7 is 5 en 2 — 7 is 3 en ?"); the bead rod shows the gap moving twice. Number strip.' },
+  { id: 'sprong-kaal', minScore: 90, label: 'twee stappen kaal', description: 'Two steps away, the two statements only. Number strip.' },
 ]
 
 interface SplitsBurenMeta {
   dir: 1 | -1        // the given split's first part is this much above (+) or below (−) the asked one
-  step: number       // 1, or 2 at the top tier
+  step: number       // 1, or 2 (rij, sprong, sprong-kaal)
   options: number[]
   stripMax: 5 | 10
   tierId: string
 }
 
-const BEAD = 22
-const BGAP = 6
-
 function SplitsBurenComponent({ question, onResolve, disabled, scene }: ExerciseComponentProps<SplitsBurenMeta>) {
   const { operandA: a, operandB: b, meta } = question
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const { ink } = tokens
+  const colA = tokens.refuse, colB = tokens.dot
   const t = a + b
-  const d = meta.dir * meta.step
+  const unit = meta.dir                       // one step
+  const d = unit * meta.step
   const givenA = a + d, givenB = b - d
-  const picture = meta.tierId === 'schuif-zien' || !!question.isRetry
-  const useChoice = meta.tierId === 'schuif-zien'
+  const tier = meta.tierId
+  const retry = !!question.isRetry
+  const rij = tier === 'rij' && !retry && meta.step === 2
+  const picture = tier === 'schuif-zien' || tier === 'sprong' || retry
+  const useChoice = tier === 'schuif-zien'
 
   const [picked, setPicked] = useState<number | null>(null)
-  useEffect(() => { setPicked(null) }, [question])
+  // rij: the middle row's answer, once given
+  const [middle, setMiddle] = useState<number | null>(null)
+  useEffect(() => { setPicked(null); setMiddle(null) }, [question])
   const { solved, answered, resolve } = useClosure(question, onResolve)
-  // [given split] → [the bead crosses, the asked split]
-  const { step, complete, replay } = useReveal([400, 1400], question)
-  const second = step >= 2
+  // [given split] → [the gap moves (once per step)] → [the asked split]
+  // rij: [given row] → [middle row] → [last row]
+  const delays = rij ? [400, 600, 600] : meta.step === 2 && picture ? [400, 1000, 900] : [400, 1400]
+  const { step, complete, replay } = useReveal(delays, question)
+  // how many beads the gap has moved so far
+  const moved = Math.max(0, Math.min(step - 1, meta.step))
+  const asking = step >= delays.length
 
   const pick = (v: number) => {
     if (disabled || answered || !complete) return
+    if (rij && middle === null) {
+      // first the middle row; a wrong one ends the question
+      if (v !== b - unit) { setPicked(v); resolve(false, { givenAnswer: v, tapCount: 1 }); return }
+      setMiddle(v)
+      setPicked(null)
+      return
+    }
     setPicked(v)
-    resolve(v === b, { givenAnswer: v })
+    resolve(v === b, { givenAnswer: v, tapCount: rij ? 2 : 1 })
   }
 
-  // the gap sits after `cut` beads: first the given split, then the asked one
-  const cut = second ? a : givenA
-  const rowW = t * BEAD + (t - 1) * BGAP
+  // the gap sits after `cut` beads: it starts at the given split and moves
+  const cut = givenA - unit * moved
 
-  const line = (x: number, y: number | null, dim: boolean, shown: boolean, size: number) => (
+  // one statement; `open` marks the second part as the asked one
+  const line = (x: number, y: number, open: boolean, dim: boolean, shown: boolean, size: number) => (
     <div style={{
       display: 'flex', alignItems: 'baseline', gap: Math.round(size * 0.25), fontFamily: 'Fredoka One, cursive', fontSize: size, lineHeight: 1.3,
       color: ink, opacity: !shown ? 0 : dim ? 0.5 : 1, transition: 'opacity .3s',
     }}>
-      <span style={{ color: tokens.accentText }}>{t}</span>
+      <span>{t}</span>
       <span style={{ fontSize: Math.round(size * 0.72), opacity: 0.6 }}>is</span>
-      <span style={{ color: tokens.pop }}>{x}</span>
+      <span style={{ color: colA }}>{x}</span>
       <span style={{ fontSize: Math.round(size * 0.72), opacity: 0.6 }}>en</span>
-      <span style={{ color: y === null ? (solved ? tokens.confirm : tokens.accentText) : tokens.pop, minWidth: Math.round(size * 0.6), textAlign: 'center' }}>
-        {y === null ? (solved ? b : '?') : y}
+      <span style={{ color: open ? (solved ? tokens.confirm : colB) : colB, minWidth: Math.round(size * 0.6), textAlign: 'center' }}>
+        {open ? (solved ? y : '?') : y}
       </span>
     </div>
   )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
-      <ExerciseTitle tokens={tokens}>En deze splitsing?</ExerciseTitle>
+      <ExerciseTitle tokens={tokens}>{rij ? 'Maak de rij af' : 'En deze splitsing?'}</ExerciseTitle>
 
-      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
+      <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled && middle === null, onClick: replay }} style={{ minWidth: 300, boxSizing: 'border-box', padding: '14px 20px', gap: 6 }}>
         {picture && (
-          <div style={{ position: 'relative', width: rowW, height: BEAD + 14, marginBottom: 6, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
-            {Array.from({ length: t }, (_, i) => (
-              <div key={i} style={{
-                position: 'absolute', top: 7, left: i * (BEAD + BGAP), width: BEAD, height: BEAD, borderRadius: '50%',
-                // coloured per five, like the rekenrek
-                background: i < 5 ? tokens.refuse : tokens.dot, boxShadow: '0 2px 3px rgba(0,0,0,.15)',
-              }} />
-            ))}
-            {/* the gap between the two parts: it moves, the beads stay */}
-            <div style={{
-              position: 'absolute', top: 0, left: cut * (BEAD + BGAP) - BGAP / 2 - 2, width: 4, height: BEAD + 14,
-              background: ink, borderRadius: 2, transition: 'left .7s ease',
-            }} />
+          <div style={{ marginBottom: 6, opacity: step >= 1 ? 1 : 0, transition: 'opacity .3s' }}>
+            <BeadRod n={t} cut={cut} colA={colA} colB={colB} tokens={tokens} />
           </div>
         )}
-        {line(givenA, givenB, second, step >= 1, 28)}
-        {line(a, null, false, second, 38)}
+        {rij ? (
+          <>
+            {line(givenA, givenB, false, false, step >= 1, 30)}
+            <div style={{ display: 'flex', alignItems: 'baseline', opacity: step >= 2 ? 1 : 0, transition: 'opacity .3s' }}>
+              {/* the middle row: open until the child fills it */}
+              <div style={{
+                display: 'flex', alignItems: 'baseline', gap: 8, fontFamily: 'Fredoka One, cursive', fontSize: 32, lineHeight: 1.3, color: ink,
+              }}>
+                <span>{t}</span>
+                <span style={{ fontSize: 23, opacity: 0.6 }}>is</span>
+                <span style={{ color: colA }}>{a + unit}</span>
+                <span style={{ fontSize: 23, opacity: 0.6 }}>en</span>
+                <span style={{ color: colB, minWidth: 20, textAlign: 'center', borderBottom: middle === null ? `3px solid ${tokens.accent}` : '3px solid transparent' }}>{middle ?? '?'}</span>
+              </div>
+            </div>
+            <div style={{ opacity: step >= 3 ? (middle === null ? 0.45 : 1) : 0, transition: 'opacity .3s' }}>
+              {line(a, b, true, false, true, 32)}
+            </div>
+          </>
+        ) : (
+          <>
+            {line(givenA, givenB, false, asking, step >= 1, 28)}
+            {line(a, b, true, false, asking, 38)}
+          </>
+        )}
       </ExerciseStage>
 
       {useChoice
@@ -124,8 +163,9 @@ const SplitsBuren: ExerciseDefinition<SplitsBurenMeta> = {
     pitfalls: [
       'Both parts moved the same way (5 → 4, so 2 → 1): the total is not kept. The informative error — it is among the choice options.',
       'Repeats the second part of the given split.',
+      'At rij, keeps the step of the first row but loses it in the second (7 is 3 en 3) — the middle row is checked first, so the record shows which step went wrong.',
     ],
-    progression: 'schuif-zien: a bead crosses the gap between the parts; the given split stays greyed. twee-regels (35): the statements only. sprong (70): two steps away. A retry brings the beads back.',
+    progression: 'schuif-zien: on a bead rod the gap moves one bead and that bead changes colour; the given split stays greyed. twee-regels (35): the statements only. rij (55): three rows of the table, the middle and the last to fill — two steps, one at a time. sprong (70): two steps at once, the rod shows the gap moving twice. sprong-kaal (90): two steps, statements only. A retry is one tier down, and always brings the beads back.',
   },
   // Retry: the given split stays on the same side of the asked one.
   retryStable: ['dir'],
@@ -136,9 +176,15 @@ const SplitsBuren: ExerciseDefinition<SplitsBurenMeta> = {
     const tier = pickTier(TIERS, score)
     const fits = (d: number) => operandA + d >= 1 && operandB - d >= 1
     // prefer the direction of the original question (retry), else a random one that fits
-    const prefer = ctx?.retryOf?.dir ?? (Math.random() < 0.5 ? 1 : -1)
-    const dir: 1 | -1 = fits(prefer) ? prefer : (prefer === 1 ? -1 : 1)
-    const step = tier.id === 'sprong' && fits(dir * 2) ? 2 : 1
+    const twoSteps = tier.id === 'rij' || tier.id === 'sprong' || tier.id === 'sprong-kaal'
+    const reach = twoSteps ? 2 : 1
+    const prev = ctx?.retryOf?.dir
+    const prefer = prev ?? (Math.random() < 0.5 ? 1 : -1)
+    // a fresh question takes a direction with room for its steps; a retry keeps its own
+    const dir: 1 | -1 = prev !== undefined
+      ? (fits(prev) ? prev : (prev === 1 ? -1 : 1))
+      : fits(prefer * reach) ? prefer : fits(-prefer * reach) ? (prefer === 1 ? -1 : 1) : fits(prefer) ? prefer : (prefer === 1 ? -1 : 1)
+    const step = twoSteps && fits(dir * 2) ? 2 : 1
     const d = dir * step
     const max = numeralRangeMax(operandA + operandB) as 5 | 10
     return {

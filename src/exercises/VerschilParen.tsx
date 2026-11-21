@@ -22,13 +22,20 @@ import { equationText } from './opDisplay'
 // the − sum that belongs to it although nothing leaves.
 //
 // Each owner is a colour: a row of that colour and a chip of that colour in
-// the question, so the question can be read without names.
+// the question, so the question can be read without names. The numbers of the
+// sum carry the same colours (colour rule): the larger number is the larger
+// group's colour, the smaller the smaller's.
+//
+// At the top tier (getallen) the sum is not shown until the answer is in: two
+// numbers and the question in words — a sanctioned exception to the visible
+// equation, as for rekenverhaal: deciding that "hoeveel meer" is a − is the
+// point. The tier below and the retry show the sum.
 
 const TIERS: ExerciseTier[] = [
   { id: 'paren',    minScore: 0,  label: 'paren maken',  description: 'The two rows stand under each other; the pairs link one by one and dim, the ones without a partner stand out, and the − sum forms meanwhile. Choice — the options include both groups and their total.' },
   { id: 'naast',    minScore: 30, label: 'naast elkaar', description: 'The rows are aligned but nothing is paired for the child. Number strip.' },
   { id: 'schuin',   minScore: 55, label: 'niet gelijk',  description: 'The rows are no longer aligned (different spacing), so the difference cannot be read off the overhang — the numbers have to do it.' },
-  { id: 'getallen', minScore: 75, label: 'enkel getallen', description: 'Two owners with a number each, no groups.' },
+  { id: 'getallen', minScore: 75, label: 'enkel getallen', description: 'Two owners with a number each, no groups and no sum: the question in words decides that it is a −. The sum appears with the answer.' },
 ]
 
 type Variant = 'meer' | 'minder' | 'gelijk'
@@ -56,6 +63,8 @@ function VerschilParenComponent({ question, onResolve, disabled, scene }: Exerci
   const paren = tier === 'paren' || (retry && tier !== 'getallen' && tier !== 'schuin')
   const schuin = tier === 'schuin'
   const getallen = tier === 'getallen'
+  // the top tier without the sum (never on a retry: the retry is one tier down)
+  const bareTop = getallen && !retry
   const useChoice = tier === 'paren'
 
   const [picked, setPicked] = useState<number | null>(null)
@@ -116,7 +125,7 @@ function VerschilParenComponent({ question, onResolve, disabled, scene }: Exerci
   const numberTile = (n: number, color: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       {chip(color, 28)}
-      <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 40, color: ink, lineHeight: 1 }}>{n}</span>
+      <span style={{ fontFamily: 'Fredoka One, cursive', fontSize: 40, color, lineHeight: 1, WebkitTextStroke: `1px ${ink}` }}>{n}</span>
     </div>
   )
 
@@ -141,8 +150,18 @@ function VerschilParenComponent({ question, onResolve, disabled, scene }: Exerci
 
         {/* The − sum that belongs to the comparison: the larger group, minus the
             ones that have a partner. */}
-        <Equation x={big} sign="-" y={small} res={answer} hole="res" solved={solved}
-          shown={!rowsShown ? 0 : complete ? 3 : paren ? (pairs > 0 ? 2 : 1) : 1} size={36} tokens={tokens} />
+        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+          <Equation x={big} sign="-" y={small} res={answer} hole="res" solved={solved}
+            colors={{ x: meta.colorA, y: meta.colorB }}
+            shown={bareTop ? (solved ? 3 : 0) : !rowsShown ? 0 : complete ? 3 : paren ? (pairs > 0 ? 2 : 1) : 1} size={36} tokens={tokens} />
+          {bareTop && (
+            <div aria-hidden style={{
+              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Fredoka One, cursive', fontSize: 40, color: `${ink}40`,
+              opacity: solved || !complete ? 0 : 1, transition: 'opacity .3s', pointerEvents: 'none',
+            }}>?</div>
+          )}
+        </div>
       </ExerciseStage>
 
       {useChoice
@@ -164,7 +183,7 @@ const VerschilParen: ExerciseDefinition<VerschilParenMeta> = {
       'Adds the two groups: both are on screen, and "meer" sounds like erbij.',
       'At the aligned tiers the answer is the overhang, readable without thinking — the intended support, removed at schuin.',
     ],
-    progression: 'paren: the pairing is shown and the sum forms with it. naast (30): aligned rows, nothing paired. schuin (55): the rows have different spacing, so the eye is no help. getallen (75): two numbers. The question varies — meer, minder, and from schuin on "hoeveel moet … nog krijgen" (evenveel maken). Equal groups give 0: everyone has a partner. A retry of the row tiers shows the pairing.',
+    progression: 'paren: the pairing is shown and the sum forms with it. naast (30): aligned rows, nothing paired. schuin (55): the rows have different spacing, so the eye is no help. getallen (75): two numbers and the question, no sum — the sum appears with the answer. The question varies — meer, minder, and from schuin on "hoeveel moet … nog krijgen" (evenveel maken). Equal groups give 0: everyone has a partner. A retry of the row tiers shows the pairing.',
   },
   // Retry: the same question (meer / minder / gelijk), the same owners and order.
   retryStable: ['variant', 'largerTop', 'colorA', 'colorB'],

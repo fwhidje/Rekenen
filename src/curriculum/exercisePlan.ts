@@ -87,10 +87,12 @@ export const EXERCISE_PLAN: Record<string, string> = {
     'Built, gated (Nov 2026). The picture first, the notations from the middle, the neighbour ' +
     'step and speed at the top — the herken → noteren arc of tot 5 inside one skill, in the ' +
     '5-structure throughout. splits-beeld owns the entry (45 → 6): the whole on 5-rows in two ' +
-    'colours, then one part under a cover, then the picture only for a moment. splitshuisje ' +
+    'colours, then the asked part fading away (back with the answer), then the picture only ' +
+    'for a moment. splitshuisje ' +
     'joins at 10 and carries the middle; splits-ontbreken-rechts and splitsbenen follow from ' +
     '25–30. splits-buren (from 20, peak 20 at 50) is the new idea: a split derived from its ' +
-    'neighbour, one part down and the other up — the way back that is not counting. Post-60: ' +
+    'neighbour, one part down and the other up — the way back that is not counting; from 55 ' +
+    'three rows of the table, then two steps at once (with the bead rod at 70, bare at 90). Post-60: ' +
     'ontbreken-links, splits-vrij, and snel-weten (one tap, time-aware) ramping to the largest ' +
     'share. Not here: the dice exercises of tot 5 (dice stop at 6) and splits-alle (the table ' +
     'of 8 or 9 does not fit the screen). Weights are initial guesses pending playtesting.',
@@ -100,7 +102,7 @@ export const EXERCISE_PLAN: Record<string, string> = {
   'tienvrienden':
     'Built, gated (Nov 2026). The picture first, then every form, then mostly speed. maak-tien ' +
     'owns the entry (45 → 8): a full ten with some places taken — on a tienveld the empty ' +
-    'places ARE the partner, on two hands the fingers that are down; it flashes from 30 and is ' +
+    'places ARE the partner, on a bead rod of ten the beads after the gap; it flashes from 30 and is ' +
     'only a confirmation from 55. tien-paren (from 10) asks for the pair from either side, ' +
     'with two cards that belong to nobody from 60. The forms come in through the middle: the ' +
     'house of 10, "10 is 7 en ?" (splits-ontbreken-rechts) and "7 + ? = 10" (puntoefening). ' +

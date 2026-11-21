@@ -3,7 +3,7 @@ import { registerExercise } from './registry'
 import type { ExerciseDefinition, ExerciseComponentProps, ExerciseTier, ExerciseQuestion } from './types'
 import { pickTier } from './tiers'
 import { NATURE_TOKENS } from '../presentation/tokens'
-import { makeSumOptions, numeralRangeMax } from './choiceOptions'
+import { makeSumOptions } from './choiceOptions'
 import { ChoiceButtons } from '../ui/components/ChoiceButtons'
 import { NumberStrip } from '../ui/components/NumberStrip'
 import { Equation, eqText } from '../presentation/components/Equation'
@@ -11,6 +11,7 @@ import type { EqHole, EqSign } from '../presentation/components/Equation'
 import { ExerciseTitle, ExerciseStage } from '../presentation/components/ExerciseFrame'
 import { useReveal } from '../presentation/useReveal'
 import { useClosure } from '../presentation/useClosure'
+import { skillRange } from '../curriculum/skills'
 
 // ─── numberline-gap ───────────────────────────────────────────────────────────
 // Two marks on the number line and the jump between them: how far is it from
@@ -23,11 +24,23 @@ import { useClosure } from '../presentation/useClosure'
 //
 // The jump is drawn as ONE bow. Hops would invite counting the marks, and
 // counting marks instead of steps is the classic one-too-many.
+//
+// Built step by step (playtest, Nov 2026): the bare line, then each number of
+// the sum together with its mark (the mark pulses once as it appears), then the
+// rest of the sum, then the bow. Colour rule: the smaller number and its mark
+// share one colour, the larger number and its mark the other.
+//
+// At the top tier (kale-lijn) the sum is not shown until the answer is in: the
+// two marks are labelled on the line and the question is in words — a
+// sanctioned exception to the visible equation, as for rekenverhaal: finding
+// that a distance is a − (or a missing part) is the point. The tier below and
+// the retry show the sum. A difference of 0 is not served: two marks on one
+// cell are no distance.
 
 const TIERS: ExerciseTier[] = [
   { id: 'sprong-zien', minScore: 0,  label: 'sprong zien', description: 'The bow from the one mark to the other is drawn, with small steps under it. Choice.' },
   { id: 'sprong-kaal', minScore: 40, label: 'geen sprong', description: 'The two marks only; the bow appears with the answer. Number strip.' },
-  { id: 'kale-lijn',   minScore: 70, label: 'kale lijn',   description: 'Only the ends of the line are labelled: the distance comes from the two numbers in the sum.' },
+  { id: 'kale-lijn',   minScore: 70, label: 'kale lijn',   description: 'No sum: only 0, the end and the two marks are labelled; the question in words. The sum and the bow appear with the answer.' },
 ]
 
 type Variant = 'aanvullen' | 'verschil'
@@ -58,19 +71,30 @@ function NumberlineGapComponent({ question, onResolve, disabled, scene }: Exerci
   const tokens = scene?.tokens ?? NATURE_TOKENS
   const { ink } = tokens
   const { from, to, gap, eq, hole } = view(question)
-  const range = numeralRangeMax(to)
+  const range = skillRange(question.skillId, to)
   const cells = range + 1
   const retry = !!question.isRetry
   const drawBow = meta.tierId === 'sprong-zien' || retry
   const sparse = meta.tierId === 'kale-lijn' && !retry
+  // the top tier: no sum until the answer is in
+  const bareTop = sparse
   const useChoice = meta.tierId === 'sprong-zien'
 
   const [picked, setPicked] = useState<number | null>(null)
   useEffect(() => { setPicked(null) }, [question])
   const { solved, answered, resolve } = useClosure(question, onResolve)
-  // [sum] → [line with its two marks] → [bow]
-  const { step, complete, replay } = useReveal([350, 500, 600], question)
-  const bowShown = (drawBow && step >= 3) || solved
+  // [bare line] → [first number + its mark] → [the sign and second number]
+  // → ["= …"] → [bow, at sprong-zien]. The larger mark comes with the number
+  // that names it: "5" of "5 − 2", or "= 5" of "2 + ? = 5".
+  const delays = drawBow ? [300, 650, 700, 650, 550] : [300, 650, 700, 650]
+  const { step, complete, replay } = useReveal(delays, question)
+  const eqShown = Math.max(0, Math.min(step - 1, 3))
+  const minus = eq.sign === '-'
+  const fromShown = minus ? eqShown >= 2 : eqShown >= 1
+  const toShown = minus ? eqShown >= 1 : eqShown >= 3
+  const bowShown = (drawBow && step >= 5) || solved
+  const colFrom = tokens.dot, colTo = tokens.pop
+  const eqColors = minus ? { x: colTo, y: colFrom } : { x: colFrom, res: colTo }
 
   const pick = (v: number) => {
     if (disabled || answered || !complete) return
@@ -85,12 +109,23 @@ function NumberlineGapComponent({ question, onResolve, disabled, scene }: Exerci
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
+      <style>{`@keyframes nlgap-mark { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }`}</style>
       <ExerciseTitle tokens={tokens}>{meta.variant === 'verschil' ? 'Hoe ver uit elkaar?' : 'Hoe groot is de sprong?'}</ExerciseTitle>
 
       <ExerciseStage tokens={tokens} replay={{ show: complete && !answered && !disabled, onClick: replay }} style={{ width: '100%', maxWidth: 380, boxSizing: 'border-box', padding: '14px 16px', gap: 8 }}>
-        <Equation {...eq} hole={hole} solved={solved} shown={step >= 1 ? 3 : 0} size={38} tokens={tokens} />
+        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+          <Equation {...eq} hole={hole} solved={solved} colors={eqColors}
+            shown={bareTop ? (solved ? 3 : 0) : eqShown} size={38} tokens={tokens} />
+          {bareTop && (
+            <div aria-hidden style={{
+              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Fredoka One, cursive', fontSize: 40, color: `${ink}40`,
+              opacity: solved || !complete ? 0 : 1, transition: 'opacity .3s', pointerEvents: 'none',
+            }}>?</div>
+          )}
+        </div>
 
-        <div style={{ width: '100%', maxWidth: cells * MAX_CELL + (cells - 1) * CELL_GAP, opacity: step >= 2 ? 1 : 0, transition: 'opacity .4s' }}>
+        <div style={{ width: '100%', maxWidth: cells * MAX_CELL + (cells - 1) * CELL_GAP, opacity: step >= 1 ? 1 : 0, transition: 'opacity .4s' }}>
           {/* The jump: one bow, its size in the middle. Space reserved always. */}
           <div style={{ position: 'relative', height: BOW_H + 4 }}>
             <svg viewBox={`0 0 ${cells} ${BOW_H}`} preserveAspectRatio="none" width="100%" height={BOW_H}
@@ -110,15 +145,19 @@ function NumberlineGapComponent({ question, onResolve, disabled, scene }: Exerci
 
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cells}, 1fr)`, gap: CELL_GAP }}>
             {Array.from({ length: cells }, (_, i) => {
-              const isFrom = i === from
-              const isTo = i === to
-              const showLabel = !sparse || i === 0 || i === range
+              const isFrom = i === from && fromShown
+              const isTo = i === to && toShown
+              const marked = i === from || i === to
+              const showLabel = !sparse || i === 0 || i === range || marked
               return (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <div style={{
                     width: '100%', aspectRatio: '1', boxSizing: 'border-box', borderRadius: range <= 5 ? 10 : 7,
-                    background: isFrom ? tokens.dot : isTo ? tokens.pop : tokens.paper,
+                    background: isFrom ? colFrom : isTo ? colTo : tokens.paper,
                     border: isFrom || isTo ? `2.5px solid ${ink}` : `2px solid ${tokens.paperMid}`,
+                    transition: 'background .3s, border-color .3s',
+                    // a mark pulses once as it appears
+                    animation: isFrom || isTo ? 'nlgap-mark .6s ease-out' : 'none',
                   }} />
                   <span style={{
                     fontFamily: 'Fredoka One, cursive', fontSize: range <= 5 ? 18 : 13, lineHeight: 1,
@@ -150,15 +189,17 @@ const NumberlineGap: ExerciseDefinition<NumberlineGapMeta> = {
       'Answers where the jump lands (the larger number) instead of how big it is.',
       'It invites counting up by ones. That is a legitimate strategy but not the goal, which is why the weight stays modest.',
     ],
-    progression: 'sprong-zien: the bow is drawn, small steps under it. sprong-kaal (40): only the two marks; the bow comes with the answer. kale-lijn (70): only the ends are labelled. A retry draws the bow.',
+    progression: 'The sum is built with the line: each number appears with its mark. sprong-zien: the bow is drawn, small steps under it. sprong-kaal (40): only the two marks; the bow comes with the answer. kale-lijn (70): no sum — the marks are labelled on the line, the question is in words; the sum comes with the answer. A retry draws the bow and shows the sum.',
   },
   retryStable: ['variant'],
+  // a difference of 0 is no distance
+  isCompatible: (a, b, problem) => (problem?.op === '-' ? a - b > 0 : b > 0),
   correctStatement: q => { const v = view(q); return eqText(v.eq.x, v.eq.sign, v.eq.y, v.eq.res) },
-  generateMeta(operandA, operandB, score, problem) {
+  generateMeta(operandA, operandB, score, problem, ctx) {
     const tier = pickTier(TIERS, score)
     const minus = problem?.op === '-'
     const v = view({ op: minus ? '-' : 'split', operandA, operandB })
-    const max = numeralRangeMax(v.to) as 5 | 10
+    const max = skillRange(ctx?.skillId ?? '', v.to)
     return {
       variant: minus ? 'verschil' : 'aanvullen',
       // where the jump lands, where it starts, and one off
