@@ -30,6 +30,8 @@ function ChoiceComponent({ question, onResolve, disabled, scene }: ExerciseCompo
   const glyph = opGlyph(op)
   const glyphColor = opColor(op, tokens)
   const { solved, answered, resolve } = useClosure(question, onResolve)
+  // In the dubbels skill a dubbel is a row and its mirror image — only there.
+  const mirror = question.skillId === 'dubbels-tot-10' && op === '+' && operandA === operandB && operandA > 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -42,7 +44,14 @@ function ChoiceComponent({ question, onResolve, disabled, scene }: ExerciseCompo
             the removed part crossed out (the wegnemen after-image). */}
         {meta.showVisual && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center' }}>
-            {op === '-' ? (
+            {mirror ? (
+              // dubbels-tot-10 only: a row and its mirror image (as in dubbel-spiegel)
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                <DotGroup n={operandA} color={meta.colorA} />
+                <div style={{ alignSelf: 'stretch', height: 0, borderTop: `2px dashed ${tokens.ink}66` }} />
+                <DotGroup n={operandB} color={meta.colorA} />
+              </div>
+            ) : op === '-' ? (
               <DotGroup n={operandA} color={meta.colorA} crossed={operandB} />
             ) : (
               <>

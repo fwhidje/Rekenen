@@ -110,9 +110,14 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
   }
 
   // The picture's box is sized for the picture; the cover lies over it.
-  const cols = minus ? Math.min(operandA, 5) : Math.min(Math.max(operandA, 1), 5) + Math.min(Math.max(operandB, 1), 5)
+  // In the dubbels skill a dubbel is drawn as a row and its mirror image (as in
+  // dubbel-spiegel), one under the other — only there (playtest, Nov 2026).
+  const mirror = question.skillId === 'dubbels-tot-10' && !minus && operandA === operandB && operandA > 0
+  const cols = mirror ? Math.min(operandA, 5) : minus ? Math.min(operandA, 5) : Math.min(Math.max(operandA, 1), 5) + Math.min(Math.max(operandB, 1), 5)
   const size = dotSize(cols)
-  const rowH = fiveRowSize(Math.max(operandA, operandB, 1), size.item, size.gap).height
+  const rowH = mirror
+    ? 2 * fiveRowSize(operandA, size.item, size.gap).height + 12
+    : fiveRowSize(Math.max(operandA, operandB, 1), size.item, size.gap).height
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
@@ -131,7 +136,13 @@ function FlitsSomComponent({ question, onResolve, disabled, scene }: ExerciseCom
 
         {/* The picture, and the cover that lies over it most of the time */}
         <div style={{ position: 'relative', padding: '10px 14px', minHeight: rowH, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          {minus ? (
+          {mirror ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+              <Group n={operandA} color={meta.colorA} ink={ink} {...size} />
+              <div style={{ alignSelf: 'stretch', height: 0, borderTop: `2px dashed ${ink}66` }} />
+              <Group n={operandB} color={meta.colorA} ink={ink} {...size} />
+            </div>
+          ) : minus ? (
             <Group n={operandA} color={meta.colorA} crossed={operandB} ink={ink} {...size} />
           ) : (
             <>
