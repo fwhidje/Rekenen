@@ -66,26 +66,26 @@ A skill marked `disabled: true` in `skills.ts` is hidden from rotation **and** n
 
 ### Currently active
 
-- `getalbegrip-5`
-- `getalbegrip-10`
-- `splitsen-herken-5`
-- `+1-2-tot-5` (lifted June 2026 — its downstream `optellen-tot-5` chain is re-gated below until each gets its own tuning round, so the playtest stays scoped)
-- `-1-2-tot-5` (lifted June 2026 — its downstream `aftrekken-wegnemen-5` chain is re-gated below until each gets its own tuning round)
-- `splitsen-noteren-5` (lifted June 2026 — parallel notation track, gates nothing downstream in v2)
+Every built skill is reachable (Nov 2026: the gates on `splitsen-6-7`, `splitsen-8-9`, `tienvrienden`, `optellen-tot-5` and `aftrekken-wegnemen-5` were lifted together). A skill still opens only when its prerequisites reach 60, so the new ones arrive one by one. None of the skills below had been played by a child when its gate was lifted, and every weight is a first guess — the ⚑ review flag and the inspector are the way to catch what goes wrong.
 
-### Currently gated (9 flagged skills)
+- `getalbegrip-5`, `getalbegrip-10`, `splitsen-herken-5`, `splitsen-noteren-5`
+- `+1-2-tot-5`, `-1-2-tot-5` (lifted June 2026)
+- `splitsen-6-7`, `splitsen-8-9`, `tienvrienden` (lifted Nov 2026)
+- `optellen-tot-5` → `+1-2-tot-10` → `+3-4-tot-10`, `dubbels-tot-10` (lifted Nov 2026)
+- `aftrekken-wegnemen-5` → `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10` → `-3-4-tot-10` (lifted Nov 2026)
+
+### Currently gated (5 flagged skills) — none of them is built
 
 | Skill id | Gates | Lift when |
 |---|---|---|
-| `optellen-tot-5` | `+1-2-tot-10`, `+3-4-tot-10` downstream | built — lift after a DebugMode play-through by Filip. **Lifting it opens `+1-2-tot-10`** and behind it `+3-4-tot-10` and `dubbels-tot-10` (built, never played by a child): give those their own flag first, or play them through |
-| `aftrekken-wegnemen-5` | `aftrekken-verschil-5`, `getalfamilie-5`, `-1-2-tot-10`, `-3-4-tot-10` downstream (verschil-5 and getalfamilie-5 are built and carry no flag of their own — lifting this one opens them) | built — lift after a DebugMode play-through by Filip; needs `optellen-tot-5` lifted too |
-| `aftrekken-verschil-10`, `getalfamilie-10` | flagged themselves: no weight table, didactics `TODO` | their own tuning round |
-| `splitsen-6-7`, `splitsen-8-9` | `tienvrienden` (from 6–7), `optellen-tot-10`, `aftrekken-wegnemen-10` (both bands) downstream | built — lift after a DebugMode play-through by Filip |
-| `tienvrienden` | nothing downstream | built — lift after a play-through, once `splitsen-6-7` is live |
-| `optellen-tot-10` | `helften-tot-10` | optellen-tot-10 verified end-to-end |
-| `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `aftrekken-aanvullen-10` | aftrekken-10 verified |
+| `optellen-tot-10` | `helften-tot-10` (which carries its own flag) | its own round: didactics, exercises (`rekenrek-add` is not built), weight table |
+| `helften-tot-10` | nothing | its own round: didactics `TODO`, `splits-helft` not built. Flagged itself (Nov 2026) so lifting `optellen-tot-10` cannot open it |
+| `aftrekken-wegnemen-10` | `aftrekken-verschil-10`, `getalfamilie-10` (both flagged themselves) | its own round: didactics `TODO`, weight table |
+| `aftrekken-verschil-10`, `getalfamilie-10` | nothing | their own round: no weight table, didactics `TODO` |
 
-To open up the next branch: remove `disabled: true` from one of the rows above. Downstream stays gated until *its* root is also lifted (the cascade is automatic).
+A tripwire (`curriculum/validate.test.ts`, *reachable skills are playable*) fails when a reachable skill has `TODO` didactics, or a score band where no registered, weighted exercise can show what its generator draws — so a gate lifted too early fails `npm test` instead of reaching the child.
+
+To open up the next branch: remove `disabled: true` from one of the rows above, after its round. Downstream stays gated until *its* root is also lifted (the cascade is automatic); a newly built skill behind it gets its own flag first.
 
 ---
 
@@ -133,21 +133,21 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 | `getalbegrip-10` | ✅ all 12 live (same set; 6–10 via the 5-anchor, generator serves 6–10 at 70%) | ✅ tuned — diverged from -5 with a flat 5-structure lean |
 | `splitsen-herken-5` | ✅ all 7 live and fallible (playtest round done: frame redesigned, build-it confirm step, shuffle rebuilt, match koppelen tier); `rekenrek-decompose` parked for tot-10 | 🟡 rebalanced after playtest — still initial guesses |
 | `splitsen-noteren-5` | ✅ all 6 live, gate lifted (splitshuisje production, splitsbenen, ontbreken-rechts is-en→vergelijking, ontbreken-links post-60, vrij + nog-een variety round, alle table; unsplit-roof invariant everywhere) | 🟡 initial guesses |
-| `splitsen-6-7`, `splitsen-8-9` *(replace `splitsen-tot-10`)* | ✅ all 8 live (Nov 2026): `splits-beeld` and `splits-buren` new, `splitshuisje` / `splitsbenen` / `splits-ontbreken-*` / `splits-vrij` checked at 6–9 in a browser, `snel-weten`. Not used: the dice exercises and `splits-alle` (table too tall). **Still gated** — not playtested by a child | 🟡 initial guesses, one curve for both |
-| `tienvrienden` | ✅ all 7 live (Nov 2026): `maak-tien`, `tien-paren` new; `splitshuisje`, `splits-ontbreken-*`, `puntoefening` checked at total 10; `snel-weten`. **Still gated** | 🟡 initial guesses |
+| `splitsen-6-7`, `splitsen-8-9` *(replace `splitsen-tot-10`)* | ✅ all 8 live (Nov 2026): `splits-beeld` and `splits-buren` new, `splitshuisje` / `splitsbenen` / `splits-ontbreken-*` / `splits-vrij` checked at 6–9 in a browser, `snel-weten`. Not used: the dice exercises and `splits-alle` (table too tall). Gate lifted Nov 2026 — not playtested by a child yet | 🟡 initial guesses, one curve for both |
+| `tienvrienden` | ✅ all 7 live (Nov 2026): `maak-tien`, `tien-paren` new; `splitshuisje`, `splits-ontbreken-*`, `puntoefening` checked at total 10; `snel-weten`. Gate lifted Nov 2026 — not playtested by a child yet | 🟡 initial guesses |
 | `+1-2-tot-5` | ✅ all 9 live, gate lifted (erbij-tap single tier, fill-vis picture-and-sum in step, doosje count-on, numberline 3 tiers, tf strikt traps, op-generic symbolic trio, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 after a play-through review | 🟡 initial guesses |
-| `optellen-tot-5` | ✅ all 9 live (Nov 2026): `huisje-som`, `flits-som`, `snel-weten` new, zero terms in the generator (about 15% of the draws), `fill-vis` / `splits-som-match` / `rekenverhaal` skip zero terms. **Still gated** — not playtested by a child; lift the flag after a DebugMode play-through | 🟡 initial guesses |
-| `+1-2-tot-10` | ✅ all 9 live (Nov 2026): number line leads (the tot-10 line reworked: one bow for the jump, the landing answered on the number strip), `doosje`, `flits-som`, `huisje-som`, `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; no action exercises; generator with a 30% refresh share of the tot-5 sums and post-60 turn-arounds. Checked in a browser at 6–10. **Still gated** through `optellen-tot-5` — not playtested by a child | 🟡 initial guesses |
-| `+3-4-tot-10` | ✅ all 9 live (Nov 2026): `huisje-som` leads, `buur-som` new (the derived-fact route; `som-in-stappen` dropped — no two steps through the five), `flits-som`, `doosje`, `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; `numberline-jump` added after the playtest (Nov 2026) as a picture, not a count — the jump of 3 or 4 is one bow, 5 and 10 drawn stronger; generator with a small refresh share and post-60 turn-arounds. Checked in a browser at these numbers. **Still gated** through `optellen-tot-5` — not playtested by a child | 🟡 initial guesses |
+| `optellen-tot-5` | ✅ all 9 live (Nov 2026): `huisje-som`, `flits-som`, `snel-weten` new, zero terms in the generator (about 15% of the draws), `fill-vis` / `splits-som-match` / `rekenverhaal` skip zero terms. Gate lifted Nov 2026 — not playtested by a child yet | 🟡 initial guesses |
+| `+1-2-tot-10` | ✅ all 9 live (Nov 2026): number line leads (the tot-10 line reworked: one bow for the jump, the landing answered on the number strip), `doosje`, `flits-som`, `huisje-som`, `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; no action exercises; generator with a 30% refresh share of the tot-5 sums and post-60 turn-arounds. Checked in a browser at 6–10. Reachable since the gates were lifted (Nov 2026) — not playtested by a child yet | 🟡 initial guesses |
+| `+3-4-tot-10` | ✅ all 9 live (Nov 2026): `huisje-som` leads, `buur-som` new (the derived-fact route; `som-in-stappen` dropped — no two steps through the five), `flits-som`, `doosje`, `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; `numberline-jump` added after the playtest (Nov 2026) as a picture, not a count — the jump of 3 or 4 is one bow, 5 and 10 drawn stronger; generator with a small refresh share and post-60 turn-arounds. Checked in a browser at these numbers. Reachable since the gates were lifted (Nov 2026) — not playtested by a child yet | 🟡 initial guesses |
 | `optellen-tot-10` | 🔲 own tuning round pending; didactics still `TODO` | 🔲 |
 | `-1-2-tot-5` | ✅ all 10 live, gate lifted (wegneem-tap, wegnemen-crossed-out, jump-back twin, doosje count-back, fill-vis − grammar, tf reversal traps, post-60 width pair splits-som-match + rekenverhaal) — reworked Nov 2026 | 🟡 initial guesses |
-| `aftrekken-wegnemen-5` | 🟡 9 of 10 live (Nov 2026): `omkeer-som` built (`teken-kiezen` moved to getalfamilie after the playtest — in a − skill the sign is always −), `huisje-som` / `flits-som` shared with optellen; a − 0 and a − a in the generator (about 15% together); `snel-weten`. **Still gated** — not playtested by a child | 🟡 initial guesses |
-| `aftrekken-verschil-5` | ✅ all 3 live (Nov 2026): `verschil-paren`, `numberline-gap`, `rekenverhaal` (verschil story); `teken-kiezen` moved to getalfamilie (playtest). Problems carry `form: 'verschil'`; a difference of 0 is kept but made rarer. Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
-| `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | ✅ all 7 live (Nov 2026): `puntoefening`, `familie-sommen` (two of its three designed tiers), `numberline-gap`, `splits-ontbreken-rechts`, `teken-kiezen` (its only home since the playtest: + or −, the − half as wegnemen or verschil), `rekenverhaal` (aanvullen / deel-geheel stories), `snel-weten` (asks any view of the family). Gated through `aftrekken-wegnemen-5` | 🟡 initial guesses |
-| `-1-2-tot-10` | ✅ all 11 live (Nov 2026): number line back leads (the reworked tot-10 line), `doosje`, `flits-som`, `huisje-som`, `wegnemen-crossed-out`, `omkeer-som`, `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; generator with a 30% refresh share. **Still gated** through `aftrekken-wegnemen-5` — not playtested by a child | 🟡 initial guesses |
-| `-3-4-tot-10` | ✅ all 10 live (Nov 2026): `huisje-som` leads, `omkeer-som` early, `flits-som`, `wegnemen-crossed-out`, `numberline-jump-back` (added after the playtest: one bow back), `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; no doosje; `teken-kiezen` moved to getalfamilie. Checked in a browser. **Still gated** through `aftrekken-wegnemen-5` — not playtested by a child | 🟡 initial guesses |
+| `aftrekken-wegnemen-5` | 🟡 9 of 10 live (Nov 2026): `omkeer-som` built (`teken-kiezen` moved to getalfamilie after the playtest — in a − skill the sign is always −), `huisje-som` / `flits-som` shared with optellen; a − 0 and a − a in the generator (about 15% together); `snel-weten`. Gate lifted Nov 2026 — not playtested by a child yet | 🟡 initial guesses |
+| `aftrekken-verschil-5` | ✅ all 3 live (Nov 2026): `verschil-paren`, `numberline-gap`, `rekenverhaal` (verschil story); `teken-kiezen` moved to getalfamilie (playtest). Problems carry `form: 'verschil'`; a difference of 0 is kept but made rarer. Reachable since Nov 2026 (behind `aftrekken-wegnemen-5`) — not playtested by a child yet | 🟡 initial guesses |
+| `getalfamilie-5` *(was `aftrekken-aanvullen-5`)* | ✅ all 7 live (Nov 2026): `puntoefening`, `familie-sommen` (two of its three designed tiers), `numberline-gap`, `splits-ontbreken-rechts`, `teken-kiezen` (its only home since the playtest: + or −, the − half as wegnemen or verschil), `rekenverhaal` (aanvullen / deel-geheel stories), `snel-weten` (asks any view of the family). Reachable since Nov 2026 (behind `aftrekken-wegnemen-5`) — not playtested by a child yet | 🟡 initial guesses |
+| `-1-2-tot-10` | ✅ all 11 live (Nov 2026): number line back leads (the reworked tot-10 line), `doosje`, `flits-som`, `huisje-som`, `wegnemen-crossed-out`, `omkeer-som`, `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; generator with a 30% refresh share. Reachable since the gates were lifted (Nov 2026) — not playtested by a child yet | 🟡 initial guesses |
+| `-3-4-tot-10` | ✅ all 10 live (Nov 2026): `huisje-som` leads, `omkeer-som` early, `flits-som`, `wegnemen-crossed-out`, `numberline-jump-back` (added after the playtest: one bow back), `choice`, `tf`, `fill-plain`, `rekenverhaal`, `snel-weten`; no doosje; `teken-kiezen` moved to getalfamilie. Checked in a browser. Reachable since the gates were lifted (Nov 2026) — not playtested by a child yet | 🟡 initial guesses |
 | `aftrekken-wegnemen-10`, `aftrekken-verschil-10`, `getalfamilie-10` | 🔲 didactics still `TODO`; will reuse the new op-generic exercises | 🔲 |
-| `dubbels-tot-10` | ✅ all 7 live (Nov 2026): **moved forward — unlocks from `+1-2-tot-10`** (was `optellen-tot-10`), next to `+3-4-tot-10`. `dubbel-spiegel` new, `flits-som`, `huisje-som`, `choice`, `tf`, `fill-plain`, `snel-weten`; generator serves 3 + 3, 4 + 4, 5 + 5 twice as often as 1 + 1, 2 + 2. Checked in a browser. **Still gated** through `optellen-tot-5` — not playtested by a child | 🟡 initial guesses |
+| `dubbels-tot-10` | ✅ all 7 live (Nov 2026): **moved forward — unlocks from `+1-2-tot-10`** (was `optellen-tot-10`), next to `+3-4-tot-10`. `dubbel-spiegel` new, `flits-som`, `huisje-som`, `choice`, `tf`, `fill-plain`, `snel-weten`; generator serves 3 + 3, 4 + 4, 5 + 5 twice as often as 1 + 1, 2 + 2. Checked in a browser. Reachable since the gates were lifted (Nov 2026) — not playtested by a child yet | 🟡 initial guesses |
 | `helften-tot-10` | 🔲 still behind `optellen-tot-10`; didactics `TODO` | 🔲 |
 
 **Preliminary documentation run (Nov 2026)** for the next set — `splitsen-tot-10`, `tienvrienden`, `optellen-tot-5`, `aftrekken-wegnemen-5`, `aftrekken-verschil-5`, `aftrekken-aanvullen-5`:
@@ -160,7 +160,7 @@ Round 2 goal: every exercise type fully playable in DebugMode, weight matrix tun
 - **Graph changed in `skills.ts`**: `splitsen-tot-10` → `splitsen-6-7` + `splitsen-8-9` (unlock together); `tienvrienden` unlocks from `splitsen-6-7` and now also teaches the splits of 10; `aftrekken-aanvullen-*` → `getalfamilie-*` (a split problem; the exercise picks the view); `splitsen-herken-5` / `splitsen-noteren-5` no longer archive. All affected skills are gated, so nothing changes in play. No profile held progress in the removed ids unless set by hand.
 - **Designed, not built**: 12 new exercise types and the changes to existing ones — skill map → *Exercise design for the next set* (what each is for, how it works, tiers, pitfalls, first-guess weights, shared rules, what else must be built, a build order). The ids are reserved in `skills.ts` (`EX`) and listed in `applicableExercises`; no weight tables yet.
 - **Decided**: the time-aware exercise `snel-weten` is built in its soft form (no clock shown; slow-but-correct is not wrong and never shown as slow). A visible time limit with a longer retry can be added later as a higher tier.
-- **All seven skills are built (Nov 2026) and all are still gated**: none has been played by a child, and every weight is a first guess. Lift the gates one at a time after a DebugMode play-through.
+- **All seven skills are built (Nov 2026); their gates were lifted together later that month**: none had been played by a child, and every weight is a first guess.
 - **Still open**: the `zelf` tier of `familie-sommen` (designed, not built; `splits-buren`'s `rij` tier was built after the playtest); a "make the split yourself" exercise for 6–9; error classification for family questions (a wrong puntoefening answer is classified as a split: an echoed part is tagged `reversal`, the rest `unclassified`); the pace numbers (`engine/pace.ts`) have never met real data.
 
 ### Exercise file status
