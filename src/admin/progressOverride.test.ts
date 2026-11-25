@@ -46,13 +46,14 @@ describe('prerequisites', () => {
 
 describe('blockedBy / canOverride', () => {
   it('a disabled skill is blocked by itself', () => {
-    expect(blockedBy('optellen-tot-5')).toContain('optellen-tot-5')
-    expect(canOverride('optellen-tot-5')).toBe(false)
+    expect(blockedBy('optellen-tot-10')).toContain('optellen-tot-10')
+    expect(canOverride('optellen-tot-10')).toBe(false)
   })
 
   it('a skill behind a disabled prereq is blocked by that prereq', () => {
-    expect(blockedBy('+1-2-tot-10')).toEqual(['optellen-tot-5'])
-    expect(canOverride('+1-2-tot-10')).toBe(false)
+    // helften-tot-10 carries its own flag and sits behind optellen-tot-10's
+    expect(blockedBy('helften-tot-10')).toEqual(expect.arrayContaining(['helften-tot-10', 'optellen-tot-10']))
+    expect(canOverride('helften-tot-10')).toBe(false)
   })
 
   it('an unknown id cannot be overridden', () => {
@@ -60,7 +61,7 @@ describe('blockedBy / canOverride', () => {
   })
 
   it('refuses to plan a blocked skill', () => {
-    expect(() => planOverride(fresh(), 'optellen-tot-5', 'open', NOW)).toThrow()
+    expect(() => planOverride(fresh(), 'optellen-tot-10', 'open', NOW)).toThrow()
   })
 })
 
@@ -78,8 +79,13 @@ describe("planOverride 'open'", () => {
       expect(plan.profile.skills[id]).toMatchObject({ unlocked: true, score: 0 })
       expect(plan.changes.find(c => c.skillId === id)?.role).toBe('cascade')
     }
-    // ...but never a disabled one
-    expect(plan.profile.skills['splitsen-6-7'].unlocked).toBe(false)
+  })
+
+  it('the cascade never opens a disabled skill, even with its prereqs met', () => {
+    let p = fresh()
+    for (const id of ['+3-4-tot-10', 'splitsen-6-7', 'splitsen-8-9']) p = planOverride(p, id, 'mastered', NOW).profile
+    for (const id of ['+3-4-tot-10', 'splitsen-6-7', 'splitsen-8-9']) expect(scoreOf(p, id)).toBeGreaterThanOrEqual(60)
+    expect(p.skills['optellen-tot-10'].unlocked).toBe(false)
   })
 
   it('prereq scores are raise-only', () => {

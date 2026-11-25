@@ -265,7 +265,6 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'splitsen-6-7',
-    disabled: true,  // WIP gate — exercises not yet built
     name: 'Splitsen van 6 en 7',
     intent: 'The part-whole spine for the totals 6 and 7: every split known paraat — the fact base that sums and differences to 10 are read from (getalfamilie), and that the brug over 10 later leans on. One of two bands that unlock together (splitsen-8-9 is the other); the splits of 10 are tienvrienden.',
     // Didactics: sources in reference/flemish-curriculum/, reasoning in the
@@ -299,7 +298,6 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'splitsen-8-9',
-    disabled: true,  // WIP gate — exercises not yet built
     name: 'Splitsen van 8 en 9',
     intent: 'The part-whole spine for the totals 8 and 9: every split known paraat — the fact base that sums and differences to 10 are read from (getalfamilie), and that the brug over 10 later leans on. One of two bands that unlock together (splitsen-6-7 is the other); the splits of 10 are tienvrienden.',
     // Didactics: sources in reference/flemish-curriculum/, reasoning in the
@@ -359,7 +357,6 @@ export const SKILLS: SkillDefinition[] = [
       const partA = rnd(1, 9)
       return { op: 'split', partA, partB: 10 - partA }
     },
-    disabled: true,  // WIP gate
   },
 
   // ── Optellen ────────────────────────────────────────────────────────────────
@@ -402,7 +399,6 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'optellen-tot-5',
-    disabled: true,  // WIP gate — scoped out of the current playtest; own tuning round pending
     name: 'Optellen tot 5',
     intent: 'Any optelling within 5 (a + b ≤ 5) — the sums are no longer counted but read from the splits (getalfamilie), in either order.',
     // Didactics: see the note on splitsen-6-7.
@@ -575,6 +571,7 @@ export const SKILLS: SkillDefinition[] = [
     },
     op: 'half',
     range: 10,
+    disabled: true,  // WIP gate — didactics TODO, splits-helft not built; own flag so lifting optellen-tot-10 does not open it
     unlockedBy: ['optellen-tot-10'],
     unlocks: [],
     subsumedBy: null,
@@ -624,7 +621,6 @@ export const SKILLS: SkillDefinition[] = [
 
   {
     id: 'aftrekken-wegnemen-5',
-    disabled: true,  // WIP gate — scoped out of the current playtest; own tuning round + verschil/aanvullen exercises pending
     name: 'Aftrekken (wegnemen) tot 5',
     intent: 'Take-away meaning within 5 — "ik had 5, ik geef 3 weg, hoeveel blijft over?" — answered from the getalfamilie rather than counted back.',
     // Didactics: see the note on splitsen-6-7.
